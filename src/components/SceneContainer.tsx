@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useRef, useState, useEffect, Component, ErrorInfo, ReactNode } from "react";
+import React, { Suspense, useRef, useState, useEffect, Component, ErrorInfo, ReactNode } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
 import { ParticleLandscape } from "./ParticleLandscape";
+import { ModelParticleSystem } from "./ModelParticleSystem";
 
 // --- WebGL Error Boundary ---
 interface ErrorBoundaryProps {
@@ -149,17 +150,24 @@ export const SceneContainer: React.FC = () => {
           <ambientLight intensity={0.6} />
           <pointLight position={[10, 10, 10]} intensity={1.5} />
           
-          <ParticleLandscape />
+          {settings.sourceType === "model" ? (
+            <Suspense fallback={null}>
+              <ModelParticleSystem />
+            </Suspense>
+          ) : (
+            <ParticleLandscape />
+          )}
           
-          <CameraController />
+          {/* In model mode, always show CameraController is skipped and orbit is forced */}
+          {settings.sourceType !== "model" && <CameraController />}
 
-          {settings.cameraMode === "orbit" && (
+          {(settings.cameraMode === "orbit" || settings.sourceType === "model") && (
             <OrbitControls
               enableDamping={true}
               dampingFactor={0.05}
-              maxPolarAngle={Math.PI / 1.9}
+              maxPolarAngle={Math.PI}
               minDistance={2}
-              maxDistance={25}
+              maxDistance={40}
               makeDefault
             />
           )}
