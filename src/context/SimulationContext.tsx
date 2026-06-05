@@ -24,6 +24,8 @@ export interface SimulationSettings {
   videoUrl: string;
   videoMode: "rgbd" | "normal";
   cameraMode: "scroll" | "orbit";
+  sourceType: "video" | "model";
+  modelUrl: string;
 }
 
 const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
@@ -109,6 +111,8 @@ const defaultSettings: SimulationSettings = {
   videoUrl: "/demo_scrub.mp4",
   videoMode: "normal",
   cameraMode: "scroll",
+  sourceType: "video",
+  modelUrl: "/model.glb",
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);

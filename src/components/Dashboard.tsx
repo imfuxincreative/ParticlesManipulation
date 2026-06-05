@@ -11,7 +11,8 @@ import {
   ChevronRight, 
   ChevronLeft,
   Info,
-  Tv
+  Tv,
+  Box
 } from "lucide-react";
 
 export const Dashboard: React.FC = () => {
@@ -130,6 +131,43 @@ export const Dashboard: React.FC = () => {
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mb-1">
                 <Sliders className="w-3.5 h-3.5" />
                 <span>Particle & Noise Params</span>
+              </div>
+
+              {/* Source Type Toggle */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">Particle Source</span>
+                <div className="grid grid-cols-2 gap-1 font-mono text-[10px]">
+                  <button
+                    onClick={() => updateSetting("sourceType", "video")}
+                    className={`py-1.5 rounded border text-center cursor-pointer transition-all flex items-center justify-center gap-1 ${
+                      settings.sourceType === "video" 
+                        ? "bg-purple-950/40 border-purple-500 text-purple-300 font-semibold" 
+                        : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
+                    }`}
+                  >
+                    <Tv className="w-3 h-3" />
+                    Video
+                  </button>
+                  <button
+                    onClick={() => {
+                      updateSetting("sourceType", "model");
+                      updateSetting("cameraMode", "orbit");
+                    }}
+                    className={`py-1.5 rounded border text-center cursor-pointer transition-all flex items-center justify-center gap-1 ${
+                      settings.sourceType === "model" 
+                        ? "bg-purple-950/40 border-purple-500 text-purple-300 font-semibold" 
+                        : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
+                    }`}
+                  >
+                    <Box className="w-3 h-3" />
+                    3D Model
+                  </button>
+                </div>
+                {settings.sourceType === "model" && (
+                  <p className="text-[9px] text-slate-500 leading-normal">
+                    Loading <span className="text-purple-400 font-mono">{settings.modelUrl}</span> — Orbit controls are auto-enabled.
+                  </p>
+                )}
               </div>
 
               {/* Grid Density Selector */}
