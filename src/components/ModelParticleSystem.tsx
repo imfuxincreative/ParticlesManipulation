@@ -2,7 +2,7 @@
 
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, useScroll } from "@react-three/drei";
 import * as THREE from "three";
 import { EffectComposer } from "@react-three/postprocessing";
 import { useSimulation } from "@/context/SimulationContext";
@@ -17,12 +17,15 @@ import { Datamosh } from "@/effects/DatamoshEffect";
  * with rapid seed cycling for aggressive data-corruption style distortion.
  */
 export const ModelParticleSystem: React.FC = () => {
-  const { settings } = useSimulation();
+  const { settings, updateSetting } = useSimulation();
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const pointsRef = useRef<THREE.Points>(null);
   const boxRef = useRef<THREE.Mesh>(null);
   const boxMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
   const lineMaterialRef = useRef<THREE.LineBasicMaterial>(null);
+  const groupRef = useRef<THREE.Group>(null);
+  const scrollData = useScroll();
+  const prevCycleRef = useRef(0);
 
   // Interval scanning states
   const [isGlitchActive, setIsGlitchActive] = useState(false);
@@ -43,6 +46,7 @@ export const ModelParticleSystem: React.FC = () => {
   // ─── CPU Physics State ───
   const restPositionsRef = useRef<Float32Array>(new Float32Array(0));
   const velocitiesRef = useRef<Float32Array>(new Float32Array(0));
+  const scatterAmountsRef = useRef<Float32Array>(new Float32Array(0));
   const physicsReady = useRef(false);
   const prevPointerRef = useRef(new THREE.Vector2(-999, -999));
   const currentBoxSizeRef = useRef(new THREE.Vector3(1, 1, 1));
@@ -184,6 +188,7 @@ export const ModelParticleSystem: React.FC = () => {
       // First load or array size mismatch: initialize dynamic state
       velocitiesRef.current = new Float32Array(centeredPositions.length).fill(0);
       dynamicPositionsRef.current = new Float32Array(centeredPositions);
+      scatterAmountsRef.current = new Float32Array(centeredPositions.length / 3).fill(0);
       physicsReady.current = true;
     }
     // If physics is already ready, DO NOT overwrite dynamicPositionsRef.
@@ -248,10 +253,6 @@ export const ModelParticleSystem: React.FC = () => {
       uGlitchSeed: { value: 0.0 },
       uMouse: { value: new THREE.Vector2(-999, -999) },
       uAspect: { value: 1.0 },
-      uHoverGlowIntensity: { value: settings.hoverGlowIntensity || 8.0 },
-      uHoverGlowArea: { value: settings.hoverGlowArea || 0.3 },
-      uHoverGlowHardness: { value: settings.hoverGlowHardness || 0.1 },
-      uHoverGlowThickness: { value: settings.hoverGlowThickness || 5.0 },
     };
   }, []);
 
@@ -271,12 +272,6 @@ export const ModelParticleSystem: React.FC = () => {
     u.uTintMix.value = settings.tintMix;
     u.uOpacity.value = settings.opacity;
     u.uDensityControl.value = settings.densityControl;
-    if ('hoverGlowIntensity' in settings) {
-      u.uHoverGlowIntensity.value = settings.hoverGlowIntensity;
-      u.uHoverGlowArea.value = settings.hoverGlowArea;
-      u.uHoverGlowHardness.value = settings.hoverGlowHardness;
-      if ('hoverGlowThickness' in settings) u.uHoverGlowThickness.value = settings.hoverGlowThickness;
-    }
   }, [settings]);
 
   // ─── Autonomous Rapid-Fire Glitch Burst Scheduler ───
@@ -516,11 +511,25 @@ export const ModelParticleSystem: React.FC = () => {
         else if (posArr[iy] > hy) { posArr[iy] = hy; vel[iy] *= -0.3; }
         if (posArr[iz] < -hz) { posArr[iz] = -hz; vel[iz] *= -0.3; }
         else if (posArr[iz] > hz) { posArr[iz] = hz; vel[iz] *= -0.3; }
+
+        // ── Compute scatter displacement for glow ──
+        const dx = posArr[ix] - rest[ix];
+        const dy = posArr[iy] - rest[iy];
+        const dz = posArr[iz] - rest[iz];
+        const displacement = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        // Normalize to 0..1 range (saturate at ~2 units displacement)
+        scatterAmountsRef.current[i] = Math.min(displacement / 2.0, 1.0);
       }
 
       // Upload modified positions to GPU
       const posAttr = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute;
       posAttr.needsUpdate = true;
+
+      // Upload scatter amounts to GPU
+      const scatterAttr = pointsRef.current.geometry.attributes.aScatter as THREE.BufferAttribute;
+      if (scatterAttr) {
+        scatterAttr.needsUpdate = true;
+      }
     }
 
     // Bounding box twitching and scaling
@@ -557,6 +566,42 @@ export const ModelParticleSystem: React.FC = () => {
     if (lineMaterialRef.current) {
       lineMaterialRef.current.opacity = glitchStrengthRef.current * 0.45;
     }
+    
+    // --- Scroll Animation ---
+    if (scrollData && groupRef.current) {
+      const t = scrollData.offset; // 0..1
+      const numModels = settingsRef.current.models.length;
+      // Each scroll "page" = 1 full cycle. With pages=4 we get 4 cycles over the full scroll.
+      const totalCycles = 4;
+      const rawCycle = t * totalCycles; // 0..4 continuously
+      const currentCycle = Math.floor(rawCycle);
+      const cycleProgress = rawCycle - currentCycle; // 0..1 within current cycle
+      
+      // Detect when we cross into a new cycle -> switch model
+      if (currentCycle !== prevCycleRef.current) {
+        prevCycleRef.current = currentCycle;
+        const nextModelIndex = currentCycle % numModels;
+        if (nextModelIndex !== settingsRef.current.currentModelIndex) {
+          updateSetting('currentModelIndex', nextModelIndex);
+        }
+      }
+      
+      // Rotation: full 360° per cycle (scroll-driven) + slow constant idle rotation
+      const angle = cycleProgress * Math.PI * 2;
+      const idleRotation = elapsed * 0.15; // Slow continuous spin
+      groupRef.current.rotation.y = angle + idleRotation;
+      // Subtle tilt for cinematic feel
+      groupRef.current.rotation.x = Math.sin(angle) * 0.12;
+      
+      // Z position: start far away (-8), come close (0) at mid-cycle, go back far
+      const farDistance = -8;
+      const closeDistance = 0;
+      const zRange = farDistance - closeDistance;
+      groupRef.current.position.z = closeDistance + ((1 + Math.cos(angle)) / 2) * zRange;
+    } else if (groupRef.current) {
+      // No scroll context — just apply idle rotation
+      groupRef.current.rotation.y = elapsed * 0.15;
+    }
   });
 
   if (centeredPositions.length === 0) {
@@ -564,7 +609,7 @@ export const ModelParticleSystem: React.FC = () => {
   }
 
   return (
-    <group>
+    <group ref={groupRef}>
       {/* Postprocessing Stack */}
       <EffectComposer disableNormalPass multisampling={0}>
         <Datamosh ref={datamoshRef} strength={0} seed={0} />
@@ -573,6 +618,10 @@ export const ModelParticleSystem: React.FC = () => {
       {/* Particle cloud mesh */}
       <points ref={pointsRef}>
         <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-aScatter"
+            args={[scatterAmountsRef.current, 1]}
+          />
           <bufferAttribute
             attach="attributes-position"
             args={[dynamicPositionsRef.current, 3]}

@@ -12,10 +12,6 @@ export interface SimulationSettings {
   bgGlitchIntensity: number;
   bgGlitchInterval: number;
   bgGlitchDuration: number;
-  hoverGlowIntensity: number;
-  hoverGlowArea: number;
-  hoverGlowHardness: number;
-  hoverGlowThickness: number;
   scatterRadius: number;
   scatterStrength: number;
   noiseStrength: number;
@@ -116,10 +112,6 @@ const defaultSettings: SimulationSettings = {
   bgGlitchIntensity: 1.0,
   bgGlitchInterval: 3.0,
   bgGlitchDuration: 0.3,
-  hoverGlowIntensity: 8.0,
-  hoverGlowArea: 0.3,
-  hoverGlowHardness: 0.1,
-  hoverGlowThickness: 5.0,
   scatterRadius: 2.0,
   scatterStrength: 3.0,
   noiseStrength: 0.1, // Reduced so the footage is clearer and less warped

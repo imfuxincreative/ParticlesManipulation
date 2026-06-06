@@ -276,62 +276,6 @@ export const Dashboard: React.FC = () => {
                 />
               </div>
 
-              {/* Slider: Hover Glow Intensity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">HOVER GLOW INTENSITY</span>
-                  <span className="text-slate-300">{settings.hoverGlowIntensity?.toFixed(1) || "1.5"}x</span>
-                </div>
-                <input 
-                  type="range" min="0.0" max="15.0" step="0.5"
-                  value={settings.hoverGlowIntensity || 8.0} 
-                  onChange={(e) => updateSetting("hoverGlowIntensity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Hover Glow Area */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">HOVER GLOW AREA</span>
-                  <span className="text-slate-300">{settings.hoverGlowArea?.toFixed(2) || "0.30"}u</span>
-                </div>
-                <input 
-                  type="range" min="0.0" max="1.0" step="0.05"
-                  value={settings.hoverGlowArea || 0.3} 
-                  onChange={(e) => updateSetting("hoverGlowArea", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Hover Glow Hardness */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">HOVER GLOW HARDNESS</span>
-                  <span className="text-slate-300">{settings.hoverGlowHardness?.toFixed(2) || "0.10"}</span>
-                </div>
-                <input 
-                  type="range" min="0.0" max="1.0" step="0.05"
-                  value={settings.hoverGlowHardness || 0.1} 
-                  onChange={(e) => updateSetting("hoverGlowHardness", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Hover Glow Thickness */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">HOVER GLOW THICKNESS</span>
-                  <span className="text-slate-300">{settings.hoverGlowThickness?.toFixed(1) || "5.0"}px</span>
-                </div>
-                <input 
-                  type="range" min="0.0" max="15.0" step="0.5"
-                  value={settings.hoverGlowThickness || 5.0} 
-                  onChange={(e) => updateSetting("hoverGlowThickness", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
               {/* Slider: Scatter Radius */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">

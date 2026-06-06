@@ -61,9 +61,6 @@ export const ModelParticleShader = {
     uniform float uGlitchSeed;
     uniform vec2 uMouse;
     uniform float uAspect;
-    uniform float uHoverGlowArea;
-    uniform float uHoverGlowHardness;
-    uniform float uHoverGlowThickness;
 
     // Focus settings
     uniform float uFocusDepth;
@@ -72,12 +69,13 @@ export const ModelParticleShader = {
 
     // Color attribute (from vertex colors or computed)
     attribute vec3 aColor;
+    attribute float aScatter;
 
     varying vec3 vColor;
     varying float vDepth;
     varying float vBlur;
     varying vec2 vScreenPos;
-    varying float vGlowFactor;
+    varying float vScatter;
 
     // 2D hash for block grid randomization
     float hash2D(vec2 p, float seed) {
@@ -117,21 +115,12 @@ export const ModelParticleShader = {
       float distFromFocus = abs(cameraDist - uFocusDepth);
       vBlur = clamp((distFromFocus - uFocusRange) / max(uFocusRange, 0.1), 0.0, 1.0);
 
-      // --- Hover Glow Size Boost ---
-      // Calculate distance from particle to mouse in screen space, accounting for aspect ratio
-      vec2 distVec = (vScreenPos - uMouse) * vec2(uAspect, 1.0);
-      float mouseDist = length(distVec);
-      
-      // Calculate normalized distance (0.0 to 1.0 within the area)
-      float nDist = clamp(mouseDist / uHoverGlowArea, 0.0, 1.0);
-      
-      // Map hardness (0.0 to 1.0) to an exponential power (e.g., 6.0 to 0.2)
-      float power = mix(8.0, 0.2, uHoverGlowHardness);
-      vGlowFactor = pow(1.0 - nDist, power);
-
       // Point size
       float baseSize = clamp(uPointSize * (20.0 / max(cameraDist, 1.0)), 1.0, 12.0);
-      gl_PointSize = baseSize + (vGlowFactor * uHoverGlowThickness);
+      gl_PointSize = baseSize;
+
+      // Pass scatter to fragment
+      vScatter = aScatter;
 
       // ─── SCREEN-SPACE GLITCH (applied AFTER projection) ───
       // This stays fixed in camera/screen space regardless of model rotation.
@@ -191,13 +180,12 @@ export const ModelParticleShader = {
     uniform float uOpacity;
     uniform float uDensityControl;
     uniform float uTime;
-    uniform float uHoverGlowIntensity;
 
     varying vec3 vColor;
     varying float vDepth;
     varying float vBlur;
     varying vec2 vScreenPos;
-    varying float vGlowFactor;
+    varying float vScatter;
 
     // Simple hash for sparkle noise
     float hash(vec2 p) {
@@ -219,10 +207,33 @@ export const ModelParticleShader = {
       // Apply atmospheric haze based on blur (distance from focus)
       color = mix(color, uHazeColor, vBlur * uHazeDensity);
 
-      // --- Hover Glow ---
-      // Add intense white glow and slightly expand alpha where mouse hovers
-      color = mix(color, vec3(1.0), vGlowFactor * clamp(uHoverGlowIntensity * 0.3, 0.0, 1.0)); // Blend towards white
-      color += vec3(1.0) * vGlowFactor * uHoverGlowIntensity; // Additive brightness
+      // --- Scatter Burn Glow ---
+      // Particles displaced from rest glow like hot embers
+      if (vScatter > 0.01) {
+        // Fire gradient: base color -> deep orange -> bright orange -> yellow -> white-hot
+        vec3 emberLow = vec3(1.0, 0.2, 0.05);    // Deep red-orange
+        vec3 emberMid = vec3(1.0, 0.55, 0.1);     // Bright orange
+        vec3 emberHigh = vec3(1.0, 0.9, 0.4);     // Yellow-white
+        vec3 emberWhite = vec3(1.0, 1.0, 0.95);   // White-hot
+        
+        float s = vScatter;
+        vec3 emberColor;
+        if (s < 0.25) {
+          emberColor = mix(color, emberLow, s * 4.0);
+        } else if (s < 0.5) {
+          emberColor = mix(emberLow, emberMid, (s - 0.25) * 4.0);
+        } else if (s < 0.75) {
+          emberColor = mix(emberMid, emberHigh, (s - 0.5) * 4.0);
+        } else {
+          emberColor = mix(emberHigh, emberWhite, (s - 0.75) * 4.0);
+        }
+        
+        color = emberColor;
+        // Additive bloom for intense heat
+        color += vec3(1.0, 0.6, 0.2) * s * 1.5;
+        // Boost alpha so scattered particles really pop
+        alpha = min(1.0, alpha + s * 0.8);
+      }
 
       // Sparkle noise effect
       float sparkle = hash(gl_FragCoord.xy + uTime * 3.0);
@@ -233,9 +244,6 @@ export const ModelParticleShader = {
       float focusAlpha = mix(1.0, 1.0 - vBlur, uDensityControl);
 
       alpha *= uOpacity * focusAlpha;
-      
-      // Boost alpha for glowing particles so they stand out even if out of focus
-      alpha = min(1.0, alpha + vGlowFactor * uHoverGlowIntensity * 0.5);
 
       // Drop fully transparent particles
       if (alpha < 0.01) discard;
