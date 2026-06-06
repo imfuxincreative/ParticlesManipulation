@@ -2,7 +2,7 @@
 
 import React, { Suspense, useRef, useState, useEffect, Component, ErrorInfo, ReactNode } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, ScrollControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
 import { ModelParticleSystem } from "./ModelParticleSystem";
@@ -127,12 +127,15 @@ export const SceneContainer: React.FC = () => {
           <pointLight position={[10, 10, 10]} intensity={1.5} />
           
           <Suspense fallback={null}>
-            <ModelParticleSystem />
+            <ScrollControls pages={4} damping={0.1} infinite>
+              <ModelParticleSystem />
+            </ScrollControls>
           </Suspense>
           
           <OrbitControls
             enableDamping={true}
             dampingFactor={0.05}
+            enableZoom={false}
             maxPolarAngle={Math.PI}
             minDistance={2}
             maxDistance={40}
