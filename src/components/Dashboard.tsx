@@ -5,18 +5,14 @@ import { useSimulation, PresetType } from "@/context/SimulationContext";
 import { 
   Sliders, 
   Sparkles, 
-  Play, 
-  Pause, 
   Camera, 
   ChevronRight, 
   ChevronLeft,
-  Info,
-  Tv,
-  Box
+  Info
 } from "lucide-react";
 
 export const Dashboard: React.FC = () => {
-  const { settings, updateSetting, applyPreset, scrollPercent } = useSimulation();
+  const { settings, updateSetting, applyPreset } = useSimulation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<"presets" | "rendering" | "focus">("presets");
 
@@ -41,19 +37,6 @@ export const Dashboard: React.FC = () => {
           <p className="text-xs text-slate-500 font-mono">Model: MiDaS v3.1 BEiTL-512</p>
         </div>
 
-        {/* Scroll Progress Meter */}
-        <div className="bg-slate-950/60 backdrop-blur-md border border-white/5 rounded-xl px-5 py-3 flex items-center gap-4 font-mono text-xs">
-          <div className="flex flex-col items-end">
-            <span className="text-slate-500">SCROLL DEPTH</span>
-            <span className="font-semibold text-purple-400 text-sm">{(scrollPercent * 100).toFixed(0)}%</span>
-          </div>
-          <div className="w-24 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-75"
-              style={{ width: `${scrollPercent * 100}%` }}
-            />
-          </div>
-        </div>
       </header>
 
       {/* Main Interactive HUD Controls (Right-aligned Sidebar) */}
@@ -133,43 +116,6 @@ export const Dashboard: React.FC = () => {
                 <span>Particle & Noise Params</span>
               </div>
 
-              {/* Source Type Toggle */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">Particle Source</span>
-                <div className="grid grid-cols-2 gap-1 font-mono text-[10px]">
-                  <button
-                    onClick={() => updateSetting("sourceType", "video")}
-                    className={`py-1.5 rounded border text-center cursor-pointer transition-all flex items-center justify-center gap-1 ${
-                      settings.sourceType === "video" 
-                        ? "bg-purple-950/40 border-purple-500 text-purple-300 font-semibold" 
-                        : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
-                    }`}
-                  >
-                    <Tv className="w-3 h-3" />
-                    Video
-                  </button>
-                  <button
-                    onClick={() => {
-                      updateSetting("sourceType", "model");
-                      updateSetting("cameraMode", "orbit");
-                    }}
-                    className={`py-1.5 rounded border text-center cursor-pointer transition-all flex items-center justify-center gap-1 ${
-                      settings.sourceType === "model" 
-                        ? "bg-purple-950/40 border-purple-500 text-purple-300 font-semibold" 
-                        : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
-                    }`}
-                  >
-                    <Box className="w-3 h-3" />
-                    3D Model
-                  </button>
-                </div>
-                {settings.sourceType === "model" && (
-                  <p className="text-[9px] text-slate-500 leading-normal">
-                    Loading <span className="text-purple-400 font-mono">{settings.modelUrl}</span> — Orbit controls are auto-enabled.
-                  </p>
-                )}
-              </div>
-
               {/* Grid Density Selector */}
               <div className="flex flex-col gap-1.5">
                 <span className="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">Particle Grid Size</span>
@@ -190,43 +136,86 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Video Mapping Mode Toggle */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">Video Mapping Mode</span>
-                <div className="grid grid-cols-2 gap-1 font-mono text-[10px]">
-                  <button
-                    onClick={() => updateSetting("videoMode", "rgbd")}
-                    className={`py-1 rounded border text-center cursor-pointer transition-all ${
-                      settings.videoMode === "rgbd" 
-                        ? "bg-purple-950/40 border-purple-500 text-purple-300 font-semibold" 
-                        : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
-                    }`}
-                  >
-                    RGB-D (SBS Split)
-                  </button>
-                  <button
-                    onClick={() => updateSetting("videoMode", "normal")}
-                    className={`py-1 rounded border text-center cursor-pointer transition-all ${
-                      settings.videoMode === "normal" 
-                        ? "bg-purple-950/40 border-purple-500 text-purple-300 font-semibold" 
-                        : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
-                    }`}
-                  >
-                    Normal (Color Only)
-                  </button>
-                </div>
-              </div>
-
-              {/* Slider: Z Depth */}
+              {/* Slider: Glitch Intensity */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">Z DEPTH STRETCH</span>
-                  <span className="text-slate-300">{settings.depthScale.toFixed(1)}u</span>
+                  <span className="text-slate-500">GLITCH BURST INTENSITY</span>
+                  <span className="text-slate-300">{settings.glitchIntensity.toFixed(2)}x</span>
                 </div>
                 <input 
-                  type="range" min="1.0" max="15.0" step="0.5"
-                  value={settings.depthScale} 
-                  onChange={(e) => updateSetting("depthScale", parseFloat(e.target.value))}
+                  type="range" min="0.0" max="3.0" step="0.1"
+                  value={settings.glitchIntensity} 
+                  onChange={(e) => updateSetting("glitchIntensity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Glitch Interval */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">GLITCH INTERVAL (CALM)</span>
+                  <span className="text-slate-300">{settings.glitchInterval.toFixed(1)}s</span>
+                </div>
+                <input 
+                  type="range" min="0.5" max="8.0" step="0.5"
+                  value={settings.glitchInterval} 
+                  onChange={(e) => updateSetting("glitchInterval", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Glitch Duration */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">GLITCH BURST DURATION</span>
+                  <span className="text-slate-300">{settings.glitchDuration.toFixed(2)}s</span>
+                </div>
+                <input 
+                  type="range" min="0.1" max="1.5" step="0.1"
+                  value={settings.glitchDuration} 
+                  onChange={(e) => updateSetting("glitchDuration", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: BG Glitch Intensity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">BG GLITCH INTENSITY</span>
+                  <span className="text-slate-300">{settings.bgGlitchIntensity.toFixed(2)}x</span>
+                </div>
+                <input 
+                  type="range" min="0.0" max="5.0" step="0.1"
+                  value={settings.bgGlitchIntensity} 
+                  onChange={(e) => updateSetting("bgGlitchIntensity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: BG Glitch Interval */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">BG GLITCH INTERVAL (CALM)</span>
+                  <span className="text-slate-300">{settings.bgGlitchInterval.toFixed(1)}s</span>
+                </div>
+                <input 
+                  type="range" min="0.5" max="8.0" step="0.5"
+                  value={settings.bgGlitchInterval} 
+                  onChange={(e) => updateSetting("bgGlitchInterval", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: BG Glitch Duration */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">BG GLITCH BURST DURATION</span>
+                  <span className="text-slate-300">{settings.bgGlitchDuration.toFixed(2)}s</span>
+                </div>
+                <input 
+                  type="range" min="0.1" max="1.5" step="0.1"
+                  value={settings.bgGlitchDuration} 
+                  onChange={(e) => updateSetting("bgGlitchDuration", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
               </div>
@@ -286,6 +275,93 @@ export const Dashboard: React.FC = () => {
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
               </div>
+
+              {/* Slider: Hover Glow Intensity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">HOVER GLOW INTENSITY</span>
+                  <span className="text-slate-300">{settings.hoverGlowIntensity?.toFixed(1) || "1.5"}x</span>
+                </div>
+                <input 
+                  type="range" min="0.0" max="15.0" step="0.5"
+                  value={settings.hoverGlowIntensity || 8.0} 
+                  onChange={(e) => updateSetting("hoverGlowIntensity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Hover Glow Area */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">HOVER GLOW AREA</span>
+                  <span className="text-slate-300">{settings.hoverGlowArea?.toFixed(2) || "0.30"}u</span>
+                </div>
+                <input 
+                  type="range" min="0.0" max="1.0" step="0.05"
+                  value={settings.hoverGlowArea || 0.3} 
+                  onChange={(e) => updateSetting("hoverGlowArea", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Hover Glow Hardness */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">HOVER GLOW HARDNESS</span>
+                  <span className="text-slate-300">{settings.hoverGlowHardness?.toFixed(2) || "0.10"}</span>
+                </div>
+                <input 
+                  type="range" min="0.0" max="1.0" step="0.05"
+                  value={settings.hoverGlowHardness || 0.1} 
+                  onChange={(e) => updateSetting("hoverGlowHardness", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Hover Glow Thickness */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">HOVER GLOW THICKNESS</span>
+                  <span className="text-slate-300">{settings.hoverGlowThickness?.toFixed(1) || "5.0"}px</span>
+                </div>
+                <input 
+                  type="range" min="0.0" max="15.0" step="0.5"
+                  value={settings.hoverGlowThickness || 5.0} 
+                  onChange={(e) => updateSetting("hoverGlowThickness", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Scatter Radius */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">SCATTER RADIUS</span>
+                  <span className="text-slate-300">{settings.scatterRadius?.toFixed(1) || "2.0"}u</span>
+                </div>
+                <input 
+                  type="range" min="0.5" max="6.0" step="0.5"
+                  value={settings.scatterRadius || 2.0} 
+                  onChange={(e) => updateSetting("scatterRadius", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Scatter Strength */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">SCATTER STRENGTH</span>
+                  <span className="text-slate-300">{settings.scatterStrength?.toFixed(1) || "3.0"}u</span>
+                </div>
+                <input 
+                  type="range" min="0.0" max="10.0" step="0.5"
+                  value={settings.scatterStrength || 3.0} 
+                  onChange={(e) => updateSetting("scatterStrength", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Hover over the model to scatter particles away from your cursor. Particles stay within the bounding box and smoothly return.
+                </p>
+              </div>
             </div>
           )}
 
@@ -295,33 +371,6 @@ export const Dashboard: React.FC = () => {
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mb-1">
                 <Camera className="w-3.5 h-3.5" />
                 <span>Optics & Perspective</span>
-              </div>
-
-              {/* Toggle: Camera Mode */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">Navigation Mode</span>
-                <div className="grid grid-cols-2 gap-1">
-                  <button
-                    onClick={() => updateSetting("cameraMode", "scroll")}
-                    className={`py-1.5 rounded border text-center font-mono cursor-pointer transition-all ${
-                      settings.cameraMode === "scroll" 
-                        ? "bg-purple-950/40 border-purple-500 text-purple-300 font-semibold" 
-                        : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
-                    }`}
-                  >
-                    Scroll Path
-                  </button>
-                  <button
-                    onClick={() => updateSetting("cameraMode", "orbit")}
-                    className={`py-1.5 rounded border text-center font-mono cursor-pointer transition-all ${
-                      settings.cameraMode === "orbit" 
-                        ? "bg-purple-950/40 border-purple-500 text-purple-300 font-semibold" 
-                        : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
-                    }`}
-                  >
-                    Orbit Orbit
-                  </button>
-                </div>
               </div>
 
               {/* Slider: Focus Distance */}
@@ -394,34 +443,8 @@ export const Dashboard: React.FC = () => {
           <Info className="w-5 h-5 text-purple-400 shrink-0" />
           <div className="flex flex-col gap-1">
             <span className="font-semibold text-slate-200">Interactive Controls</span>
-            {settings.cameraMode === "scroll" ? (
-              <p>Scroll down/up to scrub the particle video playback smoothly.</p>
-            ) : (
-              <p>Drag mouse left/right/up/down to rotate camera. Scroll to zoom. You can toggle Autoplay in the lower-right controller.</p>
-            )}
+            <p>Drag mouse left/right/up/down to rotate camera. Scroll to zoom.</p>
           </div>
-        </div>
-
-        {/* Video Playback Engine Control */}
-        <div className="bg-slate-950/60 backdrop-blur-md border border-white/5 rounded-xl px-5 py-3 flex items-center gap-3">
-          <div className="flex flex-col items-start gap-0.5 mr-2">
-            <span className="text-[10px] uppercase tracking-wider font-mono text-slate-500">PLAYBACK ENGINE</span>
-            <span className="text-xs font-semibold text-slate-300">
-              {settings.isPlaying ? "Continuous Autoplay" : "Timeline Scroll Scrub"}
-            </span>
-          </div>
-
-          <button
-            onClick={() => updateSetting("isPlaying", !settings.isPlaying)}
-            className={`p-2.5 rounded-lg border cursor-pointer transition-all ${
-              settings.isPlaying 
-                ? "bg-purple-600 border-purple-500 text-white hover:bg-purple-700" 
-                : "bg-slate-900 border-white/10 text-slate-400 hover:text-slate-200 hover:border-slate-700"
-            }`}
-            title={settings.isPlaying ? "Pause autoplay (Switch to scroll scrub)" : "Start autoplay"}
-          >
-            {settings.isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-          </button>
         </div>
       </footer>
 

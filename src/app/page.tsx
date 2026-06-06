@@ -3,8 +3,8 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { SimulationProvider } from "@/context/SimulationContext";
-import { ScrollManager } from "@/components/ScrollManager";
 import { Dashboard } from "@/components/Dashboard";
+import { ModelNavigation } from "@/components/ModelNavigation";
 
 // Disable SSR for 3D R3F Canvas to prevent hydration errors and canvas initialization issues
 const SceneContainer = dynamic(
@@ -24,9 +24,9 @@ export default function Home() {
 
         {/* Dashboard HUD Controls & Text Overlay */}
         <Dashboard />
-
-        {/* Scroll Manager for Lenis smooth scroll and GSAP timeline scrubbing */}
-        <ScrollManager />
+        
+        {/* Model Switching Arrows */}
+        <ModelNavigation />
         
       </main>
     </SimulationProvider>
