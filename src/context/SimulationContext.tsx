@@ -6,7 +6,18 @@ export type PresetType = "neon" | "muted" | "volcanic" | "monochrome" | "emerald
 
 export interface SimulationSettings {
   gridSize: 128 | 192 | 256 | 384 | 512 | 768 | 1024 | 1536 | 2048;
-  depthScale: number;
+  glitchIntensity: number;
+  glitchInterval: number;
+  glitchDuration: number;
+  bgGlitchIntensity: number;
+  bgGlitchInterval: number;
+  bgGlitchDuration: number;
+  hoverGlowIntensity: number;
+  hoverGlowArea: number;
+  hoverGlowHardness: number;
+  hoverGlowThickness: number;
+  scatterRadius: number;
+  scatterStrength: number;
   noiseStrength: number;
   noiseSpeed: number;
   pointSize: number;
@@ -19,13 +30,10 @@ export interface SimulationSettings {
   tintMix: number;
   opacity: number;
   densityControl: number;
+  models: string[];
+  currentModelIndex: number;
   isPlaying: boolean;
   activePreset: PresetType;
-  videoUrl: string;
-  videoMode: "rgbd" | "normal";
-  cameraMode: "scroll" | "orbit";
-  sourceType: "video" | "model";
-  modelUrl: string;
 }
 
 const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
@@ -33,7 +41,12 @@ const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
     hazeColor: "#ffffff",
     tintColor: "#a855f7", // Violet
     tintMix: 0.1, // Drastically reduced to preserve original video color
-    depthScale: 8.0,
+    glitchIntensity: 0.2,
+    glitchInterval: 2.0,
+    glitchDuration: 0.3,
+    bgGlitchIntensity: 2.0,
+    bgGlitchInterval: 3.0,
+    bgGlitchDuration: 0.2,
     noiseStrength: 0.35,
     noiseSpeed: 0.6,
     hazeDensity: 0.4,
@@ -43,7 +56,9 @@ const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
     hazeColor: "#0b0c10",
     tintColor: "#4fd1c5", // Teal
     tintMix: 0.1, // Drastically reduced
-    depthScale: 6.0,
+    glitchIntensity: 0.0,
+    glitchInterval: 3.0,
+    glitchDuration: 0.2,
     noiseStrength: 0.2,
     noiseSpeed: 0.3,
     hazeDensity: 0.3,
@@ -53,7 +68,9 @@ const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
     hazeColor: "#0d0505",
     tintColor: "#f97316", // Orange
     tintMix: 0.2, // Reduced
-    depthScale: 10.0,
+    glitchIntensity: 0.5,
+    glitchInterval: 1.5,
+    glitchDuration: 0.5,
     noiseStrength: 0.5,
     noiseSpeed: 0.9,
     hazeDensity: 0.5,
@@ -63,7 +80,9 @@ const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
     hazeColor: "#0a0a0a",
     tintColor: "#ffffff", // White
     tintMix: 0.0,
-    depthScale: 7.0,
+    glitchIntensity: 0.1,
+    glitchInterval: 2.5,
+    glitchDuration: 0.3,
     noiseStrength: 0.15,
     noiseSpeed: 0.2,
     hazeDensity: 0.7,
@@ -73,7 +92,9 @@ const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
     hazeColor: "#020804",
     tintColor: "#10b981", // Emerald
     tintMix: 0.1,
-    depthScale: 7.5,
+    glitchIntensity: 0.0,
+    glitchInterval: 3.0,
+    glitchDuration: 0.2,
     noiseStrength: 0.3,
     noiseSpeed: 0.5,
     hazeDensity: 0.4,
@@ -85,18 +106,25 @@ interface SimulationContextProps {
   settings: SimulationSettings;
   updateSetting: <K extends keyof SimulationSettings>(key: K, value: SimulationSettings[K]) => void;
   applyPreset: (preset: PresetType) => void;
-  videoElement: HTMLVideoElement | null;
-  setVideoElement: (el: HTMLVideoElement | null) => void;
-  scrollPercent: number;
-  setScrollPercent: (percent: number) => void;
 }
 
 const defaultSettings: SimulationSettings = {
-  gridSize: 2048, // Massive density (4 million+ particles) for a completely solid, clear image
-  depthScale: 4.0, // Reduced from 7.0 so the image doesn't tear/distort as much in 3D space
+  gridSize: 512, // Massive density (4 million+ particles) for a completely solid, clear image
+  glitchIntensity: 1.0, // Base glitch burst strength
+  glitchInterval: 2.0, // Calm period base (seconds)
+  glitchDuration: 0.4, // Active burst base (seconds)
+  bgGlitchIntensity: 1.0,
+  bgGlitchInterval: 3.0,
+  bgGlitchDuration: 0.3,
+  hoverGlowIntensity: 8.0,
+  hoverGlowArea: 0.3,
+  hoverGlowHardness: 0.1,
+  hoverGlowThickness: 5.0,
+  scatterRadius: 2.0,
+  scatterStrength: 3.0,
   noiseStrength: 0.1, // Reduced so the footage is clearer and less warped
   noiseSpeed: 0.4,
-  pointSize: 2.5, // Increased to 2.5px to make particles thicker and improve clarity
+  pointSize: .5, // Increased to 2.5px to make particles thicker and improve clarity
   focusDepth: 14.0,
   focusRange: 2.0,
   bokehScale: 4.0,
@@ -106,21 +134,16 @@ const defaultSettings: SimulationSettings = {
   tintMix: 0.0,
   opacity: 1.0, // Full opacity for clear footage
   densityControl: 0.0, // Turned off particle dropping so the entire video renders cleanly
+  models: ["/model.glb", "/bird.glb"],
+  currentModelIndex: 0,
   isPlaying: false,
   activePreset: "neon",
-  videoUrl: "/demo_scrub.mp4",
-  videoMode: "normal",
-  cameraMode: "scroll",
-  sourceType: "video",
-  modelUrl: "/model.glb",
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);
 
 export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<SimulationSettings>(defaultSettings);
-  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
-  const [scrollPercent, setScrollPercent] = useState<number>(0);
 
   const updateSetting = <K extends keyof SimulationSettings>(key: K, value: SimulationSettings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
@@ -134,27 +157,12 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }));
   };
 
-  // Keep video play state in sync with setting.isPlaying
-  useEffect(() => {
-    if (!videoElement) return;
-
-    if (settings.isPlaying) {
-      videoElement.play().catch((err) => console.log("Video auto-play blocked or failed:", err));
-    } else {
-      videoElement.pause();
-    }
-  }, [settings.isPlaying, videoElement]);
-
   return (
     <SimulationContext.Provider
       value={{
         settings,
         updateSetting,
         applyPreset,
-        videoElement,
-        setVideoElement,
-        scrollPercent,
-        setScrollPercent,
       }}
     >
       {children}

@@ -1,11 +1,10 @@
 "use client";
 
 import React, { Suspense, useRef, useState, useEffect, Component, ErrorInfo, ReactNode } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
-import { ParticleLandscape } from "./ParticleLandscape";
 import { ModelParticleSystem } from "./ModelParticleSystem";
 
 // --- WebGL Error Boundary ---
@@ -86,29 +85,6 @@ const WebGLFallback: React.FC = () => (
   </div>
 );
 
-// --- Camera Controller ---
-const CameraController: React.FC = () => {
-  const { settings } = useSimulation();
-  const { camera } = useThree();
-
-  useFrame(() => {
-    if (settings.cameraMode !== "scroll") return;
-
-    // Full screen static camera
-    const targetX = 0;
-    const targetY = 0;
-    const targetZ = 10;
-
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.1);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.1);
-    camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.1);
-
-    camera.lookAt(0, 0, 0);
-  });
-
-  return null;
-};
-
 // --- Main Scene Container ---
 export const SceneContainer: React.FC = () => {
   const { settings } = useSimulation();
@@ -150,27 +126,18 @@ export const SceneContainer: React.FC = () => {
           <ambientLight intensity={0.6} />
           <pointLight position={[10, 10, 10]} intensity={1.5} />
           
-          {settings.sourceType === "model" ? (
-            <Suspense fallback={null}>
-              <ModelParticleSystem />
-            </Suspense>
-          ) : (
-            <ParticleLandscape />
-          )}
+          <Suspense fallback={null}>
+            <ModelParticleSystem />
+          </Suspense>
           
-          {/* In model mode, always show CameraController is skipped and orbit is forced */}
-          {settings.sourceType !== "model" && <CameraController />}
-
-          {(settings.cameraMode === "orbit" || settings.sourceType === "model") && (
-            <OrbitControls
-              enableDamping={true}
-              dampingFactor={0.05}
-              maxPolarAngle={Math.PI}
-              minDistance={2}
-              maxDistance={40}
-              makeDefault
-            />
-          )}
+          <OrbitControls
+            enableDamping={true}
+            dampingFactor={0.05}
+            maxPolarAngle={Math.PI}
+            minDistance={2}
+            maxDistance={40}
+            makeDefault
+          />
         </Canvas>
       </div>
     </WebGLErrorBoundary>
