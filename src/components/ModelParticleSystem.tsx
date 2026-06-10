@@ -16,7 +16,12 @@ import { Datamosh } from "@/effects/DatamoshEffect";
  * point cloud. Triggers automatic, randomized SCREEN-SPACE glitch bursts
  * with rapid seed cycling for aggressive data-corruption style distortion.
  */
-export const ModelParticleSystem: React.FC = () => {
+interface ModelParticleSystemProps {
+  meshes?: THREE.Mesh[];
+  targetNode?: THREE.Object3D;
+}
+
+export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes, targetNode }) => {
   const { settings, updateSetting } = useSimulation();
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const pointsRef = useRef<THREE.Points>(null);
@@ -61,15 +66,21 @@ export const ModelParticleSystem: React.FC = () => {
     const allColors: number[] = [];
     const tempPos = new THREE.Vector3();
 
-    gltf.scene.updateMatrixWorld(true);
+    const sourceMeshes: THREE.Mesh[] = [];
+    
+    if (meshes) {
+      sourceMeshes.push(...meshes);
+    } else {
+      gltf.scene.updateMatrixWorld(true);
+      gltf.scene.traverse((child) => {
+        if (child instanceof THREE.Mesh) sourceMeshes.push(child);
+      });
+    }
 
-    gltf.scene.traverse((child) => {
-      if (!(child instanceof THREE.Mesh)) return;
-
-      const mesh = child as THREE.Mesh;
+    for (const mesh of sourceMeshes) {
       const geometry = mesh.geometry;
 
-      if (!geometry || !geometry.attributes.position) return;
+      if (!geometry || !geometry.attributes.position) continue;
 
       const posAttr = geometry.attributes.position;
       const colorAttr = geometry.attributes.color;
@@ -83,7 +94,10 @@ export const ModelParticleSystem: React.FC = () => {
           posAttr.getZ(i)
         );
 
-        tempPos.applyMatrix4(worldMatrix);
+        // If we are tracking a node, keep positions in local space
+        if (!targetNode) {
+          tempPos.applyMatrix4(worldMatrix);
+        }
 
         allPositions.push(tempPos.x, tempPos.y, tempPos.z);
 
@@ -97,7 +111,7 @@ export const ModelParticleSystem: React.FC = () => {
           allColors.push(0.7, 0.7, 0.7);
         }
       }
-    });
+    }
 
     console.log(`[ModelParticleSystem] Extracted ${allPositions.length / 3} vertices from model`);
 
@@ -105,12 +119,12 @@ export const ModelParticleSystem: React.FC = () => {
       extractedPositions: new Float32Array(allPositions),
       extractedColors: new Float32Array(allColors),
     };
-  }, [gltf]);
+  }, [gltf, meshes]);
 
   // Sample vertices based on gridSize, and apply depthScale/centering
-  const { centeredPositions, colors, modelScale, boxSize } = useMemo(() => {
+  const { centeredPositions, colors, modelScale, boxSize, boxCenter } = useMemo(() => {
     if (extractedPositions.length === 0) {
-      return { centeredPositions: new Float32Array(0), colors: new Float32Array(0), modelScale: 1, boxSize: null };
+      return { centeredPositions: new Float32Array(0), colors: new Float32Array(0), modelScale: 1, boxSize: null, boxCenter: null };
     }
 
     const targetCount = settings.gridSize * settings.gridSize;
@@ -148,15 +162,26 @@ export const ModelParticleSystem: React.FC = () => {
       maxZ = Math.max(maxZ, sampledPositions[i + 2]);
     }
 
+    const sizeX = maxX - minX;
+    const sizeY = maxY - minY;
+    const sizeZ = maxZ - minZ;
+
     const cx = (minX + maxX) / 2;
     const cy = (minY + maxY) / 2;
     const cz = (minZ + maxZ) / 2;
 
-    const sizeX = maxX - minX;
-    const sizeY = maxY - minY;
-    const sizeZ = maxZ - minZ;
-    const maxDim = Math.max(sizeX, sizeY, sizeZ);
+    // If targetNode is provided, bypass centering and scaling so it matches the original mesh exactly
+    if (targetNode) {
+      return {
+        centeredPositions: sampledPositions,
+        colors: sampledColors,
+        modelScale: 1,
+        boxSize: [sizeX, sizeY, sizeZ] as [number, number, number],
+        boxCenter: [cx, cy, cz] as [number, number, number]
+      };
+    }
 
+    const maxDim = Math.max(sizeX, sizeY, sizeZ);
     const targetSize = 8;
     const scale = maxDim > 0 ? targetSize / maxDim : 1;
 
@@ -170,9 +195,10 @@ export const ModelParticleSystem: React.FC = () => {
       centeredPositions: sampledPositions,
       colors: sampledColors,
       modelScale: scale,
-      boxSize: [sizeX * scale, sizeY * scale, sizeZ * scale] as [number, number, number]
+      boxSize: [sizeX * scale, sizeY * scale, sizeZ * scale] as [number, number, number],
+      boxCenter: [0, 0, 0] as [number, number, number]
     };
-  }, [extractedPositions, extractedColors, settings.gridSize]);
+  }, [extractedPositions, extractedColors, settings.gridSize, targetNode]);
 
   // Create a mutable reference for positions for the GPU buffer (physics writes into this)
   const dynamicPositionsRef = useRef<Float32Array>(new Float32Array(0));
@@ -180,10 +206,10 @@ export const ModelParticleSystem: React.FC = () => {
   // Initialize physics arrays when rest positions change
   useEffect(() => {
     if (centeredPositions.length === 0) return;
-    
+
     // Update target rest positions for morphing
     restPositionsRef.current = new Float32Array(centeredPositions);
-    
+
     if (!physicsReady.current || dynamicPositionsRef.current.length !== centeredPositions.length) {
       // First load or array size mismatch: initialize dynamic state
       velocitiesRef.current = new Float32Array(centeredPositions.length).fill(0);
@@ -203,7 +229,7 @@ export const ModelParticleSystem: React.FC = () => {
     const triggerBgGlitch = () => {
       // Trigger burst
       bgGlitchStrengthRef.current = settingsRef.current.bgGlitchIntensity;
-      
+
       // Fast seed cycling
       flickerIntervalId = setInterval(() => {
         bgGlitchSeedRef.current = Math.random() * 1000;
@@ -215,7 +241,7 @@ export const ModelParticleSystem: React.FC = () => {
       timeoutId = setTimeout(() => {
         if (flickerIntervalId) clearInterval(flickerIntervalId);
         bgGlitchStrengthRef.current = 0;
-        
+
         // Schedule next burst
         const jitter = (Math.random() - 0.5) * 1.0;
         const nextInterval = Math.max(0.5, settingsRef.current.bgGlitchInterval + jitter) * 1000;
@@ -392,15 +418,55 @@ export const ModelParticleSystem: React.FC = () => {
 
     // ─── CPU Particle Physics Simulation ───
     if (physicsReady.current && pointsRef.current && boxSize) {
+      // Sync group transform to animated target node
+      if (targetNode && groupRef.current) {
+        groupRef.current.matrixAutoUpdate = false;
+        groupRef.current.matrix.copy(targetNode.matrixWorld);
+      }
+
       state.raycaster.setFromCamera(state.pointer, state.camera);
-      const rayOrigin = state.raycaster.ray.origin;
-      const rayDir = state.raycaster.ray.direction;
+      
+      let rx, ry, rz, rdx, rdy, rdz;
+      let localSwipeDx, localSwipeDy, localSwipeDz = 0;
+
+      // Calculate mouse velocity (swipe speed) in world space
+      let pointerDelta = 0;
+      let swipeDx = 0;
+      let swipeDy = 0;
+      if (prevPointerRef.current.x !== -999) {
+        swipeDx = state.pointer.x - prevPointerRef.current.x;
+        swipeDy = state.pointer.y - prevPointerRef.current.y;
+        pointerDelta = Math.sqrt(swipeDx * swipeDx + swipeDy * swipeDy);
+      }
+      prevPointerRef.current.copy(state.pointer);
+
+      const worldSwipeDx = swipeDx * 15.0; // scale up to match world space feel
+      const worldSwipeDy = swipeDy * 15.0;
 
       // Check if mouse is over the bounding box
       let isHovering = false;
       if (boxRef.current) {
         const hits = state.raycaster.intersectObject(boxRef.current);
         isHovering = hits.length > 0;
+      }
+
+      // Convert Ray and Swipe to local space if targetNode is animating
+      if (targetNode) {
+        const inverseMatrix = new THREE.Matrix4().copy(targetNode.matrixWorld).invert();
+        const localRay = new THREE.Ray();
+        localRay.copy(state.raycaster.ray).applyMatrix4(inverseMatrix);
+        rx = localRay.origin.x; ry = localRay.origin.y; rz = localRay.origin.z;
+        rdx = localRay.direction.x; rdy = localRay.direction.y; rdz = localRay.direction.z;
+
+        const swipeVec = new THREE.Vector3(worldSwipeDx, worldSwipeDy, 0);
+        swipeVec.transformDirection(inverseMatrix);
+        localSwipeDx = swipeVec.x; localSwipeDy = swipeVec.y; localSwipeDz = swipeVec.z;
+      } else {
+        const rayOrigin = state.raycaster.ray.origin;
+        const rayDir = state.raycaster.ray.direction;
+        rx = rayOrigin.x; ry = rayOrigin.y; rz = rayOrigin.z;
+        rdx = rayDir.x; rdy = rayDir.y; rdz = rayDir.z;
+        localSwipeDx = worldSwipeDx; localSwipeDy = worldSwipeDy; localSwipeDz = 0;
       }
 
       const rest = restPositionsRef.current;
@@ -422,28 +488,13 @@ export const ModelParticleSystem: React.FC = () => {
       const hy = currentBoxSizeRef.current.y / 2;
       const hz = currentBoxSizeRef.current.z / 2;
 
-      // Calculate mouse velocity (swipe speed)
-      let pointerDelta = 0;
-      let swipeDx = 0;
-      let swipeDy = 0;
-      if (prevPointerRef.current.x !== -999) {
-        swipeDx = state.pointer.x - prevPointerRef.current.x;
-        swipeDy = state.pointer.y - prevPointerRef.current.y;
-        pointerDelta = Math.sqrt(swipeDx * swipeDx + swipeDy * swipeDy);
-      }
-      prevPointerRef.current.copy(state.pointer);
+      const bcx = boxCenter ? boxCenter[0] : 0;
+      const bcy = boxCenter ? boxCenter[1] : 0;
+      const bcz = boxCenter ? boxCenter[2] : 0;
 
       // Only apply impulse if mouse is moving
       const isSwiping = isHovering && pointerDelta > 0.001;
       const currentImpulseStr = impulseStr * (pointerDelta * 50.0); // Scale by swipe speed
-
-      // Pre-calculate 3D swipe direction (approximate mapping from NDC to World)
-      const worldSwipeDx = swipeDx * 15.0; // scale up to match world space feel
-      const worldSwipeDy = swipeDy * 15.0;
-
-      // Ray components (avoid property lookups in hot loop)
-      const rx = rayOrigin.x, ry = rayOrigin.y, rz = rayOrigin.z;
-      const rdx = rayDir.x, rdy = rayDir.y, rdz = rayDir.z;
 
       for (let i = 0; i < count; i++) {
         const ix = i * 3;
@@ -474,14 +525,14 @@ export const ModelParticleSystem: React.FC = () => {
             const randVar = 0.5 + Math.abs(noise) * 1.5; // 0.5 to 2.0
 
             const invDist = 1.0 / dist;
-            
+
             // Blend radial outward push (30%) with directional swipe drag (70%)
             const radialMag = pushMag * 0.3 * randVar;
             const dragMag = pushMag * 0.7 * randVar;
 
-            vel[ix] += (dfx * invDist * radialMag) + (worldSwipeDx * dragMag);
-            vel[iy] += (dfy * invDist * radialMag) + (worldSwipeDy * dragMag);
-            vel[iz] += (dfz * invDist * radialMag) + ((noise - 0.5) * dragMag); // random Z drag
+            vel[ix] += (dfx * invDist * radialMag) + (localSwipeDx * dragMag);
+            vel[iy] += (dfy * invDist * radialMag) + (localSwipeDy * dragMag);
+            vel[iz] += (dfz * invDist * radialMag) + (localSwipeDz * dragMag) + ((noise - 0.5) * dragMag * 0.2); // random Z drag
           }
         }
 
@@ -505,12 +556,12 @@ export const ModelParticleSystem: React.FC = () => {
         posArr[iz] = newZ;
 
         // ── Clamp within bounding box + bounce ──
-        if (posArr[ix] < -hx) { posArr[ix] = -hx; vel[ix] *= -0.3; }
-        else if (posArr[ix] > hx) { posArr[ix] = hx; vel[ix] *= -0.3; }
-        if (posArr[iy] < -hy) { posArr[iy] = -hy; vel[iy] *= -0.3; }
-        else if (posArr[iy] > hy) { posArr[iy] = hy; vel[iy] *= -0.3; }
-        if (posArr[iz] < -hz) { posArr[iz] = -hz; vel[iz] *= -0.3; }
-        else if (posArr[iz] > hz) { posArr[iz] = hz; vel[iz] *= -0.3; }
+        if (posArr[ix] < bcx - hx) { posArr[ix] = bcx - hx; vel[ix] *= -0.3; }
+        else if (posArr[ix] > bcx + hx) { posArr[ix] = bcx + hx; vel[ix] *= -0.3; }
+        if (posArr[iy] < bcy - hy) { posArr[iy] = bcy - hy; vel[iy] *= -0.3; }
+        else if (posArr[iy] > bcy + hy) { posArr[iy] = bcy + hy; vel[iy] *= -0.3; }
+        if (posArr[iz] < bcz - hz) { posArr[iz] = bcz - hz; vel[iz] *= -0.3; }
+        else if (posArr[iz] > bcz + hz) { posArr[iz] = bcz + hz; vel[iz] *= -0.3; }
 
         // ── Compute scatter displacement for glow ──
         const dx = posArr[ix] - rest[ix];
@@ -538,18 +589,22 @@ export const ModelParticleSystem: React.FC = () => {
       const baseScaleY = currentBoxSizeRef.current.y;
       const baseScaleZ = currentBoxSizeRef.current.z;
 
+      const bcx = boxCenter ? boxCenter[0] : 0;
+      const bcy = boxCenter ? boxCenter[1] : 0;
+      const bcz = boxCenter ? boxCenter[2] : 0;
+
       if (glitchStrengthRef.current > 0.01) {
         const scaleJitter = 1.0 + (Math.random() - 0.5) * 0.03 * glitchStrengthRef.current;
         boxRef.current.scale.set(baseScaleX * scaleJitter, baseScaleY * scaleJitter, baseScaleZ * scaleJitter);
-        
+
         boxRef.current.position.set(
-          (Math.random() - 0.5) * 0.06 * glitchStrengthRef.current,
-          (Math.random() - 0.5) * 0.06 * glitchStrengthRef.current,
-          (Math.random() - 0.5) * 0.06 * glitchStrengthRef.current
+          bcx + (Math.random() - 0.5) * 0.06 * glitchStrengthRef.current,
+          bcy + (Math.random() - 0.5) * 0.06 * glitchStrengthRef.current,
+          bcz + (Math.random() - 0.5) * 0.06 * glitchStrengthRef.current
         );
       } else {
         boxRef.current.scale.set(baseScaleX, baseScaleY, baseScaleZ);
-        boxRef.current.position.set(0, 0, 0);
+        boxRef.current.position.set(bcx, bcy, bcz);
       }
     }
 
@@ -566,9 +621,9 @@ export const ModelParticleSystem: React.FC = () => {
     if (lineMaterialRef.current) {
       lineMaterialRef.current.opacity = glitchStrengthRef.current * 0.45;
     }
-    
+
     // --- Scroll Animation ---
-    if (scrollData && groupRef.current) {
+    if (scrollData && groupRef.current && !meshes) {
       const t = scrollData.offset; // 0..1
       const numModels = settingsRef.current.models.length;
       // Each scroll "page" = 1 full cycle. With pages=4 we get 4 cycles over the full scroll.
@@ -576,7 +631,7 @@ export const ModelParticleSystem: React.FC = () => {
       const rawCycle = t * totalCycles; // 0..4 continuously
       const currentCycle = Math.floor(rawCycle);
       const cycleProgress = rawCycle - currentCycle; // 0..1 within current cycle
-      
+
       // Detect when we cross into a new cycle -> switch model
       if (currentCycle !== prevCycleRef.current) {
         prevCycleRef.current = currentCycle;
@@ -585,20 +640,20 @@ export const ModelParticleSystem: React.FC = () => {
           updateSetting('currentModelIndex', nextModelIndex);
         }
       }
-      
+
       // Rotation: full 360° per cycle (scroll-driven) + slow constant idle rotation
       const angle = cycleProgress * Math.PI * 2;
       const idleRotation = elapsed * 0.15; // Slow continuous spin
       groupRef.current.rotation.y = angle + idleRotation;
       // Subtle tilt for cinematic feel
       groupRef.current.rotation.x = Math.sin(angle) * 0.12;
-      
+
       // Z position: start far away (-8), come close (0) at mid-cycle, go back far
       const farDistance = -8;
       const closeDistance = 0;
       const zRange = farDistance - closeDistance;
       groupRef.current.position.z = closeDistance + ((1 + Math.cos(angle)) / 2) * zRange;
-    } else if (groupRef.current) {
+    } else if (groupRef.current && !meshes) {
       // No scroll context — just apply idle rotation
       groupRef.current.rotation.y = elapsed * 0.15;
     }
@@ -682,3 +737,6 @@ export const ModelParticleSystem: React.FC = () => {
 
 useGLTF.preload("/model.glb");
 useGLTF.preload("/bird.glb");
+useGLTF.preload("/plane.glb");
+useGLTF.preload("/myscene_v2.glb");
+
