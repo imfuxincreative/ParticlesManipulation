@@ -2,10 +2,10 @@
 
 import React, { Suspense, useRef, useState, useEffect, Component, ErrorInfo, ReactNode } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, ScrollControls } from "@react-three/drei";
+import { ScrollControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
-import { ModelParticleSystem } from "./ModelParticleSystem";
+import { SceneModel } from "./SceneModel";
 
 // --- WebGL Error Boundary ---
 interface ErrorBoundaryProps {
@@ -127,20 +127,10 @@ export const SceneContainer: React.FC = () => {
           <pointLight position={[10, 10, 10]} intensity={1.5} />
           
           <Suspense fallback={null}>
-            <ScrollControls pages={4} damping={0.1} infinite>
-              <ModelParticleSystem />
+            <ScrollControls pages={4} damping={0.1}>
+              <SceneModel />
             </ScrollControls>
           </Suspense>
-          
-          <OrbitControls
-            enableDamping={true}
-            dampingFactor={0.05}
-            enableZoom={false}
-            maxPolarAngle={Math.PI}
-            minDistance={2}
-            maxDistance={40}
-            makeDefault
-          />
         </Canvas>
       </div>
     </WebGLErrorBoundary>

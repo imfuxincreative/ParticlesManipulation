@@ -34,8 +34,8 @@ export interface SimulationSettings {
 
 const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
   neon: {
-    hazeColor: "#ffffff",
-    tintColor: "#a855f7", // Violet
+    hazeColor: "#ff0000ff",
+    tintColor: "#ff0000ff", // Violet
     tintMix: 0.1, // Drastically reduced to preserve original video color
     glitchIntensity: 0.2,
     glitchInterval: 2.0,
@@ -116,7 +116,7 @@ const defaultSettings: SimulationSettings = {
   scatterStrength: 3.0,
   noiseStrength: 0.1, // Reduced so the footage is clearer and less warped
   noiseSpeed: 0.4,
-  pointSize: .5, // Increased to 2.5px to make particles thicker and improve clarity
+  pointSize: .2, // Increased to 2.5px to make particles thicker and improve clarity
   focusDepth: 14.0,
   focusRange: 2.0,
   bokehScale: 4.0,
@@ -126,7 +126,7 @@ const defaultSettings: SimulationSettings = {
   tintMix: 0.0,
   opacity: 1.0, // Full opacity for clear footage
   densityControl: 0.0, // Turned off particle dropping so the entire video renders cleanly
-  models: ["/model.glb", "/bird.glb"],
+  models: ["/model.glb", "/bird.glb", "/plane.glb", "/myscene_v2.glb"],
   currentModelIndex: 0,
   isPlaying: false,
   activePreset: "neon",
