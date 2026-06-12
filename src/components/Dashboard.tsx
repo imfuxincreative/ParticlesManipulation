@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import { useSimulation, PresetType } from "@/context/SimulationContext";
-import { 
-  Sliders, 
-  Sparkles, 
-  Camera, 
-  ChevronRight, 
+import {
+  Sliders,
+  Sparkles,
+  Camera,
+  ChevronRight,
   ChevronLeft,
   Info
 } from "lucide-react";
@@ -26,7 +26,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="fixed inset-0 w-full h-full pointer-events-none select-none z-20 font-sans text-slate-100 flex flex-col justify-between p-6">
-      
+
       {/* Top Header Panel */}
       <header className="w-full flex justify-between items-start pointer-events-auto">
         <div className="bg-slate-950/60 backdrop-blur-md border border-white/5 rounded-xl px-5 py-3 flex flex-col gap-0.5">
@@ -43,7 +43,7 @@ export const Dashboard: React.FC = () => {
       <main className="absolute right-6 top-28 bottom-28 flex items-stretch pointer-events-auto">
         {/* Toggle Collapse Button */}
         <div className="flex items-center">
-          <button 
+          <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="bg-slate-950/70 border border-white/10 hover:border-purple-500 hover:text-purple-400 text-slate-400 p-2 rounded-l-lg backdrop-blur-md cursor-pointer transition-all"
           >
@@ -52,26 +52,25 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Sidebar Container */}
-        <div 
-          className={`bg-slate-950/70 backdrop-blur-lg border-y border-r border-white/10 rounded-r-xl w-80 p-5 flex flex-col gap-5 transition-all duration-300 overflow-y-auto ${
-            isCollapsed ? "opacity-0 w-0 pointer-events-none translate-x-8" : "opacity-100"
-          }`}
+        <div
+          className={`bg-slate-950/70 backdrop-blur-lg border-y border-r border-white/10 rounded-r-xl w-80 p-5 flex flex-col gap-5 transition-all duration-300 overflow-y-auto ${isCollapsed ? "opacity-0 w-0 pointer-events-none translate-x-8" : "opacity-100"
+            }`}
         >
           {/* Tab Navigation */}
           <div className="grid grid-cols-3 gap-1 bg-slate-900/80 p-1 rounded-lg border border-white/5 text-xs font-medium text-slate-400">
-            <button 
+            <button
               onClick={() => setActiveTab("presets")}
               className={`py-1.5 rounded cursor-pointer transition-all ${activeTab === "presets" ? "bg-purple-600 text-white font-semibold" : "hover:text-slate-200"}`}
             >
               Presets
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("rendering")}
               className={`py-1.5 rounded cursor-pointer transition-all ${activeTab === "rendering" ? "bg-purple-600 text-white font-semibold" : "hover:text-slate-200"}`}
             >
               Sim
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("focus")}
               className={`py-1.5 rounded cursor-pointer transition-all ${activeTab === "focus" ? "bg-purple-600 text-white font-semibold" : "hover:text-slate-200"}`}
             >
@@ -91,11 +90,10 @@ export const Dashboard: React.FC = () => {
                   <button
                     key={p.id}
                     onClick={() => applyPreset(p.id)}
-                    className={`w-full text-left p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
-                      settings.activePreset === p.id 
-                        ? "bg-purple-950/20 border-purple-500 text-white" 
+                    className={`w-full text-left p-3 rounded-lg border cursor-pointer transition-all duration-200 ${settings.activePreset === p.id
+                        ? "bg-purple-950/20 border-purple-500 text-white"
                         : "bg-slate-900/30 border-white/5 text-slate-400 hover:bg-slate-900/60 hover:text-slate-200"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`h-2.5 w-2.5 rounded-full ${p.color}`} />
@@ -124,11 +122,10 @@ export const Dashboard: React.FC = () => {
                     <button
                       key={size}
                       onClick={() => updateSetting("gridSize", size)}
-                      className={`py-1 rounded border text-center font-mono cursor-pointer transition-all ${
-                        settings.gridSize === size 
-                          ? "bg-purple-950/40 border-purple-500 text-purple-300 font-bold" 
+                      className={`py-1 rounded border text-center font-mono cursor-pointer transition-all ${settings.gridSize === size
+                          ? "bg-purple-950/40 border-purple-500 text-purple-300 font-bold"
                           : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
-                      }`}
+                        }`}
                     >
                       {size}
                     </button>
@@ -142,9 +139,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">GLITCH BURST INTENSITY</span>
                   <span className="text-slate-300">{settings.glitchIntensity.toFixed(2)}x</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.0" max="3.0" step="0.1"
-                  value={settings.glitchIntensity} 
+                  value={settings.glitchIntensity}
                   onChange={(e) => updateSetting("glitchIntensity", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -156,9 +153,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">GLITCH INTERVAL (CALM)</span>
                   <span className="text-slate-300">{settings.glitchInterval.toFixed(1)}s</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.5" max="8.0" step="0.5"
-                  value={settings.glitchInterval} 
+                  value={settings.glitchInterval}
                   onChange={(e) => updateSetting("glitchInterval", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -170,9 +167,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">GLITCH BURST DURATION</span>
                   <span className="text-slate-300">{settings.glitchDuration.toFixed(2)}s</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.1" max="1.5" step="0.1"
-                  value={settings.glitchDuration} 
+                  value={settings.glitchDuration}
                   onChange={(e) => updateSetting("glitchDuration", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -184,9 +181,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">BG GLITCH INTENSITY</span>
                   <span className="text-slate-300">{settings.bgGlitchIntensity.toFixed(2)}x</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.0" max="5.0" step="0.1"
-                  value={settings.bgGlitchIntensity} 
+                  value={settings.bgGlitchIntensity}
                   onChange={(e) => updateSetting("bgGlitchIntensity", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -198,9 +195,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">BG GLITCH INTERVAL (CALM)</span>
                   <span className="text-slate-300">{settings.bgGlitchInterval.toFixed(1)}s</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.5" max="8.0" step="0.5"
-                  value={settings.bgGlitchInterval} 
+                  value={settings.bgGlitchInterval}
                   onChange={(e) => updateSetting("bgGlitchInterval", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -212,9 +209,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">BG GLITCH BURST DURATION</span>
                   <span className="text-slate-300">{settings.bgGlitchDuration.toFixed(2)}s</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.1" max="1.5" step="0.1"
-                  value={settings.bgGlitchDuration} 
+                  value={settings.bgGlitchDuration}
                   onChange={(e) => updateSetting("bgGlitchDuration", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -226,9 +223,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">PARTICLE BASE SIZE</span>
                   <span className="text-slate-300">{settings.pointSize.toFixed(1)}px</span>
                 </div>
-                <input 
+                <input
                   type="range" min="1.0" max="12.0" step="0.5"
-                  value={settings.pointSize} 
+                  value={settings.pointSize}
                   onChange={(e) => updateSetting("pointSize", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -240,9 +237,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">ATMOSPHERIC JITTER</span>
                   <span className="text-slate-300">{settings.noiseStrength.toFixed(2)}u</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.0" max="1.5" step="0.05"
-                  value={settings.noiseStrength} 
+                  value={settings.noiseStrength}
                   onChange={(e) => updateSetting("noiseStrength", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -254,12 +251,170 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">JITTER WIND SPEED</span>
                   <span className="text-slate-300">{settings.noiseSpeed.toFixed(1)}x</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.0" max="2.0" step="0.1"
-                  value={settings.noiseSpeed} 
+                  value={settings.noiseSpeed}
                   onChange={(e) => updateSetting("noiseSpeed", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
+              </div>
+
+              {/* HOLOGRAPHIC ARCHITECTURE */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
+                <Sliders className="w-3.5 h-3.5" />
+                <span>Architecture Config</span>
+              </div>
+
+              {/* Slider: Fill Opacity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">BASE FILL OPACITY</span>
+                  <span className="text-slate-300">{settings.xrayFillOpacity?.toFixed(2) || "0.15"}</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="1.0" step="0.01"
+                  value={settings.xrayFillOpacity || 0.15}
+                  onChange={(e) => updateSetting("xrayFillOpacity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Outline Power */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">OUTLINE SHARPNESS</span>
+                  <span className="text-slate-300">{settings.xrayOutlinePower?.toFixed(1) || "2.5"}</span>
+                </div>
+                <input
+                  type="range" min="0.5" max="8.0" step="0.1"
+                  value={settings.xrayOutlinePower || 2.5}
+                  onChange={(e) => updateSetting("xrayOutlinePower", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Scanline Intensity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">SCANLINE INTENSITY</span>
+                  <span className="text-slate-300">{settings.xrayScanlineIntensity?.toFixed(2) || "0.00"}</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="1.0" step="0.05"
+                  value={settings.xrayScanlineIntensity || 0.0}
+                  onChange={(e) => updateSetting("xrayScanlineIntensity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Color: Outline Color */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">OUTLINE GLOW COLOR</span>
+                  <span className="text-slate-300">{settings.xrayOutlineColor || "#ffffff"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={settings.xrayOutlineColor || "#ffffff"}
+                    onChange={(e) => updateSetting("xrayOutlineColor", e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                  />
+                  <span className="text-[10px] text-slate-500">Select color</span>
+                </div>
+              </div>
+
+              {/* Color: Base Color */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">BASE FILL COLOR</span>
+                  <span className="text-slate-300">{settings.xrayBaseColor || "#888888"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={settings.xrayBaseColor || "#888888"}
+                    onChange={(e) => updateSetting("xrayBaseColor", e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                  />
+                  <span className="text-[10px] text-slate-500">Select color</span>
+                </div>
+              </div>
+
+              {/* Slider: Border Opacity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">BORDER OPACITY (THIN LINES)</span>
+                  <span className="text-slate-300">{settings.xrayBorderOpacity?.toFixed(2) || "0.50"}</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="1.0" step="0.01"
+                  value={settings.xrayBorderOpacity || 0.5}
+                  onChange={(e) => updateSetting("xrayBorderOpacity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Border Spread / Complexity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">EDGE DETAIL (COMPLEXITY)</span>
+                  <span className="text-slate-300">{(89 - (settings.xrayBorderThreshold ?? 15)).toFixed(0)}</span>
+                </div>
+                <input
+                  type="range" min="0" max="89" step="1"
+                  value={89 - (settings.xrayBorderThreshold ?? 15)}
+                  onChange={(e) => updateSetting("xrayBorderThreshold", 89 - parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Border Reveal Depth */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">LINE REVEAL DEPTH</span>
+                  <span className="text-slate-300">{settings.xrayBorderRevealDepth?.toFixed(0) || "400"}u</span>
+                </div>
+                <input
+                  type="range" min="5" max="1000" step="5"
+                  value={settings.xrayBorderRevealDepth || 400}
+                  onChange={(e) => updateSetting("xrayBorderRevealDepth", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal mt-1">
+                  Low = only closest faces show lines. High = lines spread deep inside. Animates with 0.2s delay.
+                </p>
+              </div>
+
+              {/* Slider: Hover Light Radius */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">HOVER LIGHT RADIUS</span>
+                  <span className="text-slate-300">{settings.xrayHoverRadius?.toFixed(1) || "10.0"}u</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="100.0" step="1.0"
+                  value={settings.xrayHoverRadius ?? 10.0}
+                  onChange={(e) => updateSetting("xrayHoverRadius", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Color: Border Color */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">BORDER COLOR</span>
+                  <span className="text-slate-300">{settings.xrayBorderColor || "#e91e63"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={settings.xrayBorderColor || "#e91e63"}
+                    onChange={(e) => updateSetting("xrayBorderColor", e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                  />
+                  <span className="text-[10px] text-slate-500">Select color</span>
+                </div>
               </div>
 
               {/* Slider: Haze Density */}
@@ -268,9 +423,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">ATMOSPHERE HAZE DENSITY</span>
                   <span className="text-slate-300">{settings.hazeDensity.toFixed(2)}x</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.0" max="2.0" step="0.05"
-                  value={settings.hazeDensity} 
+                  value={settings.hazeDensity}
                   onChange={(e) => updateSetting("hazeDensity", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -282,9 +437,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">SCATTER RADIUS</span>
                   <span className="text-slate-300">{settings.scatterRadius?.toFixed(1) || "2.0"}u</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.5" max="6.0" step="0.5"
-                  value={settings.scatterRadius || 2.0} 
+                  value={settings.scatterRadius || 2.0}
                   onChange={(e) => updateSetting("scatterRadius", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -296,9 +451,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">SCATTER STRENGTH</span>
                   <span className="text-slate-300">{settings.scatterStrength?.toFixed(1) || "3.0"}u</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.0" max="10.0" step="0.5"
-                  value={settings.scatterStrength || 3.0} 
+                  value={settings.scatterStrength || 3.0}
                   onChange={(e) => updateSetting("scatterStrength", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -323,9 +478,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">FOCAL DISTANCE (DEPTH)</span>
                   <span className="text-slate-300">{settings.focusDepth.toFixed(1)}u</span>
                 </div>
-                <input 
+                <input
                   type="range" min="3.0" max="25.0" step="0.5"
-                  value={settings.focusDepth} 
+                  value={settings.focusDepth}
                   onChange={(e) => updateSetting("focusDepth", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -337,9 +492,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">IN-FOCUS FIELD DEPTH</span>
                   <span className="text-slate-300">±{settings.focusRange.toFixed(1)}u</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.5" max="8.0" step="0.2"
-                  value={settings.focusRange} 
+                  value={settings.focusRange}
                   onChange={(e) => updateSetting("focusRange", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -351,9 +506,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">BOKEH SCALE (DEFOCUS SIZE)</span>
                   <span className="text-slate-300">{settings.bokehScale.toFixed(1)}x</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.0" max="8.0" step="0.2"
-                  value={settings.bokehScale} 
+                  value={settings.bokehScale}
                   onChange={(e) => updateSetting("bokehScale", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
@@ -365,9 +520,9 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-500">FOCAL DENSITY CULLING</span>
                   <span className="text-slate-300">{(settings.densityControl * 100).toFixed(0)}%</span>
                 </div>
-                <input 
+                <input
                   type="range" min="0.0" max="1.0" step="0.05"
-                  value={settings.densityControl} 
+                  value={settings.densityControl}
                   onChange={(e) => updateSetting("densityControl", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />

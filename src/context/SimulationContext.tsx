@@ -30,6 +30,17 @@ export interface SimulationSettings {
   currentModelIndex: number;
   isPlaying: boolean;
   activePreset: PresetType;
+  xrayFillOpacity: number;
+  xrayOutlineColor: string;
+  xrayBaseColor: string;
+  xrayOutlinePower: number;
+  xrayScanlineIntensity: number;
+  xrayBorderColor: string;
+  xrayBorderOpacity: number;
+  xrayBorderThreshold: number;
+  xrayBorderDepthLimit: number;
+  xrayBorderRevealDepth: number;
+  xrayHoverRadius: number;
 }
 
 const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
@@ -130,6 +141,17 @@ const defaultSettings: SimulationSettings = {
   currentModelIndex: 0,
   isPlaying: false,
   activePreset: "neon",
+  xrayFillOpacity: 0.15,
+  xrayOutlineColor: "#ffffff",
+  xrayBaseColor: "#888888",
+  xrayOutlinePower: 2.5,
+  xrayScanlineIntensity: 0.0,
+  xrayBorderColor: "#e91e63",
+  xrayBorderOpacity: 0.5,
+  xrayBorderThreshold: 15.0,
+  xrayBorderDepthLimit: 20.0,
+  xrayBorderRevealDepth: 400.0,
+  xrayHoverRadius: 10.0,
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);

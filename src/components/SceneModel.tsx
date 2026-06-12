@@ -4,10 +4,10 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, useAnimations, useScroll } from "@react-three/drei";
 import * as THREE from "three";
-import { CityParticleSystem } from "./CityParticleSystem";
+import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
 import { ModelParticleSystem } from "./ModelParticleSystem";
 
-const SCENE_PATH = "/sceene.glb";
+const SCENE_PATH = "/SCENE.glb";
 const CAMERA_NAME = "Camera";
 const TARGET_NAME = "body";
 
@@ -64,6 +64,7 @@ export const SceneModel: React.FC = () => {
           child.visible = false; // Hide original solid mesh so only particles show
         } else {
           city.push(child);
+          child.visible = false; // Hide original solid mesh so only particles show
         }
       }
     });
@@ -139,17 +140,19 @@ export const SceneModel: React.FC = () => {
       console.log(`[SceneModel] Camera animation "${cameraActionName}" ready, duration: ${action.getClip().duration}s`);
     }
 
-    // Also set up body animation if it exists
-    const bodyActionName = Object.keys(actions).find(
+    // Also set up body animations if they exist (play all non-camera actions)
+    const bodyActionNames = Object.keys(actions).filter(
       (name) => !name.toLowerCase().includes("camera")
     );
 
-    if (bodyActionName && actions[bodyActionName]) {
-      const action = actions[bodyActionName];
-      action.play();
-      action.paused = true;
-      console.log(`[SceneModel] Body animation "${bodyActionName}" ready, duration: ${action.getClip().duration}s`);
-    }
+    bodyActionNames.forEach((name) => {
+      const action = actions[name];
+      if (action) {
+        action.play();
+        action.paused = true;
+        console.log(`[SceneModel] Body animation "${name}" ready, duration: ${action.getClip().duration}s`);
+      }
+    });
   }, [actions]);
 
   // Drive animations from scroll offset every frame
@@ -168,15 +171,18 @@ export const SceneModel: React.FC = () => {
       action.time = t * clip.duration;
     }
 
-    // Drive body animation with scroll too
-    const bodyActionName = Object.keys(actions).find(
+    // Drive body animations with scroll too
+    const bodyActionNames = Object.keys(actions).filter(
       (name) => !name.toLowerCase().includes("camera")
     );
-    if (bodyActionName && actions[bodyActionName]) {
-      const action = actions[bodyActionName];
-      const clip = action.getClip();
-      action.time = t * clip.duration;
-    }
+    
+    bodyActionNames.forEach((name) => {
+      const action = actions[name];
+      if (action) {
+        const clip = action.getClip();
+        action.time = t * clip.duration;
+      }
+    });
 
     // Force the mixer to update (since actions are paused, we need to manually tick)
     mixer.update(0);
@@ -191,11 +197,13 @@ export const SceneModel: React.FC = () => {
   return (
     <>
       <group ref={groupRef}>
-        {/* Embed the GLTF scene (visible so we can see the normal city) */}
+        {/* Embed the GLTF scene (lights and structure still intact) */}
         <primitive object={gltf.scene} visible={true} />
 
-        {/* City rendered as static particles (Disabled for now) */}
-        {/* <CityParticleSystem meshes={cityMeshes} /> */}
+        {/* City rendered as holographic X-Ray mesh */}
+        {cityMeshes.length > 0 && (
+          <CityXRayMeshSystem meshes={cityMeshes} />
+        )}
       </group>
 
       {/* Target rendered with interactive particle system */}
