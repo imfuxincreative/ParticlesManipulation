@@ -2,12 +2,13 @@
 
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useGLTF, useScroll } from "@react-three/drei";
+import { useGLTF, useAnimations, useScroll } from "@react-three/drei";
 import * as THREE from "three";
 import { EffectComposer } from "@react-three/postprocessing";
 import { useSimulation } from "@/context/SimulationContext";
 import { ModelParticleShader } from "@/shaders/modelShader";
 import { Datamosh } from "@/effects/DatamoshEffect";
+import { CityXRayLineShader } from "@/shaders/cityXRayLineShader";
 
 /**
  * ModelParticleSystem
@@ -26,7 +27,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const pointsRef = useRef<THREE.Points>(null);
   const boxRef = useRef<THREE.Mesh>(null);
-  const boxMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
+  const boxLinesRef = useRef<THREE.LineSegments>(null);
   const lineMaterialRef = useRef<THREE.LineBasicMaterial>(null);
   const groupRef = useRef<THREE.Group>(null);
   const scrollData = useScroll();
@@ -43,6 +44,20 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
   const glitchStrengthRef = useRef(0);
   const glitchSeedRef = useRef(0);
+
+  // ─── XRay Line Shader material for bounding box ───
+  const boxLineMaterial = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      vertexShader: CityXRayLineShader.vertexShader,
+      fragmentShader: CityXRayLineShader.fragmentShader,
+      uniforms: THREE.UniformsUtils.clone(CityXRayLineShader.uniforms),
+      transparent: true,
+      depthWrite: false,
+    });
+  }, []);
+
+  // Animated depth state for the body box (mirrors city approach)
+  const boxAnimState = useMemo(() => ({ currentDepth: settings.xrayBorderRevealDepth ?? 40.0 }), []);
 
   const bgGlitchStrengthRef = useRef(0);
   const bgGlitchSeedRef = useRef(0);
@@ -606,16 +621,24 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         boxRef.current.scale.set(baseScaleX, baseScaleY, baseScaleZ);
         boxRef.current.position.set(bcx, bcy, bcz);
       }
+
+      // Sync line segments group transform with the invisible raycast box
+      if (boxLinesRef.current) {
+        boxLinesRef.current.position.copy(boxRef.current.position);
+        boxLinesRef.current.scale.copy(boxRef.current.scale);
+      }
     }
 
-    // Dynamic opacities for box and lines
-    if (boxMaterialRef.current) {
-      const targetOpacity = isGlitchActive ? 0.35 : 0.08;
-      boxMaterialRef.current.opacity = THREE.MathUtils.lerp(
-        boxMaterialRef.current.opacity,
-        targetOpacity,
-        0.1
-      );
+    // Animate the XRay depth reveal for the body box (same approach as city)
+    {
+      const targetDepth = settings.xrayBorderRevealDepth ?? 40.0;
+      const lerpSpeed = 1.0 - Math.exp(-state.clock.getDelta() / 0.2);
+      boxAnimState.currentDepth += (targetDepth - boxAnimState.currentDepth) * lerpSpeed;
+      boxLineMaterial.uniforms.uDepthLimit.value = boxAnimState.currentDepth;
+
+      // Sync color/opacity from settings
+      boxLineMaterial.uniforms.uColor.value.set(settings.xrayBorderColor || "#e91e63");
+      boxLineMaterial.uniforms.uOpacity.value = settings.xrayBorderOpacity ?? 0.5;
     }
 
     if (lineMaterialRef.current) {
@@ -697,20 +720,20 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         />
       </points>
 
-      {/* Wireframe Bounding Box Helper */}
+      {/* Invisible box for raycasting (scatter interaction) */}
       {boxSize && (
-        <mesh ref={boxRef}>
+        <mesh ref={boxRef} visible={false}>
           <boxGeometry args={[1, 1, 1]} />
-          <meshBasicMaterial
-            ref={boxMaterialRef}
-            color="#ffffff"
-            wireframe={true}
-            transparent={true}
-            opacity={0.08}
-            depthWrite={false}
-            side={THREE.DoubleSide}
-          />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         </mesh>
+      )}
+
+      {/* XRay depth-faded bounding box edges */}
+      {boxSize && (
+        <lineSegments ref={boxLinesRef}>
+          <wireframeGeometry args={[new THREE.BoxGeometry(1, 1, 1)]} />
+          <primitive object={boxLineMaterial} attach="material" />
+        </lineSegments>
       )}
 
       {/* Measurement Telemetry Web Lines */}
