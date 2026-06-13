@@ -75,6 +75,40 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
   const activeModel = settings.models[settings.currentModelIndex] || settings.models[0];
   const gltf = useGLTF(activeModel);
 
+  // Compute bounding box of the body mesh for aligning switched models
+  const bodyBBox = useMemo(() => {
+    if (!meshes || meshes.length === 0) return null;
+
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    const tempPos = new THREE.Vector3();
+
+    for (const mesh of meshes) {
+      const posAttr = mesh.geometry?.attributes.position;
+      if (!posAttr) continue;
+      for (let i = 0; i < posAttr.count; i++) {
+        tempPos.set(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
+        minX = Math.min(minX, tempPos.x);
+        minY = Math.min(minY, tempPos.y);
+        minZ = Math.min(minZ, tempPos.z);
+        maxX = Math.max(maxX, tempPos.x);
+        maxY = Math.max(maxY, tempPos.y);
+        maxZ = Math.max(maxZ, tempPos.z);
+      }
+    }
+
+    return {
+      center: [(minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2] as [number, number, number],
+      size: [maxX - minX, maxY - minY, maxZ - minZ] as [number, number, number],
+    };
+  }, [meshes]);
+
+  // Temp matrices for Y rotation around the bounding box center (avoid GC pressure)
+  const rotMatrixRef = useRef(new THREE.Matrix4());
+  const transToCenterRef = useRef(new THREE.Matrix4());
+  const transBackRef = useRef(new THREE.Matrix4());
+  const localTransformRef = useRef(new THREE.Matrix4());
+
   // Extract all vertices and vertex colors from the loaded model
   const { extractedPositions, extractedColors } = useMemo(() => {
     const allPositions: number[] = [];
@@ -82,15 +116,12 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     const tempPos = new THREE.Vector3();
 
     const sourceMeshes: THREE.Mesh[] = [];
-    
-    if (meshes) {
-      sourceMeshes.push(...meshes);
-    } else {
-      gltf.scene.updateMatrixWorld(true);
-      gltf.scene.traverse((child) => {
-        if (child instanceof THREE.Mesh) sourceMeshes.push(child);
-      });
-    }
+
+    // Always extract from the active GLTF model so arrow-key model switching works
+    gltf.scene.updateMatrixWorld(true);
+    gltf.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) sourceMeshes.push(child);
+    });
 
     for (const mesh of sourceMeshes) {
       const geometry = mesh.geometry;
@@ -109,10 +140,9 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
           posAttr.getZ(i)
         );
 
-        // If we are tracking a node, keep positions in local space
-        if (!targetNode) {
-          tempPos.applyMatrix4(worldMatrix);
-        }
+        // Always apply world matrix to get vertices into model's world space
+        // (they'll be re-centered and scaled to match the body in centeredPositions)
+        tempPos.applyMatrix4(worldMatrix);
 
         allPositions.push(tempPos.x, tempPos.y, tempPos.z);
 
@@ -134,7 +164,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       extractedPositions: new Float32Array(allPositions),
       extractedColors: new Float32Array(allColors),
     };
-  }, [gltf, meshes]);
+  }, [gltf]);
 
   // Sample vertices based on gridSize, and apply depthScale/centering
   const { centeredPositions, colors, modelScale, boxSize, boxCenter } = useMemo(() => {
@@ -185,8 +215,29 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     const cy = (minY + maxY) / 2;
     const cz = (minZ + maxZ) / 2;
 
-    // If targetNode is provided, bypass centering and scaling so it matches the original mesh exactly
+    // If targetNode is provided, scale and center to match the body's bounding box
     if (targetNode) {
+      if (bodyBBox) {
+        const modelMaxDim = Math.max(sizeX, sizeY, sizeZ);
+        const bodyMaxDim = Math.max(bodyBBox.size[0], bodyBBox.size[1], bodyBBox.size[2]);
+        const fitScale = modelMaxDim > 0 ? bodyMaxDim / modelMaxDim : 1;
+
+        for (let i = 0; i < sampledPositions.length; i += 3) {
+          sampledPositions[i] = (sampledPositions[i] - cx) * fitScale + bodyBBox.center[0];
+          sampledPositions[i + 1] = (sampledPositions[i + 1] - cy) * fitScale + bodyBBox.center[1];
+          sampledPositions[i + 2] = (sampledPositions[i + 2] - cz) * fitScale + bodyBBox.center[2];
+        }
+
+        return {
+          centeredPositions: sampledPositions,
+          colors: sampledColors,
+          modelScale: fitScale,
+          boxSize: [sizeX * fitScale, sizeY * fitScale, sizeZ * fitScale] as [number, number, number],
+          boxCenter: bodyBBox.center,
+        };
+      }
+
+      // Fallback: no bodyBBox, pass through as-is
       return {
         centeredPositions: sampledPositions,
         colors: sampledColors,
@@ -213,7 +264,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       boxSize: [sizeX * scale, sizeY * scale, sizeZ * scale] as [number, number, number],
       boxCenter: [0, 0, 0] as [number, number, number]
     };
-  }, [extractedPositions, extractedColors, settings.gridSize, targetNode]);
+  }, [extractedPositions, extractedColors, settings.gridSize, targetNode, bodyBBox]);
 
   // Create a mutable reference for positions for the GPU buffer (physics writes into this)
   const dynamicPositionsRef = useRef<Float32Array>(new Float32Array(0));
@@ -294,6 +345,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       uGlitchSeed: { value: 0.0 },
       uMouse: { value: new THREE.Vector2(-999, -999) },
       uAspect: { value: 1.0 },
+      uPrimaryColor: { value: new THREE.Color(settings.xrayBorderColor || "#e91e63") },
     };
   }, []);
 
@@ -313,6 +365,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     u.uTintMix.value = settings.tintMix;
     u.uOpacity.value = settings.opacity;
     u.uDensityControl.value = settings.densityControl;
+    if (u.uPrimaryColor) u.uPrimaryColor.value.set(settings.xrayBorderColor || "#e91e63");
   }, [settings]);
 
   // ─── Autonomous Rapid-Fire Glitch Burst Scheduler ───
@@ -437,10 +490,29 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       if (targetNode && groupRef.current) {
         groupRef.current.matrixAutoUpdate = false;
         groupRef.current.matrix.copy(targetNode.matrixWorld);
+        // Apply continuous Y rotation around the local bounding box center
+        if (bodyBBox) {
+          const [cx, cy, cz] = bodyBBox.center;
+          transToCenterRef.current.makeTranslation(cx, cy, cz);
+          rotMatrixRef.current.makeRotationY(state.clock.getElapsedTime() * 0.3);
+          transBackRef.current.makeTranslation(-cx, -cy, -cz);
+          
+          localTransformRef.current.identity()
+            .multiply(transToCenterRef.current)
+            .multiply(rotMatrixRef.current)
+            .multiply(transBackRef.current);
+            
+          groupRef.current.matrix.multiply(localTransformRef.current);
+        } else {
+          rotMatrixRef.current.makeRotationY(state.clock.getElapsedTime() * 0.3);
+          groupRef.current.matrix.multiply(rotMatrixRef.current);
+        }
+        // Force world matrix update so children (raycast box) have correct transforms
+        groupRef.current.updateMatrixWorld(true);
       }
 
       state.raycaster.setFromCamera(state.pointer, state.camera);
-      
+
       let rx, ry, rz, rdx, rdy, rdz;
       let localSwipeDx, localSwipeDy, localSwipeDz = 0;
 
@@ -467,7 +539,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
       // Convert Ray and Swipe to local space if targetNode is animating
       if (targetNode) {
-        const inverseMatrix = new THREE.Matrix4().copy(targetNode.matrixWorld).invert();
+        const inverseMatrix = new THREE.Matrix4().copy(groupRef.current!.matrix).invert();
         const localRay = new THREE.Ray();
         localRay.copy(state.raycaster.ray).applyMatrix4(inverseMatrix);
         rx = localRay.origin.x; ry = localRay.origin.y; rz = localRay.origin.z;
@@ -490,10 +562,18 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       const count = posArr.length / 3;
 
       const scatterRadius = settingsRef.current.scatterRadius;
-      const scatterRadius2 = scatterRadius * scatterRadius;
       const impulseStr = settingsRef.current.scatterStrength * 0.08;
+
+      // Auto-scale scatter params relative to model bounding box size
+      // The original tuning assumed a ~8-unit model; scale proportionally
+      const modelMaxDim = Math.max(boxSize[0], boxSize[1], boxSize[2]);
+      const autoScale = Math.max(1, modelMaxDim / 8.0);
+      const scaledRadius = scatterRadius * autoScale;
+      const scaledRadius2 = scaledRadius * scaledRadius;
+      const scaledImpulse = impulseStr * autoScale;
+
       const DAMPING = 0.85; // High friction so swipe velocity dies out quickly
-      const EASE = 0.05; // Smooth, non-elastic return to rest position
+      const EASE = 0.08; // Smooth ease-out return to rest position
 
       // Smoothly animate the target box size
       currentBoxSizeRef.current.lerp(new THREE.Vector3(boxSize[0], boxSize[1], boxSize[2]), 0.04);
@@ -509,7 +589,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
       // Only apply impulse if mouse is moving
       const isSwiping = isHovering && pointerDelta > 0.001;
-      const currentImpulseStr = impulseStr * (pointerDelta * 50.0); // Scale by swipe speed
+      const currentImpulseStr = scaledImpulse * (pointerDelta * 50.0); // Scale by swipe speed
 
       for (let i = 0; i < count; i++) {
         const ix = i * 3;
@@ -528,12 +608,12 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
           const dfx = px - cpx, dfy = py - cpy, dfz = pz - cpz;
           const dist2 = dfx * dfx + dfy * dfy + dfz * dfz;
 
-          if (dist2 < scatterRadius2 && dist2 > 0.0001) {
+          if (dist2 < scaledRadius2 && dist2 > 0.0001) {
             const dist = Math.sqrt(dist2);
-            const pushFactor = (1.0 - dist / scatterRadius);
+            const pushFactor = (1.0 - dist / scaledRadius);
 
-            // Soft exponential falloff
-            const pushMag = Math.pow(pushFactor, 6.0) * currentImpulseStr * 3.0;
+            // Softer falloff for wider visible effect
+            const pushMag = Math.pow(pushFactor, 2.0) * currentImpulseStr * 3.0;
 
             // Fast pseudo-random variation based on index to prevent perfect rings
             const noise = (Math.sin(ix * 12.9898 + iy * 78.233) * 43758.5453) % 1;
@@ -551,7 +631,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
           }
         }
 
-        // ── Damping (friction) ──
+        // ── Damping (friction) kills the swipe momentum quickly ──
         vel[ix] *= DAMPING;
         vel[iy] *= DAMPING;
         vel[iz] *= DAMPING;
@@ -561,7 +641,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         let newY = py + vel[iy];
         let newZ = pz + vel[iz];
 
-        // ── Smooth Easing back to rest (No elasticity/overshoot) ──
+        // ── Pure Ease-Out back to rest (No elasticity/bounce) ──
         newX += (rest[ix] - newX) * EASE;
         newY += (rest[iy] - newY) * EASE;
         newZ += (rest[iz] - newZ) * EASE;
@@ -722,7 +802,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
       {/* Invisible box for raycasting (scatter interaction) */}
       {boxSize && (
-        <mesh ref={boxRef} visible={false}>
+        <mesh ref={boxRef}>
           <boxGeometry args={[1, 1, 1]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         </mesh>

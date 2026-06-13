@@ -91,8 +91,8 @@ export const Dashboard: React.FC = () => {
                     key={p.id}
                     onClick={() => applyPreset(p.id)}
                     className={`w-full text-left p-3 rounded-lg border cursor-pointer transition-all duration-200 ${settings.activePreset === p.id
-                        ? "bg-purple-950/20 border-purple-500 text-white"
-                        : "bg-slate-900/30 border-white/5 text-slate-400 hover:bg-slate-900/60 hover:text-slate-200"
+                      ? "bg-purple-950/20 border-purple-500 text-white"
+                      : "bg-slate-900/30 border-white/5 text-slate-400 hover:bg-slate-900/60 hover:text-slate-200"
                       }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
@@ -118,13 +118,13 @@ export const Dashboard: React.FC = () => {
               <div className="flex flex-col gap-1.5">
                 <span className="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">Particle Grid Size</span>
                 <div className="grid grid-cols-3 gap-1">
-                  {([256, 512, 768, 1024, 1536, 2048] as const).map((size) => (
+                  {([180, 256, 512, 768, 1024, 1536, 2048] as const).map((size) => (
                     <button
                       key={size}
                       onClick={() => updateSetting("gridSize", size)}
                       className={`py-1 rounded border text-center font-mono cursor-pointer transition-all ${settings.gridSize === size
-                          ? "bg-purple-950/40 border-purple-500 text-purple-300 font-bold"
-                          : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
+                        ? "bg-purple-950/40 border-purple-500 text-purple-300 font-bold"
+                        : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
                         }`}
                     >
                       {size}
@@ -224,7 +224,7 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-300">{settings.pointSize.toFixed(1)}px</span>
                 </div>
                 <input
-                  type="range" min="1.0" max="12.0" step="0.5"
+                  type="range" min="1.0" max="120.0" step="0.5"
                   value={settings.pointSize}
                   onChange={(e) => updateSetting("pointSize", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"

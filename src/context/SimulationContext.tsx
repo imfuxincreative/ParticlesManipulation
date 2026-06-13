@@ -137,7 +137,7 @@ const defaultSettings: SimulationSettings = {
   tintMix: 0.0,
   opacity: 1.0, // Full opacity for clear footage
   densityControl: 0.0, // Turned off particle dropping so the entire video renders cleanly
-  models: ["/model.glb", "/bird.glb", "/plane.glb", "/myscene_v2.glb"],
+  models: ["/model.glb", "/bird.glb", '/figure.glb'],
   currentModelIndex: 0,
   isPlaying: false,
   activePreset: "neon",
