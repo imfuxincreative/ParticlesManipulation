@@ -76,6 +76,7 @@ export const ModelParticleShader = {
     varying float vBlur;
     varying vec2 vScreenPos;
     varying float vScatter;
+    varying float vPosY;
 
     // 2D hash for block grid randomization
     float hash2D(vec2 p, float seed) {
@@ -87,6 +88,9 @@ export const ModelParticleShader = {
 
       // Pass through the per-vertex color
       vColor = aColor;
+
+      // Pass raw local Y for vertical effects
+      vPosY = pos.y;
 
       // Use the Y coordinate as a normalized depth for coloring effects
       vDepth = clamp((pos.y + 5.0) / 10.0, 0.0, 1.0);
@@ -180,12 +184,14 @@ export const ModelParticleShader = {
     uniform float uOpacity;
     uniform float uDensityControl;
     uniform float uTime;
+    uniform vec3 uPrimaryColor;
 
     varying vec3 vColor;
     varying float vDepth;
     varying float vBlur;
     varying vec2 vScreenPos;
     varying float vScatter;
+    varying float vPosY;
 
     // Simple hash for sparkle noise
     float hash(vec2 p) {
@@ -208,12 +214,12 @@ export const ModelParticleShader = {
       color = mix(color, uHazeColor, vBlur * uHazeDensity);
 
       // --- Scatter Burn Glow ---
-      // Particles displaced from rest glow like hot embers
+      // Particles displaced from rest glow using the primary color
       if (vScatter > 0.01) {
-        // Fire gradient: base color -> deep orange -> bright orange -> yellow -> white-hot
-        vec3 emberLow = vec3(1.0, 0.2, 0.05);    // Deep red-orange
-        vec3 emberMid = vec3(1.0, 0.55, 0.1);     // Bright orange
-        vec3 emberHigh = vec3(1.0, 0.9, 0.4);     // Yellow-white
+        // Create a glow gradient based on uPrimaryColor
+        vec3 emberLow = uPrimaryColor * 0.3;      // Darker core
+        vec3 emberMid = uPrimaryColor * 0.8;      // Base primary color
+        vec3 emberHigh = mix(uPrimaryColor, vec3(1.0), 0.5); // Whitish primary
         vec3 emberWhite = vec3(1.0, 1.0, 0.95);   // White-hot
         
         float s = vScatter;
@@ -229,11 +235,22 @@ export const ModelParticleShader = {
         }
         
         color = emberColor;
-        // Additive bloom for intense heat
-        color += vec3(1.0, 0.6, 0.2) * s * 1.5;
+        // Additive bloom using primary color
+        color += uPrimaryColor * s * 1.5;
         // Boost alpha so scattered particles really pop
         alpha = min(1.0, alpha + s * 0.8);
       }
+
+      // --- Vertical Scanning Wave Glow ---
+      // Creates a continuous light pulse moving from bottom to top
+      float wavePhase = vPosY * 0.15 - uTime * 2.5; 
+      float wavePulse = (sin(wavePhase) + 1.0) * 0.5;
+      wavePulse = pow(wavePulse, 16.0); // Make the wave a sharp, tight band
+
+      // Add intense glow based on the primary color
+      vec3 waveGlowColor = mix(vec3(1.0), uPrimaryColor, 0.6);
+      color += waveGlowColor * wavePulse * 1.5;
+      alpha = min(1.0, alpha + wavePulse * 0.8);
 
       // Sparkle noise effect
       float sparkle = hash(gl_FragCoord.xy + uTime * 3.0);
