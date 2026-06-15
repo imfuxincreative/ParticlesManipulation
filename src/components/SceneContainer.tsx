@@ -127,7 +127,7 @@ export const SceneContainer: React.FC = () => {
           <pointLight position={[10, 10, 10]} intensity={1.5} />
           
           <Suspense fallback={null}>
-            <ScrollControls pages={4} damping={0.1}>
+            <ScrollControls pages={5} damping={0.1}>
               <SceneModel />
             </ScrollControls>
           </Suspense>

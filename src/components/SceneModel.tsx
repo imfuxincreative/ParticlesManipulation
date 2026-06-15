@@ -6,6 +6,7 @@ import { useGLTF, useAnimations, useScroll } from "@react-three/drei";
 import * as THREE from "three";
 import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
 import { ModelParticleSystem } from "./ModelParticleSystem";
+import { useSimulation } from "@/context/SimulationContext";
 
 const SCENE_PATH = "/SCENE.glb";
 const CAMERA_NAME = "Camera";
@@ -25,6 +26,9 @@ export const SceneModel: React.FC = () => {
   const gltf = useGLTF(SCENE_PATH);
   const { set, camera: defaultCamera } = useThree();
   const scrollData = useScroll();
+  const { settings, updateSetting } = useSimulation();
+  const settingsRef = useRef(settings);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
 
   // Animation mixer setup
   const groupRef = useRef<THREE.Group>(null);
@@ -155,23 +159,30 @@ export const SceneModel: React.FC = () => {
     });
   }, [actions]);
 
+  // Split scroll: first portion for camera fly-in, rest for model morphing
+  const CAMERA_SCROLL_END = 0.2; // Camera completes by 20% scroll (page 1 of 5)
+
   // Drive animations from scroll offset every frame
   useFrame(() => {
     if (!scrollData || !mixer) return;
 
     const t = scrollData.offset; // 0..1
 
-    // Drive camera animation with scroll
+    // --- Camera & body animation phase ---
+    // Clamp scroll to camera portion, then normalize to 0..1
+    const cameraNorm = Math.min(t / CAMERA_SCROLL_END, 1.0);
+
+    // Drive camera animation with clamped scroll
     const cameraActionName = Object.keys(actions).find(
       (name) => name.toLowerCase().includes("camera")
     );
     if (cameraActionName && actions[cameraActionName]) {
       const action = actions[cameraActionName];
       const clip = action.getClip();
-      action.time = t * clip.duration;
+      action.time = cameraNorm * clip.duration;
     }
 
-    // Drive body animations with scroll too
+    // Drive body animations with clamped scroll too
     const bodyActionNames = Object.keys(actions).filter(
       (name) => !name.toLowerCase().includes("camera")
     );
@@ -180,7 +191,7 @@ export const SceneModel: React.FC = () => {
       const action = actions[name];
       if (action) {
         const clip = action.getClip();
-        action.time = t * clip.duration;
+        action.time = cameraNorm * clip.duration;
       }
     });
 
@@ -191,6 +202,23 @@ export const SceneModel: React.FC = () => {
     if (sceneCameraRef.current) {
       sceneCameraRef.current.updateMatrixWorld(true);
       sceneCameraRef.current.updateProjectionMatrix();
+    }
+
+    // --- Model morphing phase (after camera arrives) ---
+    if (t > CAMERA_SCROLL_END) {
+      const morphProgress = (t - CAMERA_SCROLL_END) / (1.0 - CAMERA_SCROLL_END); // 0..1
+      const numModels = settingsRef.current.models.length;
+      const modelIndex = Math.min(
+        Math.floor(morphProgress * numModels),
+        numModels - 1
+      );
+
+      if (modelIndex !== settingsRef.current.currentModelIndex) {
+        updateSetting('currentModelIndex', modelIndex);
+      }
+    } else if (settingsRef.current.currentModelIndex !== 0) {
+      // During camera phase, ensure we're showing the first model
+      updateSetting('currentModelIndex', 0);
     }
   });
 

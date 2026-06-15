@@ -118,7 +118,7 @@ export const Dashboard: React.FC = () => {
               <div className="flex flex-col gap-1.5">
                 <span className="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">Particle Grid Size</span>
                 <div className="grid grid-cols-3 gap-1">
-                  {([180, 256, 512, 768, 1024, 1536, 2048] as const).map((size) => (
+                  {([128, 256, 512, 768, 1024, 1536, 2048] as const).map((size) => (
                     <button
                       key={size}
                       onClick={() => updateSetting("gridSize", size)}

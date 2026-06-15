@@ -22,6 +22,19 @@ interface ModelParticleSystemProps {
   targetNode?: THREE.Object3D;
 }
 
+/**
+ * Per-model rotation offsets (in DEGREES).
+ * Adjust these to make each model appear upright.
+ * [xRotation, yRotation, zRotation]
+ * Try 90, -90, 180, or 0 to flip the model upright.
+ */
+const MODEL_ROTATION_OFFSETS_DEGREES: [number, number, number][] = [
+  [90, -230, 0],   // model.glb
+  [90, -230, 0],   // bird.glb
+  [90, -230, 0],   // figure.glb
+  [90, -230, 0],   // old_door.glb
+];
+
 export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes, targetNode }) => {
   const { settings, updateSetting } = useSimulation();
   const materialRef = useRef<THREE.ShaderMaterial>(null);
@@ -207,13 +220,60 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       maxZ = Math.max(maxZ, sampledPositions[i + 2]);
     }
 
-    const sizeX = maxX - minX;
-    const sizeY = maxY - minY;
-    const sizeZ = maxZ - minZ;
-
     const cx = (minX + maxX) / 2;
     const cy = (minY + maxY) / 2;
     const cz = (minZ + maxZ) / 2;
+
+    // Apply per-model upright correction rotation around the model's center (in degrees)
+    const modelIdx = settings.currentModelIndex;
+    const [oxDeg, oyDeg, ozDeg] = MODEL_ROTATION_OFFSETS_DEGREES[modelIdx] ?? [0, 0, 0];
+    const euler = new THREE.Euler(
+      THREE.MathUtils.degToRad(oxDeg),
+      THREE.MathUtils.degToRad(oyDeg),
+      THREE.MathUtils.degToRad(ozDeg)
+    );
+    const quaternion = new THREE.Quaternion().setFromEuler(euler);
+    const tempVec = new THREE.Vector3();
+
+    for (let i = 0; i < sampledPositions.length; i += 3) {
+      tempVec.set(
+        sampledPositions[i] - cx,
+        sampledPositions[i + 1] - cy,
+        sampledPositions[i + 2] - cz
+      );
+      tempVec.applyQuaternion(quaternion);
+      sampledPositions[i] = tempVec.x;
+      sampledPositions[i + 1] = tempVec.y;
+      sampledPositions[i + 2] = tempVec.z;
+    }
+
+    // Recalculate bounding box and center for the rotated vertices
+    let rotMinX = Infinity, rotMinY = Infinity, rotMinZ = Infinity;
+    let rotMaxX = -Infinity, rotMaxY = -Infinity, rotMaxZ = -Infinity;
+
+    for (let i = 0; i < sampledPositions.length; i += 3) {
+      rotMinX = Math.min(rotMinX, sampledPositions[i]);
+      rotMinY = Math.min(rotMinY, sampledPositions[i + 1]);
+      rotMinZ = Math.min(rotMinZ, sampledPositions[i + 2]);
+      rotMaxX = Math.max(rotMaxX, sampledPositions[i]);
+      rotMaxY = Math.max(rotMaxY, sampledPositions[i + 1]);
+      rotMaxZ = Math.max(rotMaxZ, sampledPositions[i + 2]);
+    }
+
+    const sizeX = rotMaxX - rotMinX;
+    const sizeY = rotMaxY - rotMinY;
+    const sizeZ = rotMaxZ - rotMinZ;
+
+    const rcx = (rotMinX + rotMaxX) / 2;
+    const rcy = (rotMinY + rotMaxY) / 2;
+    const rcz = (rotMinZ + rotMaxZ) / 2;
+
+    // Center the rotated vertices at (0, 0, 0)
+    for (let i = 0; i < sampledPositions.length; i += 3) {
+      sampledPositions[i] -= rcx;
+      sampledPositions[i + 1] -= rcy;
+      sampledPositions[i + 2] -= rcz;
+    }
 
     // If targetNode is provided, scale and center to match the body's bounding box
     if (targetNode) {
@@ -223,9 +283,9 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         const fitScale = modelMaxDim > 0 ? bodyMaxDim / modelMaxDim : 1;
 
         for (let i = 0; i < sampledPositions.length; i += 3) {
-          sampledPositions[i] = (sampledPositions[i] - cx) * fitScale + bodyBBox.center[0];
-          sampledPositions[i + 1] = (sampledPositions[i + 1] - cy) * fitScale + bodyBBox.center[1];
-          sampledPositions[i + 2] = (sampledPositions[i + 2] - cz) * fitScale + bodyBBox.center[2];
+          sampledPositions[i] = sampledPositions[i] * fitScale + bodyBBox.center[0];
+          sampledPositions[i + 1] = sampledPositions[i + 1] * fitScale + bodyBBox.center[1];
+          sampledPositions[i + 2] = sampledPositions[i + 2] * fitScale + bodyBBox.center[2];
         }
 
         return {
@@ -237,13 +297,13 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         };
       }
 
-      // Fallback: no bodyBBox, pass through as-is
+      // Fallback: no bodyBBox, pass through as-is (already centered at (0,0,0))
       return {
         centeredPositions: sampledPositions,
         colors: sampledColors,
         modelScale: 1,
         boxSize: [sizeX, sizeY, sizeZ] as [number, number, number],
-        boxCenter: [cx, cy, cz] as [number, number, number]
+        boxCenter: [0, 0, 0] as [number, number, number]
       };
     }
 
@@ -252,9 +312,9 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     const scale = maxDim > 0 ? targetSize / maxDim : 1;
 
     for (let i = 0; i < sampledPositions.length; i += 3) {
-      sampledPositions[i] = (sampledPositions[i] - cx) * scale;
-      sampledPositions[i + 1] = (sampledPositions[i + 1] - cy) * scale;
-      sampledPositions[i + 2] = (sampledPositions[i + 2] - cz) * scale;
+      sampledPositions[i] = sampledPositions[i] * scale;
+      sampledPositions[i + 1] = sampledPositions[i + 1] * scale;
+      sampledPositions[i + 2] = sampledPositions[i + 2] * scale;
     }
 
     return {
@@ -264,7 +324,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       boxSize: [sizeX * scale, sizeY * scale, sizeZ * scale] as [number, number, number],
       boxCenter: [0, 0, 0] as [number, number, number]
     };
-  }, [extractedPositions, extractedColors, settings.gridSize, targetNode, bodyBBox]);
+  }, [extractedPositions, extractedColors, settings.gridSize, targetNode, bodyBBox, settings.currentModelIndex]);
 
   // Create a mutable reference for positions for the GPU buffer (physics writes into this)
   const dynamicPositionsRef = useRef<Float32Array>(new Float32Array(0));
@@ -490,23 +550,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       if (targetNode && groupRef.current) {
         groupRef.current.matrixAutoUpdate = false;
         groupRef.current.matrix.copy(targetNode.matrixWorld);
-        // Apply continuous Y rotation around the local bounding box center
-        if (bodyBBox) {
-          const [cx, cy, cz] = bodyBBox.center;
-          transToCenterRef.current.makeTranslation(cx, cy, cz);
-          rotMatrixRef.current.makeRotationY(state.clock.getElapsedTime() * 0.3);
-          transBackRef.current.makeTranslation(-cx, -cy, -cz);
-          
-          localTransformRef.current.identity()
-            .multiply(transToCenterRef.current)
-            .multiply(rotMatrixRef.current)
-            .multiply(transBackRef.current);
-            
-          groupRef.current.matrix.multiply(localTransformRef.current);
-        } else {
-          rotMatrixRef.current.makeRotationY(state.clock.getElapsedTime() * 0.3);
-          groupRef.current.matrix.multiply(rotMatrixRef.current);
-        }
+        // Continuous Y rotation around local bounding box center removed
         // Force world matrix update so children (raycast box) have correct transforms
         groupRef.current.updateMatrixWorld(true);
       }
@@ -744,12 +788,13 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         }
       }
 
-      // Rotation: full 360° per cycle (scroll-driven) + slow constant idle rotation
+      // Rotation: full 360° per cycle (scroll-driven) without continuous spin
       const angle = cycleProgress * Math.PI * 2;
-      const idleRotation = elapsed * 0.15; // Slow continuous spin
-      groupRef.current.rotation.y = angle + idleRotation;
-      // Subtle tilt for cinematic feel
+
+      // Per-model upright correction offset
+      groupRef.current.rotation.y = angle;
       groupRef.current.rotation.x = Math.sin(angle) * 0.12;
+      groupRef.current.rotation.z = 0;
 
       // Z position: start far away (-8), come close (0) at mid-cycle, go back far
       const farDistance = -8;
@@ -757,8 +802,8 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       const zRange = farDistance - closeDistance;
       groupRef.current.position.z = closeDistance + ((1 + Math.cos(angle)) / 2) * zRange;
     } else if (groupRef.current && !meshes) {
-      // No scroll context — just apply idle rotation
-      groupRef.current.rotation.y = elapsed * 0.15;
+      // No scroll context — static upright orientation (vertices are already upright)
+      groupRef.current.rotation.set(0, 0, 0);
     }
   });
 
@@ -769,7 +814,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
   return (
     <group ref={groupRef}>
       {/* Postprocessing Stack */}
-      <EffectComposer disableNormalPass multisampling={0}>
+      <EffectComposer enableNormalPass={false} multisampling={0}>
         <Datamosh ref={datamoshRef} strength={0} seed={0} />
       </EffectComposer>
 
@@ -840,6 +885,8 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
 useGLTF.preload("/model.glb");
 useGLTF.preload("/bird.glb");
+useGLTF.preload("/figure.glb");
+useGLTF.preload("/old_door.glb");
 useGLTF.preload("/plane.glb");
 useGLTF.preload("/myscene_v2.glb");
 
