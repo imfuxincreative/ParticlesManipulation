@@ -64,7 +64,7 @@ const WebGLFallback: React.FC = () => (
       </div>
       <h2 className="text-xl font-semibold text-slate-100 mb-3">WebGL Context Unavailable</h2>
       <p className="text-sm text-slate-400 leading-relaxed mb-6">
-        Your browser&apos;s WebGL context has been lost or hardware acceleration is disabled. 
+        Your browser&apos;s WebGL context has been lost or hardware acceleration is disabled.
         This is usually caused by a GPU driver crash or browser settings.
       </p>
       <div className="text-left text-xs text-slate-500 space-y-2 bg-slate-950/60 rounded-lg p-4 border border-white/5">
@@ -100,7 +100,7 @@ export const SceneContainer: React.FC = () => {
 
   return (
     <WebGLErrorBoundary fallback={<WebGLFallback />}>
-      <div className="w-full h-full absolute inset-0 z-0">
+      <div className="w-full h-full absolute inset-0 z-0 canvas-container">
         <Canvas
           camera={{
             position: [0, 0, 10],
@@ -122,10 +122,10 @@ export const SceneContainer: React.FC = () => {
           }}
         >
           <color attach="background" args={[settings.hazeColor]} />
-          
+
           <ambientLight intensity={0.6} />
           <pointLight position={[10, 10, 10]} intensity={1.5} />
-          
+
           <Suspense fallback={null}>
             <ScrollControls pages={5} damping={0.1}>
               <SceneModel />

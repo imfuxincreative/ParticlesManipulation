@@ -1,20 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSimulation, PresetType } from "@/context/SimulationContext";
 import {
   Sliders,
   Sparkles,
   Camera,
-  ChevronRight,
-  ChevronLeft,
-  Info
+  Menu,
+  X
 } from "lucide-react";
 
 export const Dashboard: React.FC = () => {
   const { settings, updateSetting, applyPreset } = useSimulation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [activeTab, setActiveTab] = useState<"presets" | "rendering" | "focus">("presets");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+      setIsCollapsed(false);
+    }
+  }, []);
 
   const presets: { id: PresetType; label: string; desc: string; color: string }[] = [
     { id: "neon", label: "Neon Haze", desc: "Violet glows and strong noise displacement", color: "bg-purple-500" },
@@ -27,33 +32,22 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="fixed inset-0 w-full h-full pointer-events-none select-none z-20 font-sans text-slate-100 flex flex-col justify-between p-6">
 
-      {/* Top Header Panel */}
-      <header className="w-full flex justify-between items-start pointer-events-auto">
-        <div className="bg-slate-950/60 backdrop-blur-md border border-white/5 rounded-xl px-5 py-3 flex flex-col gap-0.5">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-purple-500 animate-pulse" />
-            <h1 className="text-sm font-semibold tracking-widest uppercase text-slate-300">Volumetric Engine</h1>
-          </div>
-          <p className="text-xs text-slate-500 font-mono">Model: MiDaS v3.1 BEiTL-512</p>
-        </div>
-
-      </header>
+      {/* Burger Menu Button in Top Right Corner */}
+      <div className="fixed top-6 right-6 z-40 pointer-events-auto">
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="  flex items-center justify-center"
+          aria-label="Toggle Menu"
+        >
+          {isCollapsed ? <Menu className="w-5 h-5 text-black" /> : <X className="w-5 h-5 text-black" />}
+        </button>
+      </div>
 
       {/* Main Interactive HUD Controls (Right-aligned Sidebar) */}
-      <main className="absolute right-6 top-28 bottom-28 flex items-stretch pointer-events-auto">
-        {/* Toggle Collapse Button */}
-        <div className="flex items-center">
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="bg-slate-950/70 border border-white/10 hover:border-purple-500 hover:text-purple-400 text-slate-400 p-2 rounded-l-lg backdrop-blur-md cursor-pointer transition-all"
-          >
-            {isCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          </button>
-        </div>
-
+      <main className="absolute right-4 md:right-6 top-20 md:top-28 bottom-20 md:bottom-28 flex items-stretch pointer-events-none z-30">
         {/* Sidebar Container */}
         <div
-          className={`bg-slate-950/70 backdrop-blur-lg border-y border-r border-white/10 rounded-r-xl w-80 p-5 flex flex-col gap-5 transition-all duration-300 overflow-y-auto ${isCollapsed ? "opacity-0 w-0 pointer-events-none translate-x-8" : "opacity-100"
+          className={`bg-slate-950/70 backdrop-blur-lg border border-white/10 rounded-xl w-72 md:w-80 p-5 flex flex-col gap-5 transition-all duration-300 overflow-y-auto ${isCollapsed ? "opacity-0 w-0 pointer-events-none translate-x-8" : "opacity-100 pointer-events-auto"
             }`}
         >
           {/* Tab Navigation */}
@@ -229,6 +223,23 @@ export const Dashboard: React.FC = () => {
                   onChange={(e) => updateSetting("pointSize", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
+              </div>
+
+              {/* Color: Particle Color */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">PARTICLE DEFAULT COLOR</span>
+                  <span className="text-slate-300">{settings.particleDefaultColor || "#8d8d8d"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={settings.particleDefaultColor || "#8d8d8d"}
+                    onChange={(e) => updateSetting("particleDefaultColor", e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                  />
+                  <span className="text-[10px] text-slate-500 font-mono">Select color</span>
+                </div>
               </div>
 
               {/* Slider: Noise Displacement */}
@@ -417,6 +428,86 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
+              {/* Toggle: Grid Floor */}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500 font-mono text-[10px]">SHOW GRID FLOOR</span>
+                <button
+                  onClick={() => updateSetting("showGridFloor", !settings.showGridFloor)}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showGridFloor ? "bg-purple-600" : "bg-slate-800"
+                    }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showGridFloor ? "translate-x-4" : "translate-x-0"
+                      }`}
+                  />
+                </button>
+              </div>
+
+              {/* Slider: Grid Floor Opacity */}
+              {settings.showGridFloor && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">GRID FLOOR OPACITY</span>
+                    <span className="text-slate-300">{(settings.gridFloorOpacity * 100).toFixed(0)}%</span>
+                  </div>
+                  <input
+                    type="range" min="0.0" max="1.0" step="0.05"
+                    value={settings.gridFloorOpacity}
+                    onChange={(e) => updateSetting("gridFloorOpacity", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Slider: Grid Tile Size */}
+              {settings.showGridFloor && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">GRID TILE SIZE</span>
+                    <span className="text-slate-300">{settings.gridTileSize.toFixed(1)}u</span>
+                  </div>
+                  <input
+                    type="range" min="1.0" max="20.0" step="0.5"
+                    value={settings.gridTileSize}
+                    onChange={(e) => updateSetting("gridTileSize", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Slider: Grid Line Width */}
+              {settings.showGridFloor && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">GRID LINE WIDTH</span>
+                    <span className="text-slate-300">{settings.gridLineWidth.toFixed(1)}px</span>
+                  </div>
+                  <input
+                    type="range" min="0.5" max="5.0" step="0.1"
+                    value={settings.gridLineWidth}
+                    onChange={(e) => updateSetting("gridLineWidth", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Slider: Grid Floor Height Y */}
+              {settings.showGridFloor && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">GRID FLOOR HEIGHT (Y)</span>
+                    <span className="text-slate-300">{settings.gridFloorY.toFixed(1)}u</span>
+                  </div>
+                  <input
+                    type="range" min="-15.0" max="5.0" step="0.1"
+                    value={settings.gridFloorY}
+                    onChange={(e) => updateSetting("gridFloorY", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+
               {/* Slider: Haze Density */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
@@ -530,22 +621,68 @@ export const Dashboard: React.FC = () => {
                   Drops out-of-focus particles, clustering density purely in the focused region for an atmospheric, noisy grain texture.
                 </p>
               </div>
+
+              {/* SKY DOME CONFIG */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
+                <Camera className="w-3.5 h-3.5" />
+                <span>Sky Atmosphere</span>
+              </div>
+
+              {/* Toggle: Sky Dome */}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500 font-mono text-[10px]">SHOW GLOWING SKY</span>
+                <button
+                  onClick={() => updateSetting("showSky", !settings.showSky)}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showSky ? "bg-purple-600" : "bg-slate-800"
+                    }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showSky ? "translate-x-4" : "translate-x-0"
+                      }`}
+                  />
+                </button>
+              </div>
+
+              {/* Slider: Sky Exposure */}
+              {settings.showSky && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">SKY EXPOSURE</span>
+                    <span className="text-slate-300">{settings.skyExposure.toFixed(2)}x</span>
+                  </div>
+                  <input
+                    type="range" min="0.1" max="4.0" step="0.05"
+                    value={settings.skyExposure}
+                    onChange={(e) => updateSetting("skyExposure", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Color: Sky Color */}
+              {settings.showSky && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">SKY HORIZON GLOW COLOR</span>
+                    <span className="text-slate-300">{settings.skyColor}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={settings.skyColor}
+                      onChange={(e) => updateSetting("skyColor", e.target.value)}
+                      className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                    />
+                    <span className="text-[10px] text-slate-500">Select color</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       </main>
 
-      {/* Bottom Control Bar */}
-      <footer className="w-full flex justify-between items-end pointer-events-auto">
-        {/* Help Panel */}
-        <div className="bg-slate-950/60 backdrop-blur-md border border-white/5 rounded-xl px-5 py-4 w-96 flex gap-3 text-xs leading-relaxed text-slate-400">
-          <Info className="w-5 h-5 text-purple-400 shrink-0" />
-          <div className="flex flex-col gap-1">
-            <span className="font-semibold text-slate-200">Interactive Controls</span>
-            <p>Drag mouse left/right/up/down to rotate camera. Scroll to zoom.</p>
-          </div>
-        </div>
-      </footer>
+
 
     </div>
   );

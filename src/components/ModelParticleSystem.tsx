@@ -166,7 +166,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
             colorAttr.getZ(i)
           );
         } else {
-          allColors.push(0.7, 0.7, 0.7);
+          allColors.push(-1.0, -1.0, -1.0);
         }
       }
     }
@@ -406,6 +406,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       uMouse: { value: new THREE.Vector2(-999, -999) },
       uAspect: { value: 1.0 },
       uPrimaryColor: { value: new THREE.Color(settings.xrayBorderColor || "#e91e63") },
+      uParticleDefaultColor: { value: new THREE.Color(settings.particleDefaultColor || "#8d8d8d") },
     };
   }, []);
 
@@ -426,6 +427,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     u.uOpacity.value = settings.opacity;
     u.uDensityControl.value = settings.densityControl;
     if (u.uPrimaryColor) u.uPrimaryColor.value.set(settings.xrayBorderColor || "#e91e63");
+    if (u.uParticleDefaultColor) u.uParticleDefaultColor.value.set(settings.particleDefaultColor || "#8d8d8d");
   }, [settings]);
 
   // ─── Autonomous Rapid-Fire Glitch Burst Scheduler ───
@@ -550,7 +552,28 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       if (targetNode && groupRef.current) {
         groupRef.current.matrixAutoUpdate = false;
         groupRef.current.matrix.copy(targetNode.matrixWorld);
-        // Continuous Y rotation around local bounding box center removed
+
+        // Apply local Z rotation around the bounding box center (slow auto-rotation + scroll rotation)
+        const cx = boxCenter ? boxCenter[0] : 0;
+        const cy = boxCenter ? boxCenter[1] : 0;
+        const cz = boxCenter ? boxCenter[2] : 0;
+
+        const elapsed = state.clock.getElapsedTime();
+        const autoRotationSpeed = 0.15; // Slow idle Z rotation
+        const scrollRotationSpeed = Math.PI * 4; // 2 full Z rotations over the 0..1 scroll range
+
+        const scrollOffset = scrollData ? scrollData.offset : 0;
+        const angle = (elapsed * autoRotationSpeed) + (scrollOffset * scrollRotationSpeed);
+
+        transToCenterRef.current.makeTranslation(-cx, -cy, -cz);
+        rotMatrixRef.current.makeRotationZ(angle);
+        transBackRef.current.makeTranslation(cx, cy, cz);
+
+        localTransformRef.current.multiplyMatrices(transBackRef.current, rotMatrixRef.current);
+        localTransformRef.current.multiply(transToCenterRef.current);
+
+        groupRef.current.matrix.multiply(localTransformRef.current);
+
         // Force world matrix update so children (raycast box) have correct transforms
         groupRef.current.updateMatrixWorld(true);
       }

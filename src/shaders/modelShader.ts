@@ -185,6 +185,7 @@ export const ModelParticleShader = {
     uniform float uDensityControl;
     uniform float uTime;
     uniform vec3 uPrimaryColor;
+    uniform vec3 uParticleDefaultColor;
 
     varying vec3 vColor;
     varying float vDepth;
@@ -207,8 +208,11 @@ export const ModelParticleShader = {
       // Soft edge falloff
       float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
 
+      // Apply default color if vertex has no color (sentinel value of < 0.0)
+      vec3 baseColor = vColor.r < 0.0 ? uParticleDefaultColor : vColor;
+
       // Apply tint
-      vec3 color = mix(vColor, uTint, uTintMix);
+      vec3 color = mix(baseColor, uTint, uTintMix);
 
       // Apply atmospheric haze based on blur (distance from focus)
       color = mix(color, uHazeColor, vBlur * uHazeDensity);

@@ -4,7 +4,6 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { SimulationProvider } from "@/context/SimulationContext";
 import { Dashboard } from "@/components/Dashboard";
-import { ModelNavigation } from "@/components/ModelNavigation";
 
 // Disable SSR for 3D R3F Canvas to prevent hydration errors and canvas initialization issues
 const SceneContainer = dynamic(
@@ -24,9 +23,6 @@ export default function Home() {
 
         {/* Dashboard HUD Controls & Text Overlay */}
         <Dashboard />
-        
-        {/* Model Switching Arrows */}
-        <ModelNavigation />
         
       </main>
     </SimulationProvider>

@@ -6,6 +6,8 @@ import { useGLTF, useAnimations, useScroll } from "@react-three/drei";
 import * as THREE from "three";
 import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
 import { ModelParticleSystem } from "./ModelParticleSystem";
+import { GridFloor } from "./GridFloor";
+import { SkyDome } from "./SkyDome";
 import { useSimulation } from "@/context/SimulationContext";
 
 const SCENE_PATH = "/SCENE.glb";
@@ -24,7 +26,7 @@ const TARGET_NAME = "body";
  */
 export const SceneModel: React.FC = () => {
   const gltf = useGLTF(SCENE_PATH);
-  const { set, camera: defaultCamera } = useThree();
+  const { set, size } = useThree();
   const scrollData = useScroll();
   const { settings, updateSetting } = useSimulation();
   const settingsRef = useRef(settings);
@@ -99,12 +101,13 @@ export const SceneModel: React.FC = () => {
     if (!sceneCamera) {
       // If no camera found in scene, try constructing one from the GLTF camera data
       // The camera node exists at index 267 with camera 0
+      let createdCam: THREE.PerspectiveCamera | null = null;
       gltf.scene.traverse((child) => {
         if (child.name === CAMERA_NAME) {
           // Create a perspective camera matching the GLB camera spec
           const cam = new THREE.PerspectiveCamera(
             0.39959652046304894 * (180 / Math.PI), // yfov to degrees
-            1.7777777777777777,
+            size.width / size.height,
             0.1,
             1000
           );
@@ -114,20 +117,24 @@ export const SceneModel: React.FC = () => {
           cam.quaternion.identity();
           cam.scale.set(1, 1, 1);
           child.add(cam);
-          sceneCamera = cam;
+          createdCam = cam;
         }
       });
+      sceneCamera = createdCam;
     }
 
     if (sceneCamera) {
-      sceneCameraRef.current = sceneCamera;
+      const activeCam = sceneCamera as THREE.PerspectiveCamera;
+      sceneCameraRef.current = activeCam;
+      activeCam.aspect = size.width / size.height;
+      activeCam.updateProjectionMatrix();
       // Make the scene camera the active R3F camera
-      set({ camera: sceneCamera });
+      set({ camera: activeCam });
       console.log("[SceneModel] Scene camera activated");
     } else {
       console.warn("[SceneModel] No camera found in scene!");
     }
-  }, [gltf, set]);
+  }, [gltf, set, size]);
 
   // Set up scroll-driven camera animation
   useEffect(() => {
@@ -186,7 +193,7 @@ export const SceneModel: React.FC = () => {
     const bodyActionNames = Object.keys(actions).filter(
       (name) => !name.toLowerCase().includes("camera")
     );
-    
+
     bodyActionNames.forEach((name) => {
       const action = actions[name];
       if (action) {
@@ -200,13 +207,15 @@ export const SceneModel: React.FC = () => {
 
     // Sync the scene camera's world matrix to R3F
     if (sceneCameraRef.current) {
+      sceneCameraRef.current.aspect = size.width / size.height;
       sceneCameraRef.current.updateMatrixWorld(true);
       sceneCameraRef.current.updateProjectionMatrix();
     }
 
-    // --- Model morphing phase (after camera arrives) ---
-    if (t > CAMERA_SCROLL_END) {
-      const morphProgress = (t - CAMERA_SCROLL_END) / (1.0 - CAMERA_SCROLL_END); // 0..1
+    // --- Model morphing phase (after camera arrives and city fully wipes out) ---
+    const MODEL_MORPH_START = 0.5;
+    if (t > MODEL_MORPH_START) {
+      const morphProgress = (t - MODEL_MORPH_START) / (1.0 - MODEL_MORPH_START); // 0..1
       const numModels = settingsRef.current.models.length;
       const modelIndex = Math.min(
         Math.floor(morphProgress * numModels),
@@ -217,10 +226,52 @@ export const SceneModel: React.FC = () => {
         updateSetting('currentModelIndex', modelIndex);
       }
     } else if (settingsRef.current.currentModelIndex !== 0) {
-      // During camera phase, ensure we're showing the first model
+      // During camera and city wipeout phases, ensure we're showing the first model
       updateSetting('currentModelIndex', 0);
     }
   });
+
+  // Calculate bounding box and diagonal projection bounds for the city
+  const cityProjectionBounds = useMemo(() => {
+    if (cityMeshes.length === 0) return { min: -100, max: 100 };
+
+    const wipeDir = new THREE.Vector3(1, 0, 1).normalize();
+    const bounds = new THREE.Box3();
+
+    cityMeshes.forEach((mesh) => {
+      if (mesh.geometry) {
+        if (!mesh.geometry.boundingBox) {
+          mesh.geometry.computeBoundingBox();
+        }
+        if (mesh.geometry.boundingBox) {
+          const meshBounds = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+          bounds.union(meshBounds);
+        }
+      }
+    });
+
+    const corners = [
+      new THREE.Vector3(bounds.min.x, bounds.min.y, bounds.min.z),
+      new THREE.Vector3(bounds.max.x, bounds.min.y, bounds.min.z),
+      new THREE.Vector3(bounds.min.x, bounds.max.y, bounds.min.z),
+      new THREE.Vector3(bounds.max.x, bounds.max.y, bounds.min.z),
+      new THREE.Vector3(bounds.min.x, bounds.min.y, bounds.max.z),
+      new THREE.Vector3(bounds.max.x, bounds.min.y, bounds.max.z),
+      new THREE.Vector3(bounds.min.x, bounds.max.y, bounds.max.z),
+      new THREE.Vector3(bounds.max.x, bounds.max.y, bounds.max.z),
+    ];
+
+    let minProj = Infinity;
+    let maxProj = -Infinity;
+    corners.forEach((c) => {
+      const proj = c.dot(wipeDir);
+      minProj = Math.min(minProj, proj);
+      maxProj = Math.max(maxProj, proj);
+    });
+
+    // Add a small safety margin of 5 units on both sides to guarantee full wipe coverage
+    return { min: minProj - 5, max: maxProj + 5 };
+  }, [cityMeshes]);
 
   return (
     <>
@@ -230,9 +281,15 @@ export const SceneModel: React.FC = () => {
 
         {/* City rendered as holographic X-Ray mesh */}
         {cityMeshes.length > 0 && (
-          <CityXRayMeshSystem meshes={cityMeshes} />
+          <CityXRayMeshSystem meshes={cityMeshes} projectionBounds={cityProjectionBounds} />
         )}
       </group>
+
+      {/* Glowing Sky Dome */}
+      {settings.showSky && <SkyDome />}
+
+      {/* Grid Floor */}
+      {settings.showGridFloor && <GridFloor projectionBounds={cityProjectionBounds} />}
 
       {/* Target rendered with interactive particle system */}
       {targetMeshes.length > 0 && (

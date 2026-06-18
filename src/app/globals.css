@@ -19,7 +19,8 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
-  overflow-x: hidden;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* Lenis smooth scrolling rules */
@@ -50,7 +51,7 @@ html.lenis body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #05060d;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -61,4 +62,17 @@ html.lenis body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 92, 246, 0.4);
+}
+
+/* Hide scrollbar for R3F Drei ScrollControls, html, and body */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.canvas-container ::-webkit-scrollbar {
+  display: none !important;
+}
+html,
+body,
+.canvas-container * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }

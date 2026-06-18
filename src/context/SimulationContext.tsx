@@ -6,6 +6,7 @@ export type PresetType = "neon" | "muted" | "volcanic" | "monochrome" | "emerald
 
 export interface SimulationSettings {
   gridSize: 128 | 192 | 256 | 384 | 512 | 768 | 1024 | 1536 | 2048;
+  particleDefaultColor: string;
   glitchIntensity: number;
   glitchInterval: number;
   glitchDuration: number;
@@ -41,6 +42,15 @@ export interface SimulationSettings {
   xrayBorderDepthLimit: number;
   xrayBorderRevealDepth: number;
   xrayHoverRadius: number;
+  showGridFloor: boolean;
+  gridFloorOpacity: number;
+  gridFloorFillOpacity: number;
+  gridTileSize: number;
+  gridLineWidth: number;
+  gridFloorY: number;
+  showSky: boolean;
+  skyColor: string;
+  skyExposure: number;
 }
 
 const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
@@ -58,6 +68,7 @@ const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
     noiseSpeed: 0.6,
     hazeDensity: 0.4,
     bokehScale: 5.0,
+    skyColor: "#ff007f",
   },
   muted: {
     hazeColor: "#0b0c10",
@@ -70,6 +81,7 @@ const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
     noiseSpeed: 0.3,
     hazeDensity: 0.3,
     bokehScale: 3.5,
+    skyColor: "#00bfa5",
   },
   volcanic: {
     hazeColor: "#0d0505",
@@ -82,6 +94,7 @@ const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
     noiseSpeed: 0.9,
     hazeDensity: 0.5,
     bokehScale: 6.0,
+    skyColor: "#ff5722",
   },
   monochrome: {
     hazeColor: "#0a0a0a",
@@ -94,6 +107,7 @@ const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
     noiseSpeed: 0.2,
     hazeDensity: 0.7,
     bokehScale: 4.0,
+    skyColor: "#555555",
   },
   emerald: {
     hazeColor: "#020804",
@@ -106,6 +120,7 @@ const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
     noiseSpeed: 0.5,
     hazeDensity: 0.4,
     bokehScale: 4.5,
+    skyColor: "#00e676",
   },
 };
 
@@ -117,6 +132,7 @@ interface SimulationContextProps {
 
 const defaultSettings: SimulationSettings = {
   gridSize: 512, // Massive density (4 million+ particles) for a completely solid, clear image
+  particleDefaultColor: "#8d8d8d",
   glitchIntensity: 1.0, // Base glitch burst strength
   glitchInterval: 2.0, // Calm period base (seconds)
   glitchDuration: 0.4, // Active burst base (seconds)
@@ -137,7 +153,7 @@ const defaultSettings: SimulationSettings = {
   tintMix: 0.0,
   opacity: 1.0, // Full opacity for clear footage
   densityControl: 0.0, // Turned off particle dropping so the entire video renders cleanly
-  models: ["/model.glb", "/bird.glb", "/figure.glb", "/old_door.glb"],
+  models: ["/model.glb", "/bird.glb", "/figure.glb"],
   currentModelIndex: 0,
   isPlaying: false,
   activePreset: "neon",
@@ -152,6 +168,15 @@ const defaultSettings: SimulationSettings = {
   xrayBorderDepthLimit: 20.0,
   xrayBorderRevealDepth: 400.0,
   xrayHoverRadius: 10.0,
+  showGridFloor: true,
+  gridFloorOpacity: 0.35,
+  gridFloorFillOpacity: 0.15,
+  gridTileSize: 4.0,
+  gridLineWidth: 1.5,
+  gridFloorY: -4.5,
+  showSky: true,
+  skyColor: "#ff007f",
+  skyExposure: 1.0,
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);
