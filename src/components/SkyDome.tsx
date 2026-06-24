@@ -2,7 +2,6 @@
 
 import React, { useMemo, useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useScroll } from "@react-three/drei";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
 import { SkyShader } from "@/shaders/skyShader";
@@ -10,7 +9,6 @@ import { SkyShader } from "@/shaders/skyShader";
 export const SkyDome: React.FC = () => {
   const { settings } = useSimulation();
   const { camera } = useThree();
-  const scrollData = useScroll();
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
@@ -40,12 +38,8 @@ export const SkyDome: React.FC = () => {
       const u = materialRef.current.uniforms;
       u.uTime.value = state.clock.elapsedTime;
       
-      let burnOut = 0.0;
-      if (scrollData) {
-        const t = scrollData.offset;
-        // Trigger burnout from 0.0 to 0.5 scroll progress
-        burnOut = Math.min(1.0, Math.max(0.0, t / 0.5));
-      }
+      // Disabled so sky dome doesn't disappear on scroll
+      const burnOut = 0.0;
       if (u.uBurnOut) u.uBurnOut.value = burnOut;
     }
   });

@@ -13,16 +13,26 @@ export const CityXRayLineShader = {
     uMaxProj: { value: 100.0 },
   },
   vertexShader: `
+    #include <skinning_pars_vertex>
+
     uniform float uTime;
     varying float vDepth;
     varying vec3 vWorldPosition;
     
     void main() {
+      #include <skinbase_vertex>
+
+      vec3 transformed = position;
+
+      #ifdef USE_SKINNING
+        #include <skinning_vertex>
+      #endif
+
       // World position for the fragment shader wipe calculations
-      vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+      vec4 worldPosition = modelMatrix * vec4(transformed, 1.0);
       vWorldPosition = worldPosition.xyz;
       
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.0);
       vDepth = -mvPosition.z; // Distance from camera in view space
       gl_Position = projectionMatrix * mvPosition;
     }

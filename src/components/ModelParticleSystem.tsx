@@ -9,6 +9,7 @@ import { useSimulation } from "@/context/SimulationContext";
 import { ModelParticleShader } from "@/shaders/modelShader";
 import { Datamosh } from "@/effects/DatamoshEffect";
 import { CityXRayLineShader } from "@/shaders/cityXRayLineShader";
+import { CityXRayShader } from "@/shaders/cityXRayShader";
 
 /**
  * ModelParticleSystem
@@ -20,6 +21,7 @@ import { CityXRayLineShader } from "@/shaders/cityXRayLineShader";
 interface ModelParticleSystemProps {
   meshes?: THREE.Mesh[];
   targetNode?: THREE.Object3D;
+  projectionBounds?: { min: number; max: number };
 }
 
 /**
@@ -35,7 +37,7 @@ const MODEL_ROTATION_OFFSETS_DEGREES: [number, number, number][] = [
   [90, -230, 0],   // old_door.glb
 ];
 
-export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes, targetNode }) => {
+export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes, targetNode, projectionBounds }) => {
   const { settings, updateSetting } = useSimulation();
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const pointsRef = useRef<THREE.Points>(null);
@@ -54,6 +56,11 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
   useEffect(() => {
     settingsRef.current = settings;
   }, [settings]);
+
+  const projectionBoundsRef = useRef(projectionBounds);
+  useEffect(() => {
+    projectionBoundsRef.current = projectionBounds;
+  }, [projectionBounds]);
 
   const glitchStrengthRef = useRef(0);
   const glitchSeedRef = useRef(0);
@@ -87,6 +94,66 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
   // Load the active GLTF model
   const activeModel = settings.models[settings.currentModelIndex] || settings.models[0];
   const gltf = useGLTF(activeModel);
+
+  // ─── Solid model mesh and wireframe for transition phase ───
+  const { solidMaterial, solidLineMaterial, solidSceneCloned } = useMemo(() => {
+    // Only compile shaders and clone scene if we are on the last model
+    if (!gltf || settings.currentModelIndex !== 2) {
+      return { solidMaterial: null, solidLineMaterial: null, solidSceneCloned: null };
+    }
+
+    // Modify CityXRayShader to support uSolidWhiteProgress
+    const modifiedFrag = CityXRayShader.fragmentShader.replace(
+      'void main() {',
+      `uniform float uSolidWhiteProgress;
+      void main() {`
+    ).replace(
+      'gl_FragColor = vec4(baseHologramColor, finalAlpha);',
+      `vec3 finalColor = mix(baseHologramColor, vec3(1.0), uSolidWhiteProgress);
+      float finalAlphaTransition = mix(finalAlpha, uOpacity, uSolidWhiteProgress);
+      gl_FragColor = vec4(finalColor, finalAlphaTransition);`
+    );
+
+    const mat = new THREE.ShaderMaterial({
+      vertexShader: CityXRayShader.vertexShader,
+      fragmentShader: modifiedFrag,
+      uniforms: {
+        ...THREE.UniformsUtils.clone(CityXRayShader.uniforms),
+        uSolidWhiteProgress: { value: 1.0 },
+      },
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+
+    const lineMat = new THREE.ShaderMaterial({
+      vertexShader: CityXRayLineShader.vertexShader,
+      fragmentShader: CityXRayLineShader.fragmentShader,
+      uniforms: THREE.UniformsUtils.clone(CityXRayLineShader.uniforms),
+      transparent: true,
+      depthWrite: false,
+    });
+
+    const cloned = gltf.scene.clone();
+    cloned.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.material = mat;
+        
+        // Remove existing lines if any, then add custom border lines
+        const toRemove: THREE.Object3D[] = [];
+        child.children.forEach(c => {
+          if (c instanceof THREE.LineSegments) toRemove.push(c);
+        });
+        toRemove.forEach(c => child.remove(c));
+
+        const edgesGeo = new THREE.EdgesGeometry(child.geometry, settings.xrayBorderThreshold ?? 15);
+        const line = new THREE.LineSegments(edgesGeo, lineMat);
+        child.add(line);
+      }
+    });
+
+    return { solidMaterial: mat, solidLineMaterial: lineMat, solidSceneCloned: cloned };
+  }, [gltf, settings.currentModelIndex, settings.xrayBorderThreshold]);
 
   // Compute bounding box of the body mesh for aligning switched models
   const bodyBBox = useMemo(() => {
@@ -180,9 +247,18 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
   }, [gltf]);
 
   // Sample vertices based on gridSize, and apply depthScale/centering
-  const { centeredPositions, colors, modelScale, boxSize, boxCenter } = useMemo(() => {
+  const { centeredPositions, colors, modelScale, boxSize, boxCenter, cOriginal, cRotated, modelRotation } = useMemo(() => {
     if (extractedPositions.length === 0) {
-      return { centeredPositions: new Float32Array(0), colors: new Float32Array(0), modelScale: 1, boxSize: null, boxCenter: null };
+      return {
+        centeredPositions: new Float32Array(0),
+        colors: new Float32Array(0),
+        modelScale: 1,
+        boxSize: null,
+        boxCenter: null,
+        cOriginal: null,
+        cRotated: null,
+        modelRotation: null,
+      };
     }
 
     const targetCount = settings.gridSize * settings.gridSize;
@@ -294,6 +370,9 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
           modelScale: fitScale,
           boxSize: [sizeX * fitScale, sizeY * fitScale, sizeZ * fitScale] as [number, number, number],
           boxCenter: bodyBBox.center,
+          cOriginal: [cx, cy, cz] as [number, number, number],
+          cRotated: [rcx, rcy, rcz] as [number, number, number],
+          modelRotation: quaternion,
         };
       }
 
@@ -303,7 +382,10 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         colors: sampledColors,
         modelScale: 1,
         boxSize: [sizeX, sizeY, sizeZ] as [number, number, number],
-        boxCenter: [0, 0, 0] as [number, number, number]
+        boxCenter: [0, 0, 0] as [number, number, number],
+        cOriginal: [cx, cy, cz] as [number, number, number],
+        cRotated: [rcx, rcy, rcz] as [number, number, number],
+        modelRotation: quaternion,
       };
     }
 
@@ -322,7 +404,10 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       colors: sampledColors,
       modelScale: scale,
       boxSize: [sizeX * scale, sizeY * scale, sizeZ * scale] as [number, number, number],
-      boxCenter: [0, 0, 0] as [number, number, number]
+      boxCenter: [0, 0, 0] as [number, number, number],
+      cOriginal: [cx, cy, cz] as [number, number, number],
+      cRotated: [rcx, rcy, rcz] as [number, number, number],
+      modelRotation: quaternion,
     };
   }, [extractedPositions, extractedColors, settings.gridSize, targetNode, bodyBBox, settings.currentModelIndex]);
 
@@ -407,6 +492,8 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       uAspect: { value: 1.0 },
       uPrimaryColor: { value: new THREE.Color(settings.xrayBorderColor || "#e91e63") },
       uParticleDefaultColor: { value: new THREE.Color(settings.particleDefaultColor || "#8d8d8d") },
+      uBurnProgress: { value: 0.0 },
+      uParticleOpacity: { value: 1.0 },
     };
   }, []);
 
@@ -520,7 +607,27 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
   // Animate glitch strength and bounding box jitter
   useFrame((state) => {
-    const elapsed = state.clock.getElapsedTime();
+    // --- Scroll-Driven Model transition calculation ---
+    let burnProgress = 0.0;
+    let particleOpacity = 1.0;
+    let solidWhiteProgress = 0.0;
+    let solidOpacity = 0.0;
+
+    if (scrollData && settings.currentModelIndex === 2) {
+      const t = scrollData.offset; // 0..1
+      if (t >= 0.88 && t < 0.94) {
+        burnProgress = Math.min(1.0, (t - 0.88) / (0.94 - 0.88));
+        solidWhiteProgress = 1.0;
+        solidOpacity = 0.0; // Hide solid mesh during particle burn
+        particleOpacity = 1.0; // Keep particles fully visible
+      } else if (t >= 0.94) {
+        burnProgress = 1.0;
+        const hologramProgress = Math.min(1.0, (t - 0.94) / (1.0 - 0.94));
+        solidWhiteProgress = 1.0 - hologramProgress;
+        solidOpacity = 1.0; // Show solid mesh instantly
+        particleOpacity = 0.0; // Turn off particles instantly
+      }
+    }
 
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
@@ -528,6 +635,10 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       materialRef.current.uniforms.uGlitchSeed.value = glitchSeedRef.current;
       materialRef.current.uniforms.uMouse.value.copy(state.pointer);
       materialRef.current.uniforms.uAspect.value = state.viewport.aspect;
+
+      // Update burn progress and particle opacity
+      materialRef.current.uniforms.uBurnProgress.value = burnProgress;
+      materialRef.current.uniforms.uParticleOpacity.value = particleOpacity;
 
       // Smoothly lerp glitch strength
       const targetGlitch = isGlitchActive ? settings.glitchIntensity : 0.0;
@@ -537,6 +648,48 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         isGlitchActive ? 0.35 : 0.12
       );
       materialRef.current.uniforms.uGlitchStrength.value = glitchStrengthRef.current;
+    }
+
+    // Update Solid Model Uniforms and Raycasting
+    if (solidMaterial && solidLineMaterial && solidSceneCloned) {
+      solidMaterial.uniforms.uTime.value = state.clock.elapsedTime;
+      solidMaterial.uniforms.uOpacity.value = settings.opacity * solidOpacity;
+      solidMaterial.uniforms.uFillOpacity.value = settings.xrayFillOpacity;
+      solidMaterial.uniforms.uScanLineIntensity.value = settings.xrayScanlineIntensity;
+      solidMaterial.uniforms.uFresnelPower.value = settings.xrayOutlinePower;
+      solidMaterial.uniforms.uColor.value.set(settings.xrayBaseColor);
+      solidMaterial.uniforms.uGlowColor.value.set(settings.xrayOutlineColor);
+      solidMaterial.uniforms.uSolidWhiteProgress.value = solidWhiteProgress;
+      solidMaterial.uniforms.uBurnOut.value = 0.0;
+
+      solidLineMaterial.uniforms.uTime.value = state.clock.elapsedTime;
+      solidLineMaterial.uniforms.uColor.value.set(settings.xrayBorderColor || "#e91e63");
+      solidLineMaterial.uniforms.uOpacity.value = settings.xrayBorderOpacity * (1.0 - solidWhiteProgress) * solidOpacity;
+      solidLineMaterial.uniforms.uDepthLimit.value = settings.xrayBorderRevealDepth ?? 40.0;
+      solidLineMaterial.uniforms.uBurnOut.value = 0.0;
+
+      if (projectionBoundsRef.current) {
+        solidMaterial.uniforms.uMinProj.value = projectionBoundsRef.current.min;
+        solidMaterial.uniforms.uMaxProj.value = projectionBoundsRef.current.max;
+        solidLineMaterial.uniforms.uMinProj.value = projectionBoundsRef.current.min;
+        solidLineMaterial.uniforms.uMaxProj.value = projectionBoundsRef.current.max;
+      }
+
+      // Solid model hover raycasting
+      const meshesToIntersect: THREE.Mesh[] = [];
+      solidSceneCloned.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          meshesToIntersect.push(child);
+        }
+      });
+      state.raycaster.setFromCamera(state.pointer, state.camera);
+      const hits = state.raycaster.intersectObjects(meshesToIntersect, true);
+      if (hits.length > 0 && hits[0].point) {
+        solidMaterial.uniforms.uMouseWorld.value.copy(hits[0].point);
+        solidMaterial.uniforms.uHoverActive.value = 1.0;
+      } else {
+        solidMaterial.uniforms.uHoverActive.value = 0.0;
+      }
     }
 
     // Update Datamosh postprocessing uniforms
@@ -654,9 +807,9 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       const bcy = boxCenter ? boxCenter[1] : 0;
       const bcz = boxCenter ? boxCenter[2] : 0;
 
-      // Only apply impulse if mouse is moving
-      const isSwiping = isHovering && pointerDelta > 0.001;
-      const currentImpulseStr = scaledImpulse * (pointerDelta * 50.0); // Scale by swipe speed
+      // Only apply impulse if mouse is moving (and not on the last model)
+      const isSwiping = isHovering && pointerDelta > 0.001 && settings.currentModelIndex !== 2;
+      const currentImpulseStr = settings.currentModelIndex === 2 ? 0.0 : scaledImpulse * (pointerDelta * 50.0); // Scale by swipe speed
 
       for (let i = 0; i < count; i++) {
         const ix = i * 3;
@@ -901,6 +1054,22 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
             depthWrite={false}
           />
         </lineSegments>
+      )}
+
+      {/* Cloned Solid mesh and wireframe hologram transition */}
+      {solidSceneCloned && (
+        <group
+          position={boxCenter ? [boxCenter[0], boxCenter[1], boxCenter[2]] : [0, 0, 0]}
+          scale={[modelScale, modelScale, modelScale]}
+        >
+          <group position={cRotated ? [-cRotated[0], -cRotated[1], -cRotated[2]] : [0, 0, 0]}>
+            <group quaternion={modelRotation || undefined}>
+              <group position={cOriginal ? [-cOriginal[0], -cOriginal[1], -cOriginal[2]] : [0, 0, 0]}>
+                <primitive object={solidSceneCloned} />
+              </group>
+            </group>
+          </group>
+        </group>
       )}
     </group>
   );

@@ -61,6 +61,7 @@ export const ModelParticleShader = {
     uniform float uGlitchSeed;
     uniform vec2 uMouse;
     uniform float uAspect;
+    uniform float uBurnProgress;
 
     // Focus settings
     uniform float uFocusDepth;
@@ -121,7 +122,9 @@ export const ModelParticleShader = {
 
       // Point size
       float baseSize = clamp(uPointSize * (20.0 / max(cameraDist, 1.0)), 1.0, 12.0);
-      gl_PointSize = baseSize;
+      // Increase point size as we burn to look solid
+      float sizeMultiplier = 1.0 + uBurnProgress * 2.5;
+      gl_PointSize = clamp(baseSize * sizeMultiplier, 1.0, 24.0);
 
       // Pass scatter to fragment
       vScatter = aScatter;
@@ -186,6 +189,8 @@ export const ModelParticleShader = {
     uniform float uTime;
     uniform vec3 uPrimaryColor;
     uniform vec3 uParticleDefaultColor;
+    uniform float uBurnProgress;
+    uniform float uParticleOpacity;
 
     varying vec3 vColor;
     varying float vDepth;
@@ -219,14 +224,14 @@ export const ModelParticleShader = {
 
       // --- Scatter Burn Glow ---
       // Particles displaced from rest glow using the primary color
-      if (vScatter > 0.01) {
+      float s = max(vScatter, uBurnProgress);
+      if (s > 0.01) {
         // Create a glow gradient based on uPrimaryColor
         vec3 emberLow = uPrimaryColor * 0.3;      // Darker core
         vec3 emberMid = uPrimaryColor * 0.8;      // Base primary color
         vec3 emberHigh = mix(uPrimaryColor, vec3(1.0), 0.5); // Whitish primary
         vec3 emberWhite = vec3(1.0, 1.0, 0.95);   // White-hot
         
-        float s = vScatter;
         vec3 emberColor;
         if (s < 0.25) {
           emberColor = mix(color, emberLow, s * 4.0);
@@ -264,7 +269,7 @@ export const ModelParticleShader = {
       // Density control: reduce opacity of out-of-focus particles
       float focusAlpha = mix(1.0, 1.0 - vBlur, uDensityControl);
 
-      alpha *= uOpacity * focusAlpha;
+      alpha *= uOpacity * focusAlpha * uParticleOpacity;
 
       // Drop fully transparent particles
       if (alpha < 0.01) discard;

@@ -36,6 +36,15 @@ export const SceneModel: React.FC = () => {
   const groupRef = useRef<THREE.Group>(null);
   const { actions, mixer } = useAnimations(gltf.animations, groupRef);
 
+  // Find the active mixamo action name (alphabetically highest mixamo action)
+  const activeMixamoActionName = useMemo(() => {
+    const names = Object.keys(actions);
+    const mixamoNames = names.filter((name) => name.toLowerCase().includes("mixamo"));
+    if (mixamoNames.length === 0) return "";
+    mixamoNames.sort();
+    return mixamoNames[mixamoNames.length - 1];
+  }, [actions]);
+
   // Ref for the scene camera object
   const sceneCameraRef = useRef<THREE.PerspectiveCamera | null>(null);
 
@@ -67,11 +76,11 @@ export const SceneModel: React.FC = () => {
 
         if (isTarget) {
           target.push(child);
-          child.visible = false; // Hide original solid mesh so only particles show
         } else {
+          // Everything else (including michle skinned meshes) is city
           city.push(child);
-          child.visible = false; // Hide original solid mesh so only particles show
         }
+        child.visible = false; // Hide original; X-ray system will re-show
       }
     });
 
@@ -157,6 +166,10 @@ export const SceneModel: React.FC = () => {
     );
 
     bodyActionNames.forEach((name) => {
+      // If this is a mixamo action, only play the active one to avoid skeletal blending distortion
+      if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) {
+        return;
+      }
       const action = actions[name];
       if (action) {
         action.play();
@@ -164,7 +177,7 @@ export const SceneModel: React.FC = () => {
         console.log(`[SceneModel] Body animation "${name}" ready, duration: ${action.getClip().duration}s`);
       }
     });
-  }, [actions]);
+  }, [actions, activeMixamoActionName]);
 
   // Split scroll: first portion for camera fly-in, rest for model morphing
   const CAMERA_SCROLL_END = 0.2; // Camera completes by 20% scroll (page 1 of 5)
@@ -195,6 +208,10 @@ export const SceneModel: React.FC = () => {
     );
 
     bodyActionNames.forEach((name) => {
+      // Only drive the active mixamo animation to avoid conflicts/overhead
+      if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) {
+        return;
+      }
       const action = actions[name];
       if (action) {
         const clip = action.getClip();
@@ -279,7 +296,7 @@ export const SceneModel: React.FC = () => {
         {/* Embed the GLTF scene (lights and structure still intact) */}
         <primitive object={gltf.scene} visible={true} />
 
-        {/* City rendered as holographic X-Ray mesh */}
+        {/* City + michle rendered as holographic X-Ray mesh */}
         {cityMeshes.length > 0 && (
           <CityXRayMeshSystem meshes={cityMeshes} projectionBounds={cityProjectionBounds} />
         )}
@@ -293,7 +310,7 @@ export const SceneModel: React.FC = () => {
 
       {/* Target rendered with interactive particle system */}
       {targetMeshes.length > 0 && (
-        <ModelParticleSystem meshes={targetMeshes} targetNode={targetMeshes[0]} />
+        <ModelParticleSystem meshes={targetMeshes} targetNode={targetMeshes[0]} projectionBounds={cityProjectionBounds} />
       )}
     </>
   );

@@ -21,23 +21,37 @@ export const CityXRayShader = {
     uMaxProj: { value: 100.0 },
   },
   vertexShader: `
+    #include <skinning_pars_vertex>
+
     varying vec3 vNormal;
     varying vec3 vPositionNormal;
     varying vec3 vWorldPosition;
     uniform float uTime;
     
     void main() {
+      #include <skinbase_vertex>
+
+      // Start with local-space position & normal
+      vec3 transformed = position;
+      vec3 objectNormal = normal;
+
+      // Apply bone transforms if this is a SkinnedMesh
+      #ifdef USE_SKINNING
+        #include <skinning_vertex>
+        #include <skinnormal_vertex>
+      #endif
+
       // Normal in view space
-      vNormal = normalize(normalMatrix * normal);
+      vNormal = normalize(normalMatrix * objectNormal);
       
       // Position in world space
-      vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+      vec4 worldPosition = modelMatrix * vec4(transformed, 1.0);
       vWorldPosition = worldPosition.xyz;
       
       // View vector (from vertex to camera)
-      vPositionNormal = normalize((modelViewMatrix * vec4(position, 1.0)).xyz);
+      vPositionNormal = normalize((modelViewMatrix * vec4(transformed, 1.0)).xyz);
       
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
     }
   `,
   fragmentShader: `

@@ -2,7 +2,6 @@
 
 import React, { useMemo, useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useScroll } from "@react-three/drei";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
 import { GridFloorShader } from "@/shaders/gridFloorShader";
@@ -13,7 +12,6 @@ interface GridFloorProps {
 
 export const GridFloor: React.FC<GridFloorProps> = ({ projectionBounds }) => {
   const { settings } = useSimulation();
-  const scrollData = useScroll();
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
   // Initialize shader uniforms once
@@ -72,12 +70,8 @@ export const GridFloor: React.FC<GridFloorProps> = ({ projectionBounds }) => {
     if (u.uDepthLimit) u.uDepthLimit.value = animState.currentDepth;
     
     // --- Scroll Burnout Calculation ---
-    let burnOut = 0.0;
-    if (scrollData) {
-      const t = scrollData.offset;
-      // Trigger burnout from 0.0 to 0.5 scroll progress
-      burnOut = Math.min(1.0, Math.max(0.0, t / 0.5));
-    }
+    // Disabled so grid floor doesn't disappear on scroll
+    const burnOut = 0.0;
     if (u.uBurnOut) u.uBurnOut.value = burnOut;
 
   });
