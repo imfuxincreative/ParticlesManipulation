@@ -397,6 +397,23 @@ export const Dashboard: React.FC = () => {
                 </p>
               </div>
 
+              {/* Slider: Solid & Ground Fade Depth */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">SOLID & GROUND FADE DEPTH</span>
+                  <span className="text-slate-300">{settings.xraySolidRevealDepth?.toFixed(0) || "300"}u</span>
+                </div>
+                <input
+                  type="range" min="5" max="1000" step="5"
+                  value={settings.xraySolidRevealDepth || 300}
+                  onChange={(e) => updateSetting("xraySolidRevealDepth", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal mt-1">
+                  Low = only buildings and ground close to camera are visible. High = visible at greater distance. Animates with 0.2s delay.
+                </p>
+              </div>
+
               {/* Slider: Hover Light Radius */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">

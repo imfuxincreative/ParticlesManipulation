@@ -494,6 +494,8 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       uParticleDefaultColor: { value: new THREE.Color(settings.particleDefaultColor || "#8d8d8d") },
       uBurnProgress: { value: 0.0 },
       uParticleOpacity: { value: 1.0 },
+      uClipY: { value: 0.0 },
+      uClipSide: { value: 0.0 },
     };
   }, []);
 
@@ -629,6 +631,25 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       }
     }
 
+    // --- Scroll-driven vertical clipping (Scene 1 target) ---
+    const scrollT = scrollData ? scrollData.offset : 0.0;
+    const minY = -15.0;
+    const maxY = 130.0;
+    let clipSide = 0.0;
+    let clipY = minY;
+
+    if (scrollT < 0.45) {
+      clipSide = 0.0;
+      clipY = minY;
+    } else if (scrollT < 0.65) {
+      const progress = (scrollT - 0.45) / 0.20;
+      clipSide = 1.0;
+      clipY = minY + progress * (maxY - minY);
+    } else {
+      clipSide = 1.0;
+      clipY = maxY;
+    }
+
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
       materialRef.current.uniforms.uGlitchStrength.value = glitchStrengthRef.current;
@@ -636,9 +657,11 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       materialRef.current.uniforms.uMouse.value.copy(state.pointer);
       materialRef.current.uniforms.uAspect.value = state.viewport.aspect;
 
-      // Update burn progress and particle opacity
+      // Update burn progress, particle opacity, and clipping
       materialRef.current.uniforms.uBurnProgress.value = burnProgress;
       materialRef.current.uniforms.uParticleOpacity.value = particleOpacity;
+      materialRef.current.uniforms.uClipY.value = clipY;
+      materialRef.current.uniforms.uClipSide.value = clipSide;
 
       // Smoothly lerp glitch strength
       const targetGlitch = isGlitchActive ? settings.glitchIntensity : 0.0;
@@ -659,14 +682,21 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       solidMaterial.uniforms.uFresnelPower.value = settings.xrayOutlinePower;
       solidMaterial.uniforms.uColor.value.set(settings.xrayBaseColor);
       solidMaterial.uniforms.uGlowColor.value.set(settings.xrayOutlineColor);
+      if (solidMaterial.uniforms.uHazeColor) {
+        solidMaterial.uniforms.uHazeColor.value.set(settings.hazeColor);
+      }
       solidMaterial.uniforms.uSolidWhiteProgress.value = solidWhiteProgress;
       solidMaterial.uniforms.uBurnOut.value = 0.0;
+      solidMaterial.uniforms.uClipY.value = clipY;
+      solidMaterial.uniforms.uClipSide.value = clipSide;
 
       solidLineMaterial.uniforms.uTime.value = state.clock.elapsedTime;
       solidLineMaterial.uniforms.uColor.value.set(settings.xrayBorderColor || "#e91e63");
       solidLineMaterial.uniforms.uOpacity.value = settings.xrayBorderOpacity * (1.0 - solidWhiteProgress) * solidOpacity;
       solidLineMaterial.uniforms.uDepthLimit.value = settings.xrayBorderRevealDepth ?? 40.0;
       solidLineMaterial.uniforms.uBurnOut.value = 0.0;
+      solidLineMaterial.uniforms.uClipY.value = clipY;
+      solidLineMaterial.uniforms.uClipSide.value = clipSide;
 
       if (projectionBoundsRef.current) {
         solidMaterial.uniforms.uMinProj.value = projectionBoundsRef.current.min;
@@ -939,6 +969,8 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       // Sync color/opacity from settings
       boxLineMaterial.uniforms.uColor.value.set(settings.xrayBorderColor || "#e91e63");
       boxLineMaterial.uniforms.uOpacity.value = settings.xrayBorderOpacity ?? 0.5;
+      boxLineMaterial.uniforms.uClipY.value = clipY;
+      boxLineMaterial.uniforms.uClipSide.value = clipSide;
     }
 
     if (lineMaterialRef.current) {

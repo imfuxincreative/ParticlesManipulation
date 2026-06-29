@@ -19,6 +19,11 @@ export const CityXRayShader = {
     uWipeDirection: { value: new THREE.Vector3(1.0, 0.0, 1.0).normalize() },
     uMinProj: { value: -100.0 },
     uMaxProj: { value: 100.0 },
+    uClipY: { value: 0.0 },
+    uClipSide: { value: 0.0 },
+    uHazeColor: { value: new THREE.Color(0x0b0c10) },
+    uDepthLimit: { value: 200.0 },
+    uFadeZone: { value: 30.0 },
   },
   vertexShader: `
     #include <skinning_pars_vertex>
@@ -26,6 +31,7 @@ export const CityXRayShader = {
     varying vec3 vNormal;
     varying vec3 vPositionNormal;
     varying vec3 vWorldPosition;
+    varying float vDepth;
     uniform float uTime;
     
     void main() {
@@ -48,10 +54,12 @@ export const CityXRayShader = {
       vec4 worldPosition = modelMatrix * vec4(transformed, 1.0);
       vWorldPosition = worldPosition.xyz;
       
-      // View vector (from vertex to camera)
-      vPositionNormal = normalize((modelViewMatrix * vec4(transformed, 1.0)).xyz);
+      // Position in view space
+      vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.0);
+      vPositionNormal = normalize(mvPosition.xyz);
+      vDepth = -mvPosition.z;
       
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
     }
   `,
   fragmentShader: `
@@ -72,10 +80,16 @@ export const CityXRayShader = {
     uniform vec3 uWipeDirection;
     uniform float uMinProj;
     uniform float uMaxProj;
+    uniform float uClipY;
+    uniform float uClipSide;
+    uniform vec3 uHazeColor;
+    uniform float uDepthLimit;
+    uniform float uFadeZone;
 
     varying vec3 vNormal;
     varying vec3 vPositionNormal;
     varying vec3 vWorldPosition;
+    varying float vDepth;
 
     // 2D Random hash
     float hash(vec2 p) {
@@ -109,7 +123,20 @@ export const CityXRayShader = {
     }
 
     void main() {
-      // 1. Calculate side-sweeping wipe progress
+      // 1. Vertical Wipe clipping with FBM-perturbed soft opacity transition
+      float noiseVal = fbm(vWorldPosition.xz * 0.12 + vec2(uTime * 0.2));
+      float perturbedY = vWorldPosition.y + (noiseVal - 0.5) * 12.0;
+      
+      float alphaWipe = 1.0;
+      float feather = 12.0;
+      if (uClipSide > 0.5) {
+        alphaWipe = smoothstep(uClipY - feather, uClipY + feather, perturbedY);
+      } else if (uClipSide < -0.5) {
+        alphaWipe = 1.0 - smoothstep(uClipY - feather, uClipY + feather, perturbedY);
+      }
+      if (alphaWipe < 0.01) discard;
+
+      // 2. Calculate side-sweeping wipe progress
       float proj = dot(vWorldPosition.xyz, uWipeDirection);
       float progress = clamp((proj - uMinProj) / (uMaxProj - uMinProj), 0.0, 1.0);
       
@@ -118,7 +145,7 @@ export const CityXRayShader = {
       float wipeProgress = uBurnOut * 1.25 - 0.1;
       float alphaFactor = smoothstep(wipeProgress, wipeProgress + transitionWidth, progress);
 
-      // 2. Compute normal hologram properties
+      // 3. Compute normal hologram properties
       float fresnel = dot(vNormal, vPositionNormal);
       fresnel = clamp(1.0 - abs(fresnel), 0.0, 1.0);
       fresnel = pow(fresnel, uFresnelPower);
@@ -140,15 +167,33 @@ export const CityXRayShader = {
         baseHologramColor = hoveredColor * boostedOpacity;
       }
       
+      // Glow effect at transition boundary
+      float transitionGlow = 0.0;
+      if (uClipSide > 0.5 || uClipSide < -0.5) {
+        float distToClip = abs(vWorldPosition.y - uClipY);
+        if (distToClip < 1.5) {
+          transitionGlow = 1.0 - (distToClip / 1.5);
+        }
+      }
+
       // Add glow and scanline to unburned side
       baseHologramColor += uGlowColor * fresnel;
       baseHologramColor += uGlowColor * scanline;
+      baseHologramColor += uHoverColor * transitionGlow * 2.0;
 
       // Alpha depends heavily on fresnel to create the x-ray transparent look
-      float baseHologramAlpha = clamp(fresnel * 1.5 + scanline + uFillOpacity, 0.0, 1.0) * uOpacity;
+      float baseHologramAlpha = clamp(fresnel * 1.5 + scanline + uFillOpacity + transitionGlow * 0.8, 0.0, 1.0) * uOpacity;
 
-      // Apply the side-wipe opacity factor
-      float finalAlpha = baseHologramAlpha * alphaFactor;
+      // Apply depth limit fading
+      float fadeStart = max(0.0, uDepthLimit - uFadeZone);
+      float depthAlpha = smoothstep(fadeStart, uDepthLimit, vDepth);
+
+      // Apply the side-wipe, vertical wipe, and depth opacity factors
+      float finalAlpha = baseHologramAlpha * alphaFactor * alphaWipe * depthAlpha;
+
+      // Blend with thick white fog at the boundary to create cloud cover
+      vec3 cloudColor = mix(uHazeColor, vec3(0.95, 0.95, 0.98), 0.4);
+      baseHologramColor = mix(cloudColor, baseHologramColor, alphaWipe);
 
       if (finalAlpha < 0.01) discard;
 

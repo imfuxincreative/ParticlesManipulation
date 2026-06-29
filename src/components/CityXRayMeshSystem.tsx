@@ -6,10 +6,12 @@ import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
 import { CityXRayShader } from "@/shaders/cityXRayShader";
 import { CityXRayLineShader } from "@/shaders/cityXRayLineShader";
+import { useScroll } from "@react-three/drei";
 
 interface CityXRayMeshSystemProps {
   meshes: THREE.Mesh[];
   projectionBounds?: { min: number; max: number };
+  isScene2?: boolean;
 }
 
 /**
@@ -19,8 +21,9 @@ interface CityXRayMeshSystemProps {
  * holographic architectural X-Ray shader. This preserves the original
  * hierarchy, transforms, and animations from the GLTF scene.
  */
-export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, projectionBounds }) => {
+export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, projectionBounds, isScene2 }) => {
   const { settings } = useSimulation();
+  const scrollData = useScroll();
 
   // Create the shared X-Ray material
   const material = useMemo(() => {
@@ -75,7 +78,10 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
   }, [lineMaterial]);
 
   // Track the current animated depth value (used for smooth lerping)
-  const animState = useMemo(() => ({ currentDepth: settings.xrayBorderRevealDepth ?? 40.0 }), []);
+  const animState = useMemo(() => ({
+    currentDepth: settings.xrayBorderRevealDepth ?? 40.0,
+    currentSolidDepth: settings.xraySolidRevealDepth ?? 200.0,
+  }), []);
 
   // Sync settings to uniforms and line material
   useEffect(() => {
@@ -90,6 +96,9 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
     // Update colors
     material.uniforms.uColor.value.set(settings.xrayBaseColor);
     material.uniforms.uGlowColor.value.set(settings.xrayOutlineColor);
+    if (material.uniforms.uHazeColor) {
+      material.uniforms.uHazeColor.value.set(settings.hazeColor);
+    }
 
     // Update border color and opacity
     lineMaterial.uniforms.uColor.value.set(settings.xrayBorderColor || "#e91e63");
@@ -218,14 +227,17 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
 
     // Target depth from settings
     const targetDepth = settings.xrayBorderRevealDepth ?? 40.0;
+    const targetSolidDepth = settings.xraySolidRevealDepth ?? 200.0;
 
     // Smooth lerp towards target with ~0.2s delay
     // lerpFactor: 1 - e^(-dt / tau), where tau = 0.2s
     const lerpSpeed = 1.0 - Math.exp(-delta / 0.2);
     animState.currentDepth += (targetDepth - animState.currentDepth) * lerpSpeed;
+    animState.currentSolidDepth += (targetSolidDepth - animState.currentSolidDepth) * lerpSpeed;
 
-    // Push animated value to the shader
+    // Push animated values to the shaders
     lineMaterial.uniforms.uDepthLimit.value = animState.currentDepth;
+    material.uniforms.uDepthLimit.value = animState.currentSolidDepth;
 
     // --- Interactive Hover Raycasting ---
     state.raycaster.setFromCamera(state.pointer, state.camera);
@@ -246,6 +258,30 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
     material.uniforms.uBurnOut.value = burnOut;
     lineMaterial.uniforms.uBurnOut.value = burnOut;
     lineMaterial.uniforms.uTime.value = state.clock.elapsedTime;
+
+    // --- Scroll-driven vertical clipping ---
+    const t = scrollData ? scrollData.offset : 0.0;
+    const minY = -15.0;
+    const maxY = 130.0;
+    let clipSide = 0.0;
+    let clipY = minY;
+
+    if (t < 0.45) {
+      clipSide = isScene2 ? -1.0 : 0.0;
+      clipY = minY;
+    } else if (t < 0.65) {
+      const progress = (t - 0.45) / 0.20;
+      clipSide = isScene2 ? -1.0 : 1.0;
+      clipY = minY + progress * (maxY - minY);
+    } else {
+      clipSide = isScene2 ? 0.0 : 1.0;
+      clipY = maxY;
+    }
+
+    material.uniforms.uClipY.value = clipY;
+    material.uniforms.uClipSide.value = clipSide;
+    lineMaterial.uniforms.uClipY.value = clipY;
+    lineMaterial.uniforms.uClipSide.value = clipSide;
   });
 
   return null;

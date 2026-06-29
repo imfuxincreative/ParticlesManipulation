@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
 import { GridFloorShader } from "@/shaders/gridFloorShader";
+import { useScroll } from "@react-three/drei";
 
 interface GridFloorProps {
   projectionBounds?: { min: number; max: number };
@@ -12,6 +13,7 @@ interface GridFloorProps {
 
 export const GridFloor: React.FC<GridFloorProps> = ({ projectionBounds }) => {
   const { settings } = useSimulation();
+  const scrollData = useScroll();
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
   // Initialize shader uniforms once
@@ -21,7 +23,10 @@ export const GridFloor: React.FC<GridFloorProps> = ({ projectionBounds }) => {
 
   // Track current animated reveal depth
   const animState = useMemo(
-    () => ({ currentDepth: settings.xrayBorderRevealDepth ?? 40.0 }),
+    () => ({
+      currentDepth: settings.xrayBorderRevealDepth ?? 40.0,
+      currentSolidDepth: settings.xraySolidRevealDepth ?? 200.0,
+    }),
     []
   );
 
@@ -61,19 +66,26 @@ export const GridFloor: React.FC<GridFloorProps> = ({ projectionBounds }) => {
     // Time uniform for scanlines
     u.uTime.value = state.clock.elapsedTime;
 
-    // Target depth reveal from settings (synced with city borders)
+    // Target depths reveal from settings
     const targetDepth = settings.xrayBorderRevealDepth ?? 40.0;
+    const targetSolidDepth = settings.xraySolidRevealDepth ?? 200.0;
 
-    // Smooth lerp reveal depth (matching the 0.2s delay of borders)
+    // Smooth lerp reveal depths (matching the 0.2s delay of borders)
     const lerpSpeed = 1.0 - Math.exp(-delta / 0.2);
     animState.currentDepth += (targetDepth - animState.currentDepth) * lerpSpeed;
+    animState.currentSolidDepth += (targetSolidDepth - animState.currentSolidDepth) * lerpSpeed;
+    
     if (u.uDepthLimit) u.uDepthLimit.value = animState.currentDepth;
+    if (u.uSolidDepthLimit) u.uSolidDepthLimit.value = animState.currentSolidDepth;
     
     // --- Scroll Burnout Calculation ---
     // Disabled so grid floor doesn't disappear on scroll
     const burnOut = 0.0;
     if (u.uBurnOut) u.uBurnOut.value = burnOut;
 
+    // Floor opacity remains fully dependent on settings.gridFloorOpacity;
+    // depth limits in the shader handle localized fade-out around the camera.
+    u.uOpacity.value = settings.gridFloorOpacity ?? 0.35;
   });
 
   return (

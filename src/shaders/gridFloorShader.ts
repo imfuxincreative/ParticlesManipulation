@@ -12,6 +12,7 @@ export const GridFloorShader = {
     uBaseColor: { value: new THREE.Color('#888888') }, // Tile base fill color
     uFillOpacity: { value: 0.15 },                     // Tile base fill opacity
     uBurnOut: { value: 0.0 },
+    uSolidDepthLimit: { value: 200.0 },
     uWipeDirection: { value: new THREE.Vector3(1.0, 0.0, 1.0).normalize() },
     uMinProj: { value: -100.0 },
     uMaxProj: { value: 100.0 },
@@ -44,6 +45,7 @@ export const GridFloorShader = {
     uniform vec3 uBaseColor;
     uniform float uFillOpacity;
     uniform float uBurnOut;
+    uniform float uSolidDepthLimit;
     uniform vec3 uWipeDirection;
     uniform float uMinProj;
     uniform float uMaxProj;
@@ -110,8 +112,10 @@ export const GridFloorShader = {
       float xrayAlpha = 1.0 - smoothstep(fadeStart, uDepthLimit, vDepth);
       float lineAlpha = lineStrength * xrayAlpha * uOpacity;
       
-      // Chessboard tiles are ALWAYS visible (unless wiped out)
-      float tileAlpha = cellFill * (1.0 - lineStrength);
+      // Chessboard tiles disappear based on uSolidDepthLimit
+      float solidFadeStart = max(0.0, uSolidDepthLimit - uFadeZone);
+      float solidXrayAlpha = smoothstep(solidFadeStart, uSolidDepthLimit, vDepth);
+      float tileAlpha = cellFill * (1.0 - lineStrength) * solidXrayAlpha;
       
       vec3 baseGridColor = mix(uBaseColor, uColor, lineStrength);
       float baseGridAlpha = max(lineAlpha, tileAlpha);

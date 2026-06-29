@@ -11,6 +11,8 @@ export const CityXRayLineShader = {
     uWipeDirection: { value: new THREE.Vector3(1.0, 0.0, 1.0).normalize() },
     uMinProj: { value: -100.0 },
     uMaxProj: { value: 100.0 },
+    uClipY: { value: 0.0 },
+    uClipSide: { value: 0.0 },
   },
   vertexShader: `
     #include <skinning_pars_vertex>
@@ -47,6 +49,8 @@ export const CityXRayLineShader = {
     uniform vec3 uWipeDirection;
     uniform float uMinProj;
     uniform float uMaxProj;
+    uniform float uClipY;
+    uniform float uClipSide;
     
     varying float vDepth;
     varying vec3 vWorldPosition;
@@ -83,6 +87,19 @@ export const CityXRayLineShader = {
     }
     
     void main() {
+      // 0. Vertical Wipe clipping with FBM-perturbed soft opacity transition
+      float noiseVal = fbm(vWorldPosition.xz * 0.12 + vec2(uTime * 0.2));
+      float perturbedY = vWorldPosition.y + (noiseVal - 0.5) * 12.0;
+      
+      float alphaWipe = 1.0;
+      float feather = 12.0;
+      if (uClipSide > 0.5) {
+        alphaWipe = smoothstep(uClipY - feather, uClipY + feather, perturbedY);
+      } else if (uClipSide < -0.5) {
+        alphaWipe = 1.0 - smoothstep(uClipY - feather, uClipY + feather, perturbedY);
+      }
+      if (alphaWipe < 0.01) discard;
+
       // 1. Lines at depth < (uDepthLimit - uFadeZone) are fully visible
       // Lines at depth > uDepthLimit are fully hidden
       float fadeStart = max(0.0, uDepthLimit - uFadeZone);
@@ -97,7 +114,7 @@ export const CityXRayLineShader = {
       float wipeProgress = uBurnOut * 1.25 - 0.25;
       float alphaFactor = smoothstep(wipeProgress, wipeProgress + transitionWidth, progress);
       
-      float finalAlpha = alpha * alphaFactor;
+      float finalAlpha = alpha * alphaFactor * alphaWipe;
       
       if (finalAlpha < 0.01) discard;
       

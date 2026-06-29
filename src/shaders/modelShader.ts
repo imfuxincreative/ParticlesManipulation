@@ -78,6 +78,7 @@ export const ModelParticleShader = {
     varying vec2 vScreenPos;
     varying float vScatter;
     varying float vPosY;
+    varying vec3 vWorldPosition;
 
     // 2D hash for block grid randomization
     float hash2D(vec2 p, float seed) {
@@ -92,6 +93,13 @@ export const ModelParticleShader = {
 
       // Pass raw local Y for vertical effects
       vPosY = pos.y;
+
+      vec4 worldPos = modelMatrix * vec4(pos, 1.0);
+      vWorldPosition = worldPos.xyz;
+
+      // Perturb Y world coordinate using simplex noise for cloudy transition
+      float yPerturb = snoise(vec3(worldPos.xz * 0.12, uTime * 0.2));
+      vWorldPosition.y += yPerturb * 6.0;
 
       // Use the Y coordinate as a normalized depth for coloring effects
       vDepth = clamp((pos.y + 5.0) / 10.0, 0.0, 1.0);
@@ -191,6 +199,8 @@ export const ModelParticleShader = {
     uniform vec3 uParticleDefaultColor;
     uniform float uBurnProgress;
     uniform float uParticleOpacity;
+    uniform float uClipY;
+    uniform float uClipSide;
 
     varying vec3 vColor;
     varying float vDepth;
@@ -198,6 +208,7 @@ export const ModelParticleShader = {
     varying vec2 vScreenPos;
     varying float vScatter;
     varying float vPosY;
+    varying vec3 vWorldPosition;
 
     // Simple hash for sparkle noise
     float hash(vec2 p) {
@@ -205,6 +216,16 @@ export const ModelParticleShader = {
     }
 
     void main() {
+      // Vertical Wipe clipping with soft opacity transition
+      float alphaWipe = 1.0;
+      float feather = 12.0;
+      if (uClipSide > 0.5) {
+        alphaWipe = smoothstep(uClipY - feather, uClipY + feather, vWorldPosition.y);
+      } else if (uClipSide < -0.5) {
+        alphaWipe = 1.0 - smoothstep(uClipY - feather, uClipY + feather, vWorldPosition.y);
+      }
+      if (alphaWipe < 0.01) discard;
+
       // Circular particle shape
       vec2 center = gl_PointCoord - vec2(0.5);
       float dist = length(center);
@@ -218,6 +239,10 @@ export const ModelParticleShader = {
 
       // Apply tint
       vec3 color = mix(baseColor, uTint, uTintMix);
+
+      // Blend with thick white cloud/fog color at the boundary
+      vec3 cloudColor = mix(uHazeColor, vec3(0.95, 0.95, 0.98), 0.4);
+      color = mix(cloudColor, color, alphaWipe);
 
       // Apply atmospheric haze based on blur (distance from focus)
       color = mix(color, uHazeColor, vBlur * uHazeDensity);
@@ -269,7 +294,7 @@ export const ModelParticleShader = {
       // Density control: reduce opacity of out-of-focus particles
       float focusAlpha = mix(1.0, 1.0 - vBlur, uDensityControl);
 
-      alpha *= uOpacity * focusAlpha * uParticleOpacity;
+      alpha *= uOpacity * focusAlpha * uParticleOpacity * alphaWipe;
 
       // Drop fully transparent particles
       if (alpha < 0.01) discard;
