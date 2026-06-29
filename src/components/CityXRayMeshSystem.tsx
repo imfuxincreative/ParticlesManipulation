@@ -128,12 +128,14 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
     const edgeLines: THREE.Object3D[] = [];
 
     meshes.forEach((mesh) => {
+      if (!mesh) return;
       originalMaterials.set(mesh, mesh.material);
 
       // Use skinned variant for SkinnedMesh, base for regular Mesh
       const isSkinned = (mesh as THREE.SkinnedMesh).isSkinnedMesh;
       mesh.material = isSkinned ? skinnedMaterial : material;
       mesh.visible = true; // Override the visible=false set in SceneModel
+      mesh.frustumCulled = false; // Disable frustum culling to prevent disappearing when close
 
       let line: THREE.Object3D;
 
@@ -192,11 +194,13 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
         (skinnedLine as any).isMesh = false;
         (skinnedLine as any).isLine = true;
         (skinnedLine as any).isLineSegments = true;
+        skinnedLine.frustumCulled = false; // Disable frustum culling on line
 
         line = skinnedLine;
       } else {
         const edgesGeo = new THREE.EdgesGeometry(mesh.geometry, settings.xrayBorderThreshold ?? 15);
         line = new THREE.LineSegments(edgesGeo, lineMaterial);
+        line.frustumCulled = false; // Disable frustum culling on line
       }
 
       mesh.add(line);
@@ -206,6 +210,7 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
     return () => {
       // Restore on unmount
       meshes.forEach((mesh, index) => {
+        if (!mesh) return;
         if (originalMaterials.has(mesh)) {
           mesh.material = originalMaterials.get(mesh)!;
         }
@@ -213,9 +218,11 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
 
         // Remove and cleanup edges
         const line = edgeLines[index];
-        mesh.remove(line);
-        if ((line as any).geometry) {
-          (line as any).geometry.dispose();
+        if (line) {
+          mesh.remove(line);
+          if ((line as any).geometry) {
+            (line as any).geometry.dispose();
+          }
         }
       });
     };
@@ -242,8 +249,9 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
     // --- Interactive Hover Raycasting ---
     state.raycaster.setFromCamera(state.pointer, state.camera);
 
-    // Intersect all city meshes
-    const hits = state.raycaster.intersectObjects(meshes, false);
+    // Intersect all valid city meshes
+    const validMeshes = meshes.filter((mesh) => mesh && mesh.matrixWorld);
+    const hits = state.raycaster.intersectObjects(validMeshes, false);
 
     if (hits.length > 0 && hits[0].point) {
       material.uniforms.uMouseWorld.value.copy(hits[0].point);
@@ -259,24 +267,9 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
     lineMaterial.uniforms.uBurnOut.value = burnOut;
     lineMaterial.uniforms.uTime.value = state.clock.elapsedTime;
 
-    // --- Scroll-driven vertical clipping ---
-    const t = scrollData ? scrollData.offset : 0.0;
-    const minY = -15.0;
-    const maxY = 130.0;
-    let clipSide = 0.0;
-    let clipY = minY;
-
-    if (t < 0.45) {
-      clipSide = isScene2 ? -1.0 : 0.0;
-      clipY = minY;
-    } else if (t < 0.65) {
-      const progress = (t - 0.45) / 0.20;
-      clipSide = isScene2 ? -1.0 : 1.0;
-      clipY = minY + progress * (maxY - minY);
-    } else {
-      clipSide = isScene2 ? 0.0 : 1.0;
-      clipY = maxY;
-    }
+    // --- Scroll-driven vertical clipping disabled (Single scene mode) ---
+    const clipSide = 0.0;
+    const clipY = -15.0;
 
     material.uniforms.uClipY.value = clipY;
     material.uniforms.uClipSide.value = clipSide;

@@ -631,24 +631,9 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       }
     }
 
-    // --- Scroll-driven vertical clipping (Scene 1 target) ---
-    const scrollT = scrollData ? scrollData.offset : 0.0;
-    const minY = -15.0;
-    const maxY = 130.0;
-    let clipSide = 0.0;
-    let clipY = minY;
-
-    if (scrollT < 0.45) {
-      clipSide = 0.0;
-      clipY = minY;
-    } else if (scrollT < 0.65) {
-      const progress = (scrollT - 0.45) / 0.20;
-      clipSide = 1.0;
-      clipY = minY + progress * (maxY - minY);
-    } else {
-      clipSide = 1.0;
-      clipY = maxY;
-    }
+    // --- Scroll-driven vertical clipping disabled (Single scene mode) ---
+    const clipSide = 0.0;
+    const clipY = -15.0;
 
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
@@ -1027,7 +1012,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       </EffectComposer>
 
       {/* Particle cloud mesh */}
-      <points ref={pointsRef}>
+      <points ref={pointsRef} frustumCulled={false}>
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-aScatter"
@@ -1055,7 +1040,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
       {/* Invisible box for raycasting (scatter interaction) */}
       {boxSize && (
-        <mesh ref={boxRef}>
+        <mesh ref={boxRef} frustumCulled={false}>
           <boxGeometry args={[1, 1, 1]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         </mesh>
@@ -1063,7 +1048,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
       {/* XRay depth-faded bounding box edges */}
       {boxSize && (
-        <lineSegments ref={boxLinesRef}>
+        <lineSegments ref={boxLinesRef} frustumCulled={false}>
           <wireframeGeometry args={[new THREE.BoxGeometry(1, 1, 1)]} />
           <primitive object={boxLineMaterial} attach="material" />
         </lineSegments>
@@ -1071,7 +1056,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
       {/* Measurement Telemetry Web Lines */}
       {selectedIndices.length > 0 && (
-        <lineSegments>
+        <lineSegments frustumCulled={false}>
           <bufferGeometry>
             <bufferAttribute
               attach="attributes-position"
