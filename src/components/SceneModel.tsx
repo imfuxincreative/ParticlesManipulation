@@ -171,7 +171,7 @@ export const SceneModel: React.FC = () => {
 
     // Drive camera fly-in over the entire scroll range
     const cameraNorm = Math.min(t, 1.0);
-    
+
     const cameraActionName = Object.keys(actions).find(
       (name) => name.toLowerCase().includes("camera")
     );
