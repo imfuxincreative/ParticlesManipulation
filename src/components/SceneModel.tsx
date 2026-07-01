@@ -35,14 +35,34 @@ export const SceneModel: React.FC = () => {
   const groupRef = useRef<THREE.Group>(null);
   const { actions, mixer } = useAnimations(gltf.animations, groupRef);
 
-  // Find the active mixamo action name (alphabetically highest mixamo action)
+  // Find the active mixamo action name (alphabetically highest mixamo action) from gltf.animations.
+  // This ensures it is available immediately on the first render, without waiting for the mixer actions to mount.
   const activeMixamoActionName = useMemo(() => {
-    const names = Object.keys(actions);
+    const names = gltf.animations.map((clip) => clip.name);
     const mixamoNames = names.filter((name) => name.toLowerCase().includes("mixamo"));
     if (mixamoNames.length === 0) return "";
     mixamoNames.sort();
     return mixamoNames[mixamoNames.length - 1];
-  }, [actions]);
+  }, [gltf.animations]);
+
+  // Find the maximum duration of the active animations from gltf.animations.
+  // This keeps animations synchronized even if they have different clip lengths.
+  const maxDuration = useMemo(() => {
+    let max = 0;
+    const cameraClip = gltf.animations.find((c) => c.name.toLowerCase().includes("camera"));
+    if (cameraClip) {
+      max = Math.max(max, cameraClip.duration);
+    }
+    gltf.animations.forEach((clip) => {
+      const name = clip.name;
+      if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) return;
+      if (!name.toLowerCase().includes("camera")) {
+        max = Math.max(max, clip.duration);
+      }
+    });
+    return max || 1; // Default to 1 to avoid division by zero
+  }, [gltf.animations, activeMixamoActionName]);
+
 
   // Refs for scene cameras
   const sceneCameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -171,13 +191,16 @@ export const SceneModel: React.FC = () => {
 
     // Drive camera fly-in over the entire scroll range
     const cameraNorm = Math.min(t, 1.0);
+    const globalTime = cameraNorm * maxDuration;
 
     const cameraActionName = Object.keys(actions).find(
       (name) => name.toLowerCase().includes("camera")
     );
     if (cameraActionName && actions[cameraActionName]) {
       const action = actions[cameraActionName];
-      action.time = cameraNorm * action.getClip().duration;
+      const clip = gltf.animations.find((c) => c.name === cameraActionName);
+      const duration = clip ? clip.duration : 12.0;
+      action.time = Math.min(globalTime, duration);
     }
 
     const bodyActionNames = Object.keys(actions).filter(
@@ -187,7 +210,9 @@ export const SceneModel: React.FC = () => {
       if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) return;
       const action = actions[name];
       if (action) {
-        action.time = cameraNorm * action.getClip().duration;
+        const clip = gltf.animations.find((c) => c.name === name);
+        const duration = clip ? clip.duration : 1.0;
+        action.time = Math.min(globalTime, duration);
       }
     });
 
