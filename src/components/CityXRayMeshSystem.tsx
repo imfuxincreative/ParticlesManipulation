@@ -11,7 +11,7 @@ import { useScroll } from "@react-three/drei";
 interface CityXRayMeshSystemProps {
   meshes: THREE.Mesh[];
   projectionBounds?: { min: number; max: number };
-  isScene2?: boolean;
+  sceneIndex: number;
 }
 
 /**
@@ -21,7 +21,7 @@ interface CityXRayMeshSystemProps {
  * holographic architectural X-Ray shader. This preserves the original
  * hierarchy, transforms, and animations from the GLTF scene.
  */
-export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, projectionBounds, isScene2 }) => {
+export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, projectionBounds, sceneIndex }) => {
   const { settings } = useSimulation();
   const scrollData = useScroll();
 
@@ -230,14 +230,54 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
 
   // Animate: update time + smoothly lerp depth reveal with 0.2s delay
   useFrame((state, delta) => {
-    material.uniforms.uTime.value = state.clock.elapsedTime;
+    // Retrieve global glitch and transition variables from shared renderer state
+    const glUserData = (state.gl as any).userData || {};
+    const activeSceneIndex = glUserData.activeSceneIndex ?? 0;
+    const incomingSceneIndex = glUserData.incomingSceneIndex ?? -1;
 
-    // Target depth from settings
-    const targetDepth = settings.xrayBorderRevealDepth ?? 40.0;
-    const targetSolidDepth = settings.xraySolidRevealDepth ?? 200.0;
+    // A scene system is active only if it is the active scene OR the incoming transitioning scene
+    const isVisible = (sceneIndex === activeSceneIndex) || (sceneIndex === incomingSceneIndex);
+    if (!isVisible) return; // Skip updating uniforms, raycasts, and clocks if hidden
+
+    material.uniforms.uTime.value = state.clock.elapsedTime;
+    const bgGlitchActive = glUserData.bgGlitchActive ?? 0.0;
+    const bgGlitchSeed = glUserData.bgGlitchSeed ?? 0.0;
+    const transitionProgress = glUserData.transitionProgress ?? 0.0;
+
+    // Read per-scene visual overrides (cross-faded by orchestrator)
+    const vis = glUserData.sceneVisuals || {};
+
+    material.uniforms.uGlitchActive.value = bgGlitchActive;
+    material.uniforms.uGlitchSeed.value = bgGlitchSeed;
+    material.uniforms.uTransitionProgress.value = transitionProgress;
+    material.uniforms.uSceneIndex.value = sceneIndex;
+    material.uniforms.uActiveSceneIndex.value = activeSceneIndex;
+
+    lineMaterial.uniforms.uGlitchActive.value = bgGlitchActive;
+    lineMaterial.uniforms.uGlitchSeed.value = bgGlitchSeed;
+    lineMaterial.uniforms.uTransitionProgress.value = transitionProgress;
+    lineMaterial.uniforms.uSceneIndex.value = sceneIndex;
+    lineMaterial.uniforms.uActiveSceneIndex.value = activeSceneIndex;
+
+    // Apply visual overrides (falling back to global settings)
+    material.uniforms.uColor.value.set(vis.xrayBaseColor ?? settings.xrayBaseColor);
+    material.uniforms.uGlowColor.value.set(vis.xrayOutlineColor ?? settings.xrayOutlineColor);
+    material.uniforms.uFillOpacity.value = vis.xrayFillOpacity ?? settings.xrayFillOpacity;
+    material.uniforms.uFresnelPower.value = vis.xrayOutlinePower ?? settings.xrayOutlinePower;
+    material.uniforms.uScanLineIntensity.value = vis.xrayScanlineIntensity ?? settings.xrayScanlineIntensity;
+    material.uniforms.uHoverRadius.value = vis.xrayHoverRadius ?? settings.xrayHoverRadius;
+    if (material.uniforms.uHazeColor) {
+      material.uniforms.uHazeColor.value.set(vis.hazeColor ?? settings.hazeColor);
+    }
+
+    lineMaterial.uniforms.uColor.value.set(vis.xrayBorderColor ?? settings.xrayBorderColor);
+    lineMaterial.uniforms.uOpacity.value = vis.xrayBorderOpacity ?? settings.xrayBorderOpacity;
+
+    // Target depth from visual overrides or settings
+    const targetDepth = vis.xrayBorderRevealDepth ?? settings.xrayBorderRevealDepth ?? 40.0;
+    const targetSolidDepth = vis.xraySolidRevealDepth ?? settings.xraySolidRevealDepth ?? 200.0;
 
     // Smooth lerp towards target with ~0.2s delay
-    // lerpFactor: 1 - e^(-dt / tau), where tau = 0.2s
     const lerpSpeed = 1.0 - Math.exp(-delta / 0.2);
     animState.currentDepth += (targetDepth - animState.currentDepth) * lerpSpeed;
     animState.currentSolidDepth += (targetSolidDepth - animState.currentSolidDepth) * lerpSpeed;
@@ -261,7 +301,6 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
     }
     
     // --- Scroll Burnout Calculation ---
-    // Disabled so city hologram and pink x-ray lines don't disappear on scroll
     const burnOut = 0.0;
     material.uniforms.uBurnOut.value = burnOut;
     lineMaterial.uniforms.uBurnOut.value = burnOut;

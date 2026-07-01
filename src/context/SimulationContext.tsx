@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 export type PresetType = "neon" | "muted" | "volcanic" | "monochrome" | "emerald";
 
@@ -128,6 +128,7 @@ const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
 interface SimulationContextProps {
   settings: SimulationSettings;
   updateSetting: <K extends keyof SimulationSettings>(key: K, value: SimulationSettings[K]) => void;
+  updateSettings: (newSettings: Partial<SimulationSettings>) => void;
   applyPreset: (preset: PresetType) => void;
 }
 
@@ -186,23 +187,28 @@ const SimulationContext = createContext<SimulationContextProps | undefined>(unde
 export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<SimulationSettings>(defaultSettings);
 
-  const updateSetting = <K extends keyof SimulationSettings>(key: K, value: SimulationSettings[K]) => {
+  const updateSetting = useCallback(<K extends keyof SimulationSettings>(key: K, value: SimulationSettings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
-  };
+  }, []);
 
-  const applyPreset = (preset: PresetType) => {
+  const updateSettings = useCallback((newSettings: Partial<SimulationSettings>) => {
+    setSettings((prev) => ({ ...prev, ...newSettings }));
+  }, []);
+
+  const applyPreset = useCallback((preset: PresetType) => {
     setSettings((prev) => ({
       ...prev,
       ...PRESETS[preset],
       activePreset: preset,
     }));
-  };
+  }, []);
 
   return (
     <SimulationContext.Provider
       value={{
         settings,
         updateSetting,
+        updateSettings,
         applyPreset,
       }}
     >

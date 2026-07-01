@@ -609,6 +609,12 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
   // Animate glitch strength and bounding box jitter
   useFrame((state) => {
+    // Write background glitch parameters to shared renderer state
+    const glUserData = (state.gl as any).userData || {};
+    glUserData.autoBgGlitchActive = bgGlitchStrengthRef.current;
+    glUserData.autoBgGlitchSeed = bgGlitchSeedRef.current;
+    const transitionProgress = glUserData.transitionProgress ?? 0.0;
+
     // --- Scroll-Driven Model transition calculation ---
     let burnProgress = 0.0;
     let particleOpacity = 1.0;
@@ -630,6 +636,9 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         particleOpacity = 0.0; // Turn off particles instantly
       }
     }
+
+    // Fade out particles entirely when transitioning to Scene 2
+    particleOpacity *= (1.0 - transitionProgress);
 
     // --- Scroll-driven vertical clipping disabled (Single scene mode) ---
     const clipSide = 0.0;
@@ -661,7 +670,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     // Update Solid Model Uniforms and Raycasting
     if (solidMaterial && solidLineMaterial && solidSceneCloned) {
       solidMaterial.uniforms.uTime.value = state.clock.elapsedTime;
-      solidMaterial.uniforms.uOpacity.value = settings.opacity * solidOpacity;
+      solidMaterial.uniforms.uOpacity.value = settings.opacity * solidOpacity * (1.0 - transitionProgress);
       solidMaterial.uniforms.uFillOpacity.value = settings.xrayFillOpacity;
       solidMaterial.uniforms.uScanLineIntensity.value = settings.xrayScanlineIntensity;
       solidMaterial.uniforms.uFresnelPower.value = settings.xrayOutlinePower;
@@ -677,7 +686,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
       solidLineMaterial.uniforms.uTime.value = state.clock.elapsedTime;
       solidLineMaterial.uniforms.uColor.value.set(settings.xrayBorderColor || "#e91e63");
-      solidLineMaterial.uniforms.uOpacity.value = settings.xrayBorderOpacity * (1.0 - solidWhiteProgress) * solidOpacity;
+      solidLineMaterial.uniforms.uOpacity.value = settings.xrayBorderOpacity * (1.0 - solidWhiteProgress) * solidOpacity * (1.0 - transitionProgress);
       solidLineMaterial.uniforms.uDepthLimit.value = settings.xrayBorderRevealDepth ?? 40.0;
       solidLineMaterial.uniforms.uBurnOut.value = 0.0;
       solidLineMaterial.uniforms.uClipY.value = clipY;
@@ -707,11 +716,11 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       }
     }
 
-    // Update Datamosh postprocessing uniforms
+    // Update Datamosh postprocessing uniforms using the shared synchronized glitch values
     if (datamoshRef.current) {
       const effect = datamoshRef.current;
-      effect.uniforms.get('strength').value = bgGlitchStrengthRef.current;
-      effect.uniforms.get('seed').value = bgGlitchSeedRef.current;
+      effect.uniforms.get('strength').value = glUserData.bgGlitchActive || 0.0;
+      effect.uniforms.get('seed').value = glUserData.bgGlitchSeed || 0.0;
     }
 
     // ─── CPU Particle Physics Simulation ───
@@ -953,13 +962,13 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
       // Sync color/opacity from settings
       boxLineMaterial.uniforms.uColor.value.set(settings.xrayBorderColor || "#e91e63");
-      boxLineMaterial.uniforms.uOpacity.value = settings.xrayBorderOpacity ?? 0.5;
+      boxLineMaterial.uniforms.uOpacity.value = (settings.xrayBorderOpacity ?? 0.5) * (1.0 - transitionProgress);
       boxLineMaterial.uniforms.uClipY.value = clipY;
       boxLineMaterial.uniforms.uClipSide.value = clipSide;
     }
 
     if (lineMaterialRef.current) {
-      lineMaterialRef.current.opacity = glitchStrengthRef.current * 0.45;
+      lineMaterialRef.current.opacity = glitchStrengthRef.current * 0.45 * (1.0 - transitionProgress);
     }
 
     // --- Scroll Animation ---

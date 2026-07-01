@@ -1,297 +1,388 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useGLTF, useAnimations, useScroll } from "@react-three/drei";
+import { useScroll, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
-import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
 import { ModelParticleSystem } from "./ModelParticleSystem";
 import { GridFloor } from "./GridFloor";
 import { SkyDome } from "./SkyDome";
 import { useSimulation } from "@/context/SimulationContext";
+import { SceneSlot, SceneConfig, SceneVisualOverrides } from "./SceneSlot";
 
-const SCENE_PATH = "/SCENE.glb";
-const CAMERA_NAME = "Camera";
-const TARGET_NAME = "body";
+// ─── Scene Configuration ────────────────────────────────────────────
+// Add new scenes here. Each entry gets an equal share of the scroll range.
+// Each scene's GLB must contain a "Camera" node. Visuals override global settings.
+const SCENE_CONFIGS: SceneConfig[] = [
+  {
+    path: "/SCENE.glb",
+    hasParticleTarget: true,
+    activeAnimationName: "mixamo.com.003",
+    visuals: {
+      hazeColor: "#ff007f",       // Pink haze (Neon preset)
+      xrayBorderColor: "#e91e63", // Pink borders
+      xrayBaseColor: "#888888",
+      xrayOutlineColor: "#ffffff",
+      xrayFillOpacity: 0.15,
+      xrayBorderOpacity: 0.5,
+      skyColor: "#ff007f",
+    },
+  },
+  {
+    path: "/cityhall.glb",
+    hasParticleTarget: false,
+    activeAnimationName: "Action",
+    visuals: {
+      hazeColor: "#050b14",       // Cyber deep blue background
+      xrayBorderColor: "#001aff", // Bright neon blue borders (updated to user hex)
+      xrayBaseColor: "#001b33",   // Deep indigo fill base
+      xrayOutlineColor: "#00aaff", // Neon blue glow outlines
+      xrayFillOpacity: 0.15,
+      xrayBorderOpacity: 0.6,
+      skyColor: "#000000ff",
+    },
+  },
+];
+
+// Preload all scene GLBs
+SCENE_CONFIGS.forEach((cfg) => useGLTF.preload(cfg.path));
+
+const GLITCH_DURATION = 0.15; // Glitch duration: ~0.10s to 0.20s (Fast burst)
+const TRANSITION_GLITCH_INTENSITY = 0.25; // Keep intensity low
+const NUM_SCENES = SCENE_CONFIGS.length;
+
+// Helper to convert hex/string to THREE.Color reference
+function getTempColor(val: string | THREE.Color | undefined, fallback: string): THREE.Color {
+  if (!val) return new THREE.Color(fallback);
+  if (val instanceof THREE.Color) return val.clone();
+
+  let str = val;
+  // Sanitize 8-character hex string (strip AA channel)
+  if (str.startsWith("#") && str.length === 9) {
+    str = str.substring(0, 7);
+  }
+  return new THREE.Color(str);
+}
 
 /**
- * SceneModel
+ * Linearly interpolate between two SceneVisualOverrides objects.
+ * Colors are smoothly interpolated using THREE.Color.lerp.
+ */
+function lerpVisuals(
+  a: SceneVisualOverrides | undefined,
+  b: SceneVisualOverrides | undefined,
+  t: number
+): SceneVisualOverrides {
+  const from = a || {};
+  const to = b || {};
+  const result: SceneVisualOverrides = {};
+
+  // Color properties: lerp smoothly using THREE.Color
+  const colorKeys: (keyof SceneVisualOverrides)[] = [
+    "hazeColor", "xrayOutlineColor", "xrayBaseColor",
+    "xrayBorderColor", "skyColor",
+  ];
+  for (const key of colorKeys) {
+    const fromVal = from[key];
+    const toVal = to[key];
+    if (fromVal !== undefined || toVal !== undefined) {
+      const cFrom = getTempColor(fromVal as any, "#000000");
+      const cTo = getTempColor(toVal as any, "#000000");
+      cFrom.lerp(cTo, t);
+      (result as any)[key] = cFrom;
+    }
+  }
+
+  // Numeric properties: linear interpolation
+  const numKeys: (keyof SceneVisualOverrides)[] = [
+    "xrayFillOpacity", "xrayOutlinePower", "xrayScanlineIntensity",
+    "xrayBorderOpacity", "xrayBorderThreshold", "xrayBorderRevealDepth",
+    "xraySolidRevealDepth", "xrayHoverRadius", "gridFloorOpacity", "gridFloorY",
+  ];
+  for (const key of numKeys) {
+    const fromVal = from[key] as number | undefined;
+    const toVal = to[key] as number | undefined;
+    if (fromVal !== undefined && toVal !== undefined) {
+      (result as any)[key] = fromVal + (toVal - fromVal) * t;
+    } else if (fromVal !== undefined || toVal !== undefined) {
+      (result as any)[key] = t < 0.5 ? (fromVal ?? toVal) : (toVal ?? fromVal);
+    }
+  }
+
+  // Boolean properties: snap at midpoint
+  const boolKeys: (keyof SceneVisualOverrides)[] = ["showSky", "showGridFloor"];
+  for (const key of boolKeys) {
+    const fromVal = from[key];
+    const toVal = to[key];
+    if (fromVal !== undefined || toVal !== undefined) {
+      (result as any)[key] = t < 0.5 ? (fromVal ?? toVal) : (toVal ?? fromVal);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Compute the interpolated visuals at a given scroll position t.
+ * If we are NOT in a transition zone, return null to let the user tweak the active scene settings directly.
+ */
+function getInterpolatedVisuals(t: number): SceneVisualOverrides | null {
+  const segmentSize = 1.0 / NUM_SCENES;
+  const fadeHalfWidth = 0.05; // 5% scroll buffer on each side (10% total transition window)
+
+  // Find active segment
+  const activeSegment = Math.min(Math.floor(t / segmentSize), NUM_SCENES - 1);
+
+  // Check boundary transition forward
+  const nextSegment = activeSegment + 1;
+  if (nextSegment < NUM_SCENES) {
+    const boundary = nextSegment * segmentSize;
+    if (t >= boundary - fadeHalfWidth && t <= boundary + fadeHalfWidth) {
+      const factor = (t - (boundary - fadeHalfWidth)) / (fadeHalfWidth * 2.0);
+      return lerpVisuals(
+        SCENE_CONFIGS[activeSegment].visuals,
+        SCENE_CONFIGS[nextSegment].visuals,
+        factor
+      );
+    }
+  }
+
+  // Check boundary transition backward
+  const prevSegment = activeSegment - 1;
+  if (prevSegment >= 0) {
+    const boundary = activeSegment * segmentSize;
+    if (t >= boundary - fadeHalfWidth && t <= boundary + fadeHalfWidth) {
+      const factor = (t - (boundary - fadeHalfWidth)) / (fadeHalfWidth * 2.0);
+      return lerpVisuals(
+        SCENE_CONFIGS[prevSegment].visuals,
+        SCENE_CONFIGS[activeSegment].visuals,
+        factor
+      );
+    }
+  }
+
+  // Not in transition zone: return null to let global state take over
+  return null;
+}
+
+/**
+ * SceneModel — Multi-Scene Orchestrator
  *
- * Orchestrates the entire scene:
- * 1. Loads the GLB scene (SCENE.glb)
- * 2. Extracts camera and binds its animation to scroll
- * 3. Separates target and city meshes
- * 4. Controls camera walkthrough animation based on scroll
+ * Renders N scenes via <SceneSlot>, manages scroll segments,
+ * one-shot glitch transitions between scenes, and per-scene visual overrides.
  */
 export const SceneModel: React.FC = () => {
-  const gltf = useGLTF(SCENE_PATH);
   const { set, size } = useThree();
   const scrollData = useScroll();
-  const { settings, updateSetting } = useSimulation();
+  const { settings, updateSettings, updateSetting } = useSimulation();
   const settingsRef = useRef(settings);
   useEffect(() => { settingsRef.current = settings; }, [settings]);
 
-  // Animation mixer setup for SCENE
-  const groupRef = useRef<THREE.Group>(null);
-  const { actions, mixer } = useAnimations(gltf.animations, groupRef);
+  // Camera storage: one per scene
+  const camerasRef = useRef<(THREE.PerspectiveCamera | null)[]>(
+    new Array(NUM_SCENES).fill(null)
+  );
 
-  // Find the active mixamo action name (alphabetically highest mixamo action) from gltf.animations.
-  // This ensures it is available immediately on the first render, without waiting for the mixer actions to mount.
-  const activeMixamoActionName = useMemo(() => {
-    const names = gltf.animations.map((clip) => clip.name);
-    const mixamoNames = names.filter((name) => name.toLowerCase().includes("mixamo"));
-    if (mixamoNames.length === 0) return "";
-    mixamoNames.sort();
-    return mixamoNames[mixamoNames.length - 1];
-  }, [gltf.animations]);
+  // Target meshes from Scene 1 (for ModelParticleSystem)
+  const targetMeshesRef = useRef<THREE.Mesh[]>([]);
+  const [targetMeshes, setTargetMeshes] = React.useState<THREE.Mesh[]>([]);
 
-  // Find the maximum duration of the active animations from gltf.animations.
-  // This keeps animations synchronized even if they have different clip lengths.
-  const maxDuration = useMemo(() => {
-    let max = 0;
-    const cameraClip = gltf.animations.find((c) => c.name.toLowerCase().includes("camera"));
-    if (cameraClip) {
-      max = Math.max(max, cameraClip.duration);
-    }
-    gltf.animations.forEach((clip) => {
-      const name = clip.name;
-      if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) return;
-      if (!name.toLowerCase().includes("camera")) {
-        max = Math.max(max, clip.duration);
-      }
-    });
-    return max || 1; // Default to 1 to avoid division by zero
-  }, [gltf.animations, activeMixamoActionName]);
+  // State-driven active scene to synchronize dashboard settings
+  const [activeSceneIndex, setActiveSceneIndex] = useState(0);
+  const transitionTimeRef = useRef(-1.0);
+  const transitionFromRef = useRef(0);
+  const transitionToRef = useRef(0);
+  const initialInitRef = useRef(false);
 
-
-  // Refs for scene cameras
-  const sceneCameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-
-  // Track the active camera type to avoid redundant set({ camera }) calls
-  const activeCameraTypeRef = useRef<"cam1">("cam1");
-
-  // Separate SCENE.glb into camera, target, and city meshes
-  const { cityMeshes, targetMeshes } = useMemo(() => {
-    const city: THREE.Mesh[] = [];
-    const target: THREE.Mesh[] = [];
-
-    gltf.scene.updateMatrixWorld(true);
-    gltf.scene.traverse((child) => {
-      if (child.name === CAMERA_NAME || child instanceof THREE.Camera) {
-        return;
-      }
-
-      if (child instanceof THREE.Mesh) {
-        let isTarget = false;
-        let node: THREE.Object3D | null = child;
-        while (node) {
-          if (node.name === TARGET_NAME) {
-            isTarget = true;
-            break;
-          }
-          node = node.parent;
-        }
-
-        if (isTarget) {
-          target.push(child);
-        } else {
-          city.push(child);
-        }
-        child.visible = false;
-      }
-    });
-
-    console.log(`[SceneModel] Separated SCENE: ${city.length} city meshes, ${target.length} target meshes`);
-    return { cityMeshes: city, targetMeshes: target };
-  }, [gltf]);
-
-  // Find and set up the SCENE.glb camera
-  useEffect(() => {
-    let sceneCamera: THREE.PerspectiveCamera | null = null;
-
-    gltf.scene.traverse((child) => {
-      if (child.name === CAMERA_NAME && (child as any).isCamera) {
-        sceneCamera = child as THREE.PerspectiveCamera;
-      }
-      if (child.name === CAMERA_NAME) {
-        child.children.forEach((c) => {
-          if ((c as any).isCamera) {
-            sceneCamera = c as THREE.PerspectiveCamera;
-          }
-        });
-      }
-    });
-
-    if (!sceneCamera) {
-      let createdCam: THREE.PerspectiveCamera | null = null;
-      gltf.scene.traverse((child) => {
-        if (child.name === CAMERA_NAME) {
-          const cam = new THREE.PerspectiveCamera(
-            0.39959652046304894 * (180 / Math.PI),
-            size.width / size.height,
-            0.1,
-            1000
-          );
-          cam.position.set(0, 0, 0);
-          cam.quaternion.identity();
-          cam.scale.set(1, 1, 1);
-          child.add(cam);
-          createdCam = cam;
+  // Camera callbacks — stable refs per scene index
+  const cameraCallbacksRef = useRef<((cam: THREE.PerspectiveCamera) => void)[]>([]);
+  if (cameraCallbacksRef.current.length === 0) {
+    for (let i = 0; i < NUM_SCENES; i++) {
+      const idx = i;
+      cameraCallbacksRef.current.push((cam: THREE.PerspectiveCamera) => {
+        camerasRef.current[idx] = cam;
+        if (idx === 0) {
+          set({ camera: cam });
+          console.log(`[SceneModel] Scene ${idx} camera set as initial active camera`);
         }
       });
-      sceneCamera = createdCam;
     }
+  }
 
-    if (sceneCamera) {
-      const activeCam = sceneCamera as THREE.PerspectiveCamera;
-      sceneCameraRef.current = activeCam;
-      activeCam.near = 0.1; // Prevent close objects from being clipped
-      activeCam.far = 1000.0; // Ensure nothing far away is clipped
-      activeCam.aspect = size.width / size.height;
-      activeCam.updateProjectionMatrix();
-      set({ camera: activeCam });
-      activeCameraTypeRef.current = "cam1";
-      console.log("[SceneModel] SCENE camera activated");
-    }
-  }, [gltf, set, size]);
+  // Target meshes callback (Scene 1 only)
+  const onTargetMeshes = useCallback((meshes: THREE.Mesh[]) => {
+    targetMeshesRef.current = meshes;
+    setTargetMeshes(meshes);
+  }, []);
 
-  // Set up camera & body animations for SCENE.glb
+  // Synchronize dashboard settings to active scene visuals when scene changes.
+  // We trigger this immediately when activeSceneIndex changes to prepare the settings
+  // for the fall-back once transition completes and scroll leaves the border zone.
   useEffect(() => {
-    const cameraActionName = Object.keys(actions).find(
-      (name) => name.toLowerCase().includes("camera")
-    );
+    const visuals = SCENE_CONFIGS[activeSceneIndex]?.visuals || {};
+    const overrides: Partial<typeof settings> = {};
 
-    if (cameraActionName && actions[cameraActionName]) {
-      const action = actions[cameraActionName];
-      action.play();
-      action.paused = true;
-    }
-
-    const bodyActionNames = Object.keys(actions).filter(
-      (name) => !name.toLowerCase().includes("camera")
-    );
-
-    bodyActionNames.forEach((name) => {
-      if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) {
-        return;
-      }
-      const action = actions[name];
-      if (action) {
-        action.play();
-        action.paused = true;
+    Object.entries(visuals).forEach(([key, val]) => {
+      if (val !== undefined) {
+        if (val && (val as any).isColor) {
+          (overrides as any)[key] = "#" + (val as THREE.Color).getHexString();
+        } else if (typeof val === "string" && val.startsWith("#") && val.length === 9) {
+          (overrides as any)[key] = val.substring(0, 7);
+        } else {
+          (overrides as any)[key] = val;
+        }
       }
     });
-  }, [actions, activeMixamoActionName]);
 
-  // Drive camera based on scroll offset
-  useFrame((state) => {
+    if (Object.keys(overrides).length > 0) {
+      updateSettings(overrides);
+      console.log(`[SceneModel] Synced dashboard settings for Scene ${activeSceneIndex}`, overrides);
+    }
+  }, [activeSceneIndex, updateSettings]);
+
+  // Main orchestration loop
+  useFrame((state, delta) => {
     if (!scrollData) return;
 
     const t = scrollData.offset; // 0..1
-
-    // Drive camera fly-in over the entire scroll range
-    const cameraNorm = Math.min(t, 1.0);
-    const globalTime = cameraNorm * maxDuration;
-
-    const cameraActionName = Object.keys(actions).find(
-      (name) => name.toLowerCase().includes("camera")
-    );
-    if (cameraActionName && actions[cameraActionName]) {
-      const action = actions[cameraActionName];
-      const clip = gltf.animations.find((c) => c.name === cameraActionName);
-      const duration = clip ? clip.duration : 12.0;
-      action.time = Math.min(globalTime, duration);
+    const glUserData = (state.gl as any).userData || {};
+    if (!(state.gl as any).userData) {
+      (state.gl as any).userData = glUserData;
     }
 
-    const bodyActionNames = Object.keys(actions).filter(
-      (name) => !name.toLowerCase().includes("camera")
-    );
-    bodyActionNames.forEach((name) => {
-      if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) return;
-      const action = actions[name];
-      if (action) {
-        const clip = gltf.animations.find((c) => c.name === name);
-        const duration = clip ? clip.duration : 1.0;
-        action.time = Math.min(globalTime, duration);
+    // Compute which scene index the scroll is in
+    const segmentSize = 1.0 / NUM_SCENES;
+    const rawSceneIndex = Math.min(Math.floor(t / segmentSize), NUM_SCENES - 1);
+
+    // Initialize on first frame without triggering glitch
+    if (!initialInitRef.current) {
+      initialInitRef.current = true;
+      setActiveSceneIndex(rawSceneIndex);
+      glUserData.transitionProgress = 0.0;
+      glUserData.activeSceneIndex = rawSceneIndex;
+      glUserData.incomingSceneIndex = -1;
+    }
+
+    // Detect scene boundary crossing → trigger one-shot glitch (Hysteresis check)
+    // To trigger transitioning to next scene: must scroll slightly past segment size.
+    const isPastUpperThreshold = t > (activeSceneIndex + 1) * segmentSize + 0.01;
+    const isPastLowerThreshold = t < activeSceneIndex * segmentSize - 0.01;
+
+    let nextTarget = activeSceneIndex;
+    if (isPastUpperThreshold && activeSceneIndex + 1 < NUM_SCENES) {
+      nextTarget = activeSceneIndex + 1;
+    } else if (isPastLowerThreshold && activeSceneIndex - 1 >= 0) {
+      nextTarget = activeSceneIndex - 1;
+    }
+
+    if (nextTarget !== activeSceneIndex && transitionTimeRef.current < 0) {
+      transitionFromRef.current = activeSceneIndex;
+      transitionToRef.current = nextTarget;
+      setActiveSceneIndex(nextTarget);
+      transitionTimeRef.current = 0.0;
+      console.log(`[SceneModel] One-shot transition triggered: scene ${transitionFromRef.current} → ${transitionToRef.current}`);
+    }
+
+    // Compute per-scene scroll norms
+    const sceneScrollNorms: number[] = [];
+    for (let i = 0; i < NUM_SCENES; i++) {
+      const segStart = i * segmentSize;
+      const segEnd = (i + 1) * segmentSize;
+      sceneScrollNorms.push(THREE.MathUtils.clamp((t - segStart) / (segEnd - segStart), 0.0, 1.0));
+    }
+    glUserData.sceneScrollNorms = sceneScrollNorms;
+
+    // Process one-shot transition animation
+    let transitionGlitch = 0.0;
+    let transitionProgress = 0.0;
+    let activeCamIndex = activeSceneIndex;
+
+    if (transitionTimeRef.current >= 0.0) {
+      transitionTimeRef.current += delta;
+      const progress = transitionTimeRef.current / GLITCH_DURATION;
+
+      if (progress >= 1.0) {
+        transitionTimeRef.current = -1.0; // Transition complete
+        glUserData.incomingSceneIndex = -1;
+      } else {
+        // Bell-curve glitch strength peaking at 0.5
+        transitionGlitch = Math.sin(progress * Math.PI) * TRANSITION_GLITCH_INTENSITY;
+        transitionProgress = progress;
+
+        // Camera cut at peak of glitch
+        const isPastPeak = progress >= 0.5;
+        activeCamIndex = isPastPeak ? transitionToRef.current : transitionFromRef.current;
+        glUserData.incomingSceneIndex = isPastPeak ? transitionFromRef.current : transitionToRef.current;
       }
-    });
+    } else {
+      glUserData.incomingSceneIndex = -1;
+    }
 
-    if (mixer) mixer.update(0);
+    // Write shared state
+    glUserData.transitionProgress = transitionProgress;
+    glUserData.activeSceneIndex = activeCamIndex;
+    glUserData.bgGlitchActive = Math.max(glUserData.autoBgGlitchActive || 0.0, transitionGlitch);
+    glUserData.bgGlitchSeed = transitionGlitch > (glUserData.autoBgGlitchActive || 0.0)
+      ? Math.random() * 1000.0
+      : (glUserData.autoBgGlitchSeed || 0.0);
 
-    const targetCam = sceneCameraRef.current;
+    // Compute and blend visual overrides smoothly across scroll boundaries
+    if (transitionTimeRef.current >= 0.0) {
+      const fromVisuals = SCENE_CONFIGS[transitionFromRef.current]?.visuals;
+      const toVisuals = SCENE_CONFIGS[transitionToRef.current]?.visuals;
+      glUserData.sceneVisuals = lerpVisuals(fromVisuals, toVisuals, transitionProgress);
+    } else {
+      // Transition is inactive: get scroll-interpolated visuals, or null (to fall back to SimulationSettings)
+      glUserData.sceneVisuals = getInterpolatedVisuals(t);
+    }
 
-    // Switch active R3F camera once when crossing thresholds
+    // Render the smooth background haze transition in real-time
+    const currentHazeColor = glUserData.sceneVisuals?.hazeColor || settingsRef.current.hazeColor;
+    if (state.scene.background && (state.scene.background as any).isColor) {
+      (state.scene.background as THREE.Color).set(currentHazeColor as THREE.Color);
+    }
+
+    // Switch active R3F camera
+    const targetCam = camerasRef.current[activeCamIndex];
     if (targetCam && state.camera !== targetCam) {
       set({ camera: targetCam });
-      activeCameraTypeRef.current = "cam1";
-      console.log(`[SceneModel] Switched active camera to: cam1`);
+      console.log(`[SceneModel] Camera switched to scene ${activeCamIndex}`);
     }
 
-    // Keep aspect ratios and projection matrices up to date
-    if (sceneCameraRef.current) {
-      sceneCameraRef.current.aspect = size.width / size.height;
-      sceneCameraRef.current.updateMatrixWorld(true);
-      sceneCameraRef.current.updateProjectionMatrix();
+    // Keep all cameras' aspect ratios up to date
+    for (let i = 0; i < NUM_SCENES; i++) {
+      const cam = camerasRef.current[i];
+      if (cam) {
+        cam.aspect = size.width / size.height;
+        cam.updateMatrixWorld(true);
+        cam.updateProjectionMatrix();
+      }
     }
 
-    // Maintain model index 0 during transition
+    // Maintain model index 0 during active play
     if (settingsRef.current.currentModelIndex !== 0) {
       updateSetting('currentModelIndex', 0);
     }
   });
 
-  // Calculate bounding box and diagonal projection bounds for SCENE
+  // Projection bounds from Scene 1's city meshes (used by all systems)
   const cityProjectionBounds = useMemo(() => {
-    if (cityMeshes.length === 0) return { min: -100, max: 100 };
-
-    const wipeDir = new THREE.Vector3(1, 0, 1).normalize();
-    const bounds = new THREE.Box3();
-
-    cityMeshes.forEach((mesh) => {
-      if (mesh.geometry) {
-        if (!mesh.geometry.boundingBox) {
-          mesh.geometry.computeBoundingBox();
-        }
-        if (mesh.geometry.boundingBox) {
-          const meshBounds = mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
-          bounds.union(meshBounds);
-        }
-      }
-    });
-
-    const corners = [
-      new THREE.Vector3(bounds.min.x, bounds.min.y, bounds.min.z),
-      new THREE.Vector3(bounds.max.x, bounds.min.y, bounds.min.z),
-      new THREE.Vector3(bounds.min.x, bounds.max.y, bounds.min.z),
-      new THREE.Vector3(bounds.max.x, bounds.max.y, bounds.min.z),
-      new THREE.Vector3(bounds.min.x, bounds.min.y, bounds.max.z),
-      new THREE.Vector3(bounds.max.x, bounds.min.y, bounds.max.z),
-      new THREE.Vector3(bounds.min.x, bounds.max.y, bounds.max.z),
-      new THREE.Vector3(bounds.max.x, bounds.max.y, bounds.max.z),
-    ];
-
-    let minProj = Infinity;
-    let maxProj = -Infinity;
-    corners.forEach((c) => {
-      const proj = c.dot(wipeDir);
-      minProj = Math.min(minProj, proj);
-      maxProj = Math.max(maxProj, proj);
-    });
-
-    return { min: minProj - 5, max: maxProj + 5 };
-  }, [cityMeshes]);
+    return { min: -100, max: 100 };
+  }, []);
 
   return (
     <>
-      <group ref={groupRef}>
-        {/* Embed SCENE.glb (original meshes hidden, lights/bones intact) */}
-        <primitive object={gltf.scene} visible={true} />
-
-        {/* City + Target meshes rendered as holographic X-Ray */}
-        {cityMeshes.length > 0 && (
-          <CityXRayMeshSystem meshes={cityMeshes} projectionBounds={cityProjectionBounds} isScene2={false} />
-        )}
-      </group>
+      {/* Render all scene slots */}
+      {SCENE_CONFIGS.map((config, i) => (
+        <SceneSlot
+          key={config.path}
+          config={config}
+          sceneIndex={i}
+          projectionBounds={cityProjectionBounds}
+          onCameraReady={cameraCallbacksRef.current[i]}
+          onTargetMeshes={config.hasParticleTarget ? onTargetMeshes : undefined}
+        />
+      ))}
 
       {/* Glowing Sky Dome */}
       {settings.showSky && <SkyDome />}
@@ -299,12 +390,14 @@ export const SceneModel: React.FC = () => {
       {/* Grid Floor */}
       {settings.showGridFloor && <GridFloor projectionBounds={cityProjectionBounds} />}
 
-      {/* Target rendered with interactive particle system */}
+      {/* Target rendered with interactive particle system (Scene 1 only) */}
       {targetMeshes.length > 0 && (
-        <ModelParticleSystem meshes={targetMeshes} targetNode={targetMeshes[0]} projectionBounds={cityProjectionBounds} />
+        <ModelParticleSystem
+          meshes={targetMeshes}
+          targetNode={targetMeshes[0]}
+          projectionBounds={cityProjectionBounds}
+        />
       )}
     </>
   );
 };
-
-useGLTF.preload(SCENE_PATH);

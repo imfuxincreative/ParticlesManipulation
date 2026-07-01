@@ -24,6 +24,11 @@ export const CityXRayShader = {
     uHazeColor: { value: new THREE.Color(0x0b0c10) },
     uDepthLimit: { value: 200.0 },
     uFadeZone: { value: 30.0 },
+    uGlitchActive: { value: 0.0 },
+    uGlitchSeed: { value: 0.0 },
+    uTransitionProgress: { value: 0.0 },
+    uSceneIndex: { value: 0.0 },
+    uActiveSceneIndex: { value: 0.0 },
   },
   vertexShader: `
     #include <skinning_pars_vertex>
@@ -32,6 +37,7 @@ export const CityXRayShader = {
     varying vec3 vPositionNormal;
     varying vec3 vWorldPosition;
     varying float vDepth;
+    varying vec4 vScreenPos;
     uniform float uTime;
     
     void main() {
@@ -60,6 +66,7 @@ export const CityXRayShader = {
       vDepth = -mvPosition.z;
       
       gl_Position = projectionMatrix * mvPosition;
+      vScreenPos = gl_Position;
     }
   `,
   fragmentShader: `
@@ -86,10 +93,17 @@ export const CityXRayShader = {
     uniform float uDepthLimit;
     uniform float uFadeZone;
 
+    uniform float uGlitchActive;
+    uniform float uGlitchSeed;
+    uniform float uTransitionProgress;
+    uniform float uSceneIndex;
+    uniform float uActiveSceneIndex;
+
     varying vec3 vNormal;
     varying vec3 vPositionNormal;
     varying vec3 vWorldPosition;
     varying float vDepth;
+    varying vec4 vScreenPos;
 
     // 2D Random hash
     float hash(vec2 p) {
@@ -123,6 +137,26 @@ export const CityXRayShader = {
     }
 
     void main() {
+      // Screen-space block glitch reveal logic
+      vec2 screenUv = (vScreenPos.xy / vScreenPos.w) * 0.5 + 0.5;
+      float tGrid = floor(uTime * 15.0);
+      float bx = floor(screenUv.x * 16.0);
+      float by = floor(screenUv.y * 16.0);
+      float blockNoise = hash(vec2(bx, by) + tGrid * 0.5 + uGlitchSeed);
+
+      // Transition threshold (increases from 0 to 1) combined with flash active state
+      float glitchThreshold = uGlitchActive * 0.45;
+      float threshold = max(uTransitionProgress, glitchThreshold);
+      bool isGlitchedBlock = (blockNoise < threshold);
+
+      // N-scene discard: active scene hides glitched blocks, incoming scene shows only glitched blocks
+      bool isMyScene = (abs(uSceneIndex - uActiveSceneIndex) < 0.5);
+      if (isMyScene) {
+        if (isGlitchedBlock) discard;
+      } else {
+        if (!isGlitchedBlock) discard;
+      }
+
       // 1. Vertical Wipe clipping with FBM-perturbed soft opacity transition
       float noiseVal = fbm(vWorldPosition.xz * 0.12 + vec2(uTime * 0.2));
       float perturbedY = vWorldPosition.y + (noiseVal - 0.5) * 12.0;
