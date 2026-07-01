@@ -28,20 +28,20 @@ const SCENE_CONFIGS: SceneConfig[] = [
       skyColor: "#ff007f",
     },
   },
-  {
-    path: "/cityhall.glb",
-    hasParticleTarget: false,
-    activeAnimationName: "Action",
-    visuals: {
-      hazeColor: "#050b14",       // Cyber deep blue background
-      xrayBorderColor: "#001aff", // Bright neon blue borders (updated to user hex)
-      xrayBaseColor: "#001b33",   // Deep indigo fill base
-      xrayOutlineColor: "#00aaff", // Neon blue glow outlines
-      xrayFillOpacity: 0.15,
-      xrayBorderOpacity: 0.6,
-      skyColor: "#000000ff",
-    },
-  },
+  // {
+  //   path: "/cityhall.glb",
+  //   hasParticleTarget: false,
+  //   activeAnimationName: "Action",
+  //   visuals: {
+  //     hazeColor: "#050b14",       // Cyber deep blue background
+  //     xrayBorderColor: "#ff7b00ff", // Bright neon blue borders (updated to user hex)
+  //     xrayBaseColor: "#001b33",   // Deep indigo fill base
+  //     xrayOutlineColor: "#ffab3dff", // Neon blue glow outlines
+  //     xrayFillOpacity: 0.15,
+  //     xrayBorderOpacity: 0.6,
+  //     skyColor: "#0084ffff",
+  //   },
+  // },
 ];
 
 // Preload all scene GLBs

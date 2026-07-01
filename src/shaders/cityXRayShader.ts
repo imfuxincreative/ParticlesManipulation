@@ -215,8 +215,8 @@ export const CityXRayShader = {
       baseHologramColor += uGlowColor * scanline;
       baseHologramColor += uHoverColor * transitionGlow * 2.0;
 
-      // Alpha depends heavily on fresnel to create the x-ray transparent look
-      float baseHologramAlpha = clamp(fresnel * 1.5 + scanline + uFillOpacity + transitionGlow * 0.8, 0.0, 1.0) * uOpacity;
+      // Alpha: fill opacity forms the solid base, fresnel adds edge highlight on top
+      float baseHologramAlpha = clamp(uFillOpacity + fresnel * (1.0 - uFillOpacity) * 1.5 + scanline + transitionGlow * 0.8, 0.0, 1.0) * uOpacity;
 
       // Apply depth limit fading
       float fadeStart = max(0.0, uDepthLimit - uFadeZone);
