@@ -189,7 +189,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
   const transBackRef = useRef(new THREE.Matrix4());
   const localTransformRef = useRef(new THREE.Matrix4());
 
-  // Extract all vertices and vertex colors from the loaded model
+  // Extract all vertices AND thickened shell duplicates from the loaded model
   const { extractedPositions, extractedColors } = useMemo(() => {
     const allPositions: number[] = [];
     const allColors: number[] = [];
@@ -202,6 +202,10 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     gltf.scene.traverse((child) => {
       if (child instanceof THREE.Mesh) sourceMeshes.push(child);
     });
+
+    // ── Step 1: Extract surface vertices (original behavior) ──
+    const surfacePositions: number[] = [];
+    const surfaceColors: number[] = [];
 
     for (const mesh of sourceMeshes) {
       const geometry = mesh.geometry;
@@ -220,25 +224,82 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
           posAttr.getZ(i)
         );
 
-        // Always apply world matrix to get vertices into model's world space
-        // (they'll be re-centered and scaled to match the body in centeredPositions)
         tempPos.applyMatrix4(worldMatrix);
 
-        allPositions.push(tempPos.x, tempPos.y, tempPos.z);
+        surfacePositions.push(tempPos.x, tempPos.y, tempPos.z);
 
         if (colorAttr) {
-          allColors.push(
+          surfaceColors.push(
             colorAttr.getX(i),
             colorAttr.getY(i),
             colorAttr.getZ(i)
           );
         } else {
-          allColors.push(-1.0, -1.0, -1.0);
+          surfaceColors.push(-1.0, -1.0, -1.0);
         }
       }
     }
 
-    console.log(`[ModelParticleSystem] Extracted ${allPositions.length / 3} vertices from model`);
+    // Add all surface verts (loop to avoid call-stack overflow from spread on large arrays)
+    for (let i = 0; i < surfacePositions.length; i++) {
+      allPositions.push(surfacePositions[i]);
+    }
+    for (let i = 0; i < surfaceColors.length; i++) {
+      allColors.push(surfaceColors[i]);
+    }
+
+    const surfaceCount = surfacePositions.length / 3;
+    console.log(`[ModelParticleSystem] Extracted ${surfaceCount} surface vertices from model`);
+
+    // ── Step 2: Thickened shell — duplicate surface verts with inward offset ──
+    // Push copies slightly toward the centroid to fill the shell thickness.
+    // This is extremely cheap (no raycasting) and gives a solid-looking surface.
+    if (surfaceCount > 0) {
+      // Compute centroid of all surface vertices
+      let cx = 0, cy = 0, cz = 0;
+      for (let i = 0; i < surfacePositions.length; i += 3) {
+        cx += surfacePositions[i];
+        cy += surfacePositions[i + 1];
+        cz += surfacePositions[i + 2];
+      }
+      cx /= surfaceCount;
+      cy /= surfaceCount;
+      cz /= surfaceCount;
+
+      // Create 2 layers of inward-offset duplicates for a thick shell
+      const LAYERS = 2;
+      const MAX_INWARD = 0.12; // Maximum inward offset as fraction of distance-to-centroid
+
+      for (let layer = 1; layer <= LAYERS; layer++) {
+        const layerFrac = (layer / LAYERS) * MAX_INWARD;
+
+        for (let i = 0; i < surfacePositions.length; i += 3) {
+          const sx = surfacePositions[i];
+          const sy = surfacePositions[i + 1];
+          const sz = surfacePositions[i + 2];
+
+          // Direction toward centroid
+          const dx = cx - sx;
+          const dy = cy - sy;
+          const dz = cz - sz;
+
+          // Random offset within this layer's range for natural look
+          const t = layerFrac * (0.5 + Math.random() * 0.5);
+
+          allPositions.push(
+            sx + dx * t + (Math.random() - 0.5) * 0.005,
+            sy + dy * t + (Math.random() - 0.5) * 0.005,
+            sz + dz * t + (Math.random() - 0.5) * 0.005
+          );
+
+          // Inherit color from original vertex
+          const ci = i; // same index in surfaceColors
+          allColors.push(surfaceColors[ci], surfaceColors[ci + 1], surfaceColors[ci + 2]);
+        }
+      }
+
+      console.log(`[ModelParticleSystem] Added ${surfaceCount * LAYERS} thickened shell points (total: ${allPositions.length / 3})`);
+    }
 
     return {
       extractedPositions: new Float32Array(allPositions),
@@ -496,6 +557,8 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       uParticleOpacity: { value: 1.0 },
       uClipY: { value: 0.0 },
       uClipSide: { value: 0.0 },
+      uFlowStrength: { value: 0.6 },
+      uFlowSpeed: { value: 0.3 },
     };
   }, []);
 

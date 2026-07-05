@@ -62,6 +62,8 @@ export const ModelParticleShader = {
     uniform vec2 uMouse;
     uniform float uAspect;
     uniform float uBurnProgress;
+    uniform float uFlowStrength;
+    uniform float uFlowSpeed;
 
     // Focus settings
     uniform float uFocusDepth;
@@ -85,6 +87,27 @@ export const ModelParticleShader = {
       return fract(sin(dot(p, vec2(127.1, 311.7)) + seed) * 43758.5453);
     }
 
+    // Curl noise using snoise — divergence-free flow field on the GPU
+    vec3 curlNoise(vec3 p) {
+      float e = 0.1;
+      // Partial derivatives via finite differences of snoise
+      float nx = snoise(p + vec3(e, 0.0, 0.0)) - snoise(p - vec3(e, 0.0, 0.0));
+      float ny = snoise(p + vec3(0.0, e, 0.0)) - snoise(p - vec3(0.0, e, 0.0));
+      float nz = snoise(p + vec3(0.0, 0.0, e)) - snoise(p - vec3(0.0, 0.0, e));
+
+      // Use offset noise fields for each curl component
+      float nx2 = snoise(p + vec3(e, 0.0, 100.0)) - snoise(p - vec3(e, 0.0, 100.0));
+      float ny2 = snoise(p + vec3(0.0, e, 200.0)) - snoise(p - vec3(0.0, e, 200.0));
+      float nz2 = snoise(p + vec3(0.0, 0.0, e) + vec3(300.0)) - snoise(p - vec3(0.0, 0.0, e) + vec3(300.0));
+
+      // curl(F) = (dFz/dy - dFy/dz, dFx/dz - dFz/dx, dFy/dx - dFx/dy)
+      return vec3(
+        ny2 - nz,
+        nz2 - nx,
+        nx2 - ny
+      ) / (2.0 * e);
+    }
+
     void main() {
       vec3 pos = position;
 
@@ -93,6 +116,11 @@ export const ModelParticleShader = {
 
       // Pass raw local Y for vertical effects
       vPosY = pos.y;
+
+      // ── Curl noise flow displacement (water-like flowing motion) ──
+      vec3 flowInput = pos * 0.15 + vec3(0.0, 0.0, uTime * uFlowSpeed);
+      vec3 flow = curlNoise(flowInput) * uFlowStrength;
+      pos += flow;
 
       vec4 worldPos = modelMatrix * vec4(pos, 1.0);
       vWorldPosition = worldPos.xyz;
