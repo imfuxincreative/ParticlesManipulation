@@ -1,0 +1,64 @@
+import { readFileSync } from "fs";
+import { resolve } from "path";
+import * as THREE from "three";
+
+const file = resolve("public/SCENE.glb");
+const buf = readFileSync(file);
+
+const jsonLen = buf.readUInt32LE(12);
+const jsonStr = buf.slice(20, 20 + jsonLen).toString("utf8");
+const gltf = JSON.parse(jsonStr);
+
+const nodes = gltf.nodes;
+
+// Initialize matrices
+const localMatrices = nodes.map(node => {
+  const m = new THREE.Matrix4();
+  const pos = node.translation ? new THREE.Vector3(...node.translation) : new THREE.Vector3();
+  const rot = node.rotation ? new THREE.Quaternion(...node.rotation) : new THREE.Quaternion();
+  const scale = node.scale ? new THREE.Vector3(...node.scale) : new THREE.Vector3(1, 1, 1);
+  m.compose(pos, rot, scale);
+  return m;
+});
+
+const worldMatrices = nodes.map(() => new THREE.Matrix4());
+
+const scene = gltf.scenes[gltf.scene || 0];
+const roots = scene.nodes;
+
+function computeWorldMatrices(nodeIdx, parentWorldMatrix) {
+  const localMat = localMatrices[nodeIdx];
+  const worldMat = worldMatrices[nodeIdx];
+  if (parentWorldMatrix) {
+    worldMat.multiplyMatrices(parentWorldMatrix, localMat);
+  } else {
+    worldMat.copy(localMat);
+  }
+  const node = nodes[nodeIdx];
+  if (node.children) {
+    node.children.forEach(c => computeWorldMatrices(c, worldMat));
+  }
+}
+
+roots.forEach(r => computeWorldMatrices(r, null));
+
+// Now print the computed world positions of the body nodes
+console.log("=== BODY WORLD POSITION ===");
+const printNodeWorld = (idx) => {
+  const node = nodes[idx];
+  const worldMat = worldMatrices[idx];
+  const pos = new THREE.Vector3();
+  const rot = new THREE.Quaternion();
+  const scale = new THREE.Vector3();
+  worldMat.decompose(pos, rot, scale);
+  console.log(`Node ${idx}: "${node.name}"`);
+  console.log(`  World Position: [${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)}]`);
+  console.log(`  World Scale: [${scale.x.toFixed(3)}, ${scale.y.toFixed(3)}, ${scale.z.toFixed(3)}]`);
+};
+
+printNodeWorld(122); // layerbody
+printNodeWorld(121); // ulpper body
+printNodeWorld(120); // body
+if (nodes[120].children) {
+  nodes[120].children.forEach(c => printNodeWorld(c));
+}

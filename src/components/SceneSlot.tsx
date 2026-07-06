@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
 import * as THREE from "three";
 import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
+import { WingParticles } from "./TypographyText";
 
 const CAMERA_NAME = "Camera";
 const TARGET_NAME = "body";
@@ -104,6 +105,21 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       }
 
       if (child instanceof THREE.Mesh) {
+        // Exclude meshes under the "wing" node from general rendering
+        let isWing = false;
+        let pNode: THREE.Object3D | null = child;
+        while (pNode) {
+          if (pNode.name === "wing") {
+            isWing = true;
+            break;
+          }
+          pNode = pNode.parent;
+        }
+        if (isWing) {
+          child.visible = false;
+          return;
+        }
+
         if (config.hasParticleTarget) {
           // Only Scene 1 separates target from city
           let isTarget = false;
@@ -253,6 +269,10 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           projectionBounds={projectionBounds}
           sceneIndex={sceneIndex}
         />
+      )}
+      {/* Wing Particles: forms the wing on scroll */}
+      {config.hasParticleTarget && (
+        <WingParticles sceneIndex={sceneIndex} />
       )}
     </group>
   );
