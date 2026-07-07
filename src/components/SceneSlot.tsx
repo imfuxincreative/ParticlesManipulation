@@ -105,11 +105,17 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       }
 
       if (child instanceof THREE.Mesh) {
-        // Exclude meshes under the "wing" node from general rendering
+        // Exclude meshes under the "wing" node or matching the new wing mesh names from general rendering
         let isWing = false;
         let pNode: THREE.Object3D | null = child;
         while (pNode) {
-          if (pNode.name === "wing") {
+          if (
+            pNode.name === "wing" ||
+            pNode.name === "wing1" ||
+            pNode.name === "wing2" ||
+            pNode.name === "winghandle1" ||
+            pNode.name === "winghandle2"
+          ) {
             isWing = true;
             break;
           }

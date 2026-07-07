@@ -95,34 +95,61 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
   useEffect(() => {
     if (!gltf) return;
 
-    // Find the wing node in the loaded GLTF hierarchy
+    // Find the wing anchor node in the loaded GLTF hierarchy.
+    // Try "mixamorigSpine2" first since the wings are attached to it.
+    // NOTE: Three.js GLTFLoader strips colons from node names, so "mixamorig:Spine2" becomes "mixamorigSpine2".
     let wingNode: THREE.Object3D | null = null;
     gltf.scene.traverse((child) => {
-      if (child.name === "wing") {
+      if (child.name.toLowerCase().includes("spine") || child.name.toLowerCase().includes("simon") || child.name.toLowerCase().includes("wing")) {
+        console.log("[WingParticles debug] Node name:", child.name);
+      }
+      if (child.name === "mixamorigSpine2") {
         wingNode = child;
       }
     });
 
     if (!wingNode) {
-      console.warn("[WingParticles] 'wing' node not found in SCENE.glb");
+      gltf.scene.traverse((child) => {
+        if (child.name === "wing") {
+          wingNode = child;
+        }
+      });
+    }
+
+    if (!wingNode) {
+      gltf.scene.traverse((child) => {
+        if (child.name === "wing1" && child.parent) {
+          wingNode = child.parent;
+        }
+      });
+    }
+
+    if (!wingNode) {
+      console.warn("[WingParticles] Wing anchor node (mixamorigSpine2 or wing) not found in SCENE.glb");
       return;
     }
 
     const targetNode = wingNode as THREE.Object3D;
     wingNodeRef.current = targetNode;
+    console.log("[WingParticles] Anchor node found:", targetNode.name);
 
-    // Force update world matrices for the wing subtree so we can sample points in world coordinates
+    // Force update world matrices for the hierarchy so we can sample points in world coordinates
     gltf.scene.updateMatrixWorld(true);
     targetNode.updateMatrixWorld(true);
 
-    // Compute the parent wing node's world scale to dynamically correct the local scatter radius and noise.
-    // If the wing is exported with a small scale (e.g. 0.089), this division maintains correct world-space sizes.
-    const tempScale = new THREE.Vector3();
-    targetNode.matrixWorld.decompose(new THREE.Vector3(), new THREE.Quaternion(), tempScale);
-    const scaleFactor = (tempScale.x + tempScale.y + tempScale.z) / 3.0;
-    wingScaleFactorRef.current = scaleFactor || 1.0;
+    // We normalize the points group matrix to scale 1.0, so the local coordinates of the particles
+    // are in world-space units. Thus, the scale factor is simply 1.0.
+    wingScaleFactorRef.current = 1.0;
+    console.log("[WingParticles] World scale factor (normalized):", wingScaleFactorRef.current);
 
-    const inverseWingMatrix = new THREE.Matrix4().copy(targetNode.matrixWorld).invert();
+    const unscaledWingMatrix = new THREE.Matrix4().copy(targetNode.matrixWorld);
+    const position = new THREE.Vector3();
+    const quaternion = new THREE.Quaternion();
+    const scale = new THREE.Vector3();
+    unscaledWingMatrix.decompose(position, quaternion, scale);
+    unscaledWingMatrix.compose(position, quaternion, new THREE.Vector3(1, 1, 1));
+
+    const inverseWingMatrix = new THREE.Matrix4().copy(unscaledWingMatrix).invert();
 
     const triangles: {
       a: THREE.Vector3;
@@ -135,55 +162,76 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
     const vb = new THREE.Vector3();
     const vc = new THREE.Vector3();
 
-    // Traverse all meshes inside the wing node hierarchy
-    targetNode.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        const geometry = child.geometry;
-        const posAttr = geometry.attributes.position;
-        const indexAttr = geometry.index;
-        if (!posAttr || posAttr.count === 0) return;
+    // Find specific wing meshes by name first, falling back to traversing the subtree
+    const targetMeshNames = ["wing1", "wing2", "winghandle1", "winghandle2"];
+    const wingMeshes: THREE.Mesh[] = [];
 
-        // Compute local matrix that maps from this child mesh local space
-        // directly into the wingNode local space.
-        const childToWingLocalMatrix = new THREE.Matrix4().multiplyMatrices(
-          inverseWingMatrix,
-          child.matrixWorld
-        );
+    gltf.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh && targetMeshNames.includes(child.name)) {
+        wingMeshes.push(child);
+      }
+    });
+    console.log("[WingParticles] Target wing meshes found:", wingMeshes.map(m => m.name));
 
-        const addTriangle = (ia: number, ib: number, ic: number) => {
-          va.set(posAttr.getX(ia), posAttr.getY(ia), posAttr.getZ(ia)).applyMatrix4(childToWingLocalMatrix);
-          vb.set(posAttr.getX(ib), posAttr.getY(ib), posAttr.getZ(ib)).applyMatrix4(childToWingLocalMatrix);
-          vc.set(posAttr.getX(ic), posAttr.getY(ic), posAttr.getZ(ic)).applyMatrix4(childToWingLocalMatrix);
+    if (wingMeshes.length === 0) {
+      // Fallback: traverse under targetNode
+      targetNode.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          wingMeshes.push(child);
+        }
+      });
+      console.log("[WingParticles] Fallback meshes found under targetNode:", wingMeshes.map(m => m.name));
+    }
 
-          const area = triangleArea(va.clone(), vb.clone(), vc.clone());
-          if (area > 0.000001) {
-            triangles.push({
-              a: va.clone(),
-              b: vb.clone(),
-              c: vc.clone(),
-              area,
-            });
-          }
-        };
+    // Traverse all resolved wing meshes
+    wingMeshes.forEach((child) => {
+      const geometry = child.geometry;
+      const posAttr = geometry.attributes.position;
+      const indexAttr = geometry.index;
+      if (!posAttr || posAttr.count === 0) return;
 
-        if (indexAttr) {
-          for (let i = 0; i < indexAttr.count; i += 3) {
-            addTriangle(
-              indexAttr.getX(i),
-              indexAttr.getX(i + 1),
-              indexAttr.getX(i + 2)
-            );
-          }
-        } else {
-          for (let i = 0; i < posAttr.count; i += 3) {
-            addTriangle(i, i + 1, i + 2);
-          }
+      // Compute local matrix that maps from this child mesh local space
+      // directly into the wingNode local space.
+      const childToWingLocalMatrix = new THREE.Matrix4().multiplyMatrices(
+        inverseWingMatrix,
+        child.matrixWorld
+      );
+
+      const addTriangle = (ia: number, ib: number, ic: number) => {
+        va.set(posAttr.getX(ia), posAttr.getY(ia), posAttr.getZ(ia)).applyMatrix4(childToWingLocalMatrix);
+        vb.set(posAttr.getX(ib), posAttr.getY(ib), posAttr.getZ(ib)).applyMatrix4(childToWingLocalMatrix);
+        vc.set(posAttr.getX(ic), posAttr.getY(ic), posAttr.getZ(ic)).applyMatrix4(childToWingLocalMatrix);
+
+        const area = triangleArea(va.clone(), vb.clone(), vc.clone());
+        if (area > 0.000001) {
+          triangles.push({
+            a: va.clone(),
+            b: vb.clone(),
+            c: vc.clone(),
+            area,
+          });
+        }
+      };
+
+      if (indexAttr) {
+        for (let i = 0; i < indexAttr.count; i += 3) {
+          addTriangle(
+            indexAttr.getX(i),
+            indexAttr.getX(i + 1),
+            indexAttr.getX(i + 2)
+          );
+        }
+      } else {
+        for (let i = 0; i < posAttr.count; i += 3) {
+          addTriangle(i, i + 1, i + 2);
         }
       }
     });
 
+    console.log("[WingParticles] Sampled triangles count:", triangles.length);
+
     if (triangles.length === 0) {
-      console.warn("[WingParticles] No mesh triangles found under 'wing' hierarchy");
+      console.warn("[WingParticles] No mesh triangles found for wings");
       return;
     }
 
@@ -277,7 +325,7 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uNoiseStrength: { value: settings.noiseStrength * 0.4 },
+      uNoiseStrength: { value: 0.0 }, // Disabled to prevent wing waving
       uNoiseSpeed: { value: settings.noiseSpeed },
       uPointSize: { value: settings.pointSize * 0.9 }, // Slightly smaller points for details
       uFocusDepth: { value: settings.focusDepth },
@@ -303,8 +351,8 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
       uParticleOpacity: { value: 0.0 },
       uClipY: { value: -15.0 },
       uClipSide: { value: 0.0 },
-      uFlowStrength: { value: 0.35 },
-      uFlowSpeed: { value: 0.2 },
+      uFlowStrength: { value: 0.0 }, // Disabled to prevent wing waving
+      uFlowSpeed: { value: 0.0 },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -314,7 +362,7 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
   useEffect(() => {
     if (!materialRef.current) return;
     const u = materialRef.current.uniforms;
-    u.uNoiseStrength.value = settings.noiseStrength * 0.4;
+    u.uNoiseStrength.value = 0.0; // Keep disabled to prevent wing waving
     u.uNoiseSpeed.value = settings.noiseSpeed;
     u.uPointSize.value = settings.pointSize * 0.9;
     u.uFocusDepth.value = settings.focusDepth;
@@ -340,10 +388,16 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
 
     // Dynamically sync points group transform matrix with the wing node world matrix.
     // This allows the particles to track the skeletal animation of the character perfectly.
+    // We normalize the scale to (1, 1, 1) so that local-space shader effects (like noise and flow)
+    // are calculated relative to world-space sizes instead of scaling up/down, avoiding distortion.
     if (wingNodeRef.current && pointsRef.current) {
       wingNodeRef.current.updateMatrixWorld(true);
+      const pos = new THREE.Vector3();
+      const q = new THREE.Quaternion();
+      const s = new THREE.Vector3();
+      wingNodeRef.current.matrixWorld.decompose(pos, q, s);
       pointsRef.current.matrixAutoUpdate = false;
-      pointsRef.current.matrix.copy(wingNodeRef.current.matrixWorld);
+      pointsRef.current.matrix.compose(pos, q, new THREE.Vector3(1, 1, 1));
     }
 
     // Calculate multi-phase gather and scatter animation state
