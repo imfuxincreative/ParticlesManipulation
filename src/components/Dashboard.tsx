@@ -569,6 +569,77 @@ export const Dashboard: React.FC = () => {
                   Hover over the model to scatter particles away from your cursor. Particles stay within the bounding box and smoothly return.
                 </p>
               </div>
+
+              {/* WING SYSTEM CONFIG */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
+                <Sliders className="w-3.5 h-3.5" />
+                <span>Wing Particle Settings</span>
+              </div>
+
+              {/* Selector: Wing Start Mode */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">Wing Start Mode</span>
+                <div className="grid grid-cols-3 gap-1">
+                  {(["spine", "formed", "scattered"] as const).map((mode) => {
+                    const label = mode === "spine" ? "Spine Core" : mode === "formed" ? "Formed" : "Scatter";
+                    return (
+                      <button
+                        key={mode}
+                        onClick={() => updateSetting("wingStartMode", mode)}
+                        className={`py-1 rounded border text-center text-[10px] cursor-pointer transition-all ${settings.wingStartMode === mode
+                          ? "bg-purple-950/40 border-purple-500 text-purple-300 font-bold"
+                          : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
+                          }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Toggle: Show Wing Anchor */}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500 font-mono text-[10px]">SHOW WING ANCHOR</span>
+                <button
+                  onClick={() => updateSetting("showWingAnchor", !settings.showWingAnchor)}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showWingAnchor ? "bg-purple-600" : "bg-slate-800"
+                    }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showWingAnchor ? "translate-x-4" : "translate-x-0"
+                      }`}
+                  />
+                </button>
+              </div>
+
+              {/* Slider: Wing Flow Frequency / Detail */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">WING RIPPLE DETAIL (FREQ)</span>
+                  <span className="text-slate-300">{(settings.wingFlowFrequency ?? 8.0).toFixed(1)}x</span>
+                </div>
+                <input
+                  type="range" min="1.0" max="20.0" step="0.5"
+                  value={settings.wingFlowFrequency ?? 8.0}
+                  onChange={(e) => updateSetting("wingFlowFrequency", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Wing Flow Strength / Ripple Amplitude */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">WING RIPPLE STRENGTH</span>
+                  <span className="text-slate-300">{(settings.wingFlowStrength ?? 0.045).toFixed(3)}x</span>
+                </div>
+                <input
+                  type="range" min="0.000" max="0.200" step="0.005"
+                  value={settings.wingFlowStrength ?? 0.045}
+                  onChange={(e) => updateSetting("wingFlowStrength", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
             </div>
           )}
 

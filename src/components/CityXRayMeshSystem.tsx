@@ -66,38 +66,7 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
     return mat;
   }, [material]);
 
-  // Create a separate solid material for the character model (simon)
-  const solidMaterialUniforms = useMemo(() => {
-    const uniforms = { ...material.uniforms };
-    // Separate uFillOpacity reference so it doesn't get mutated when general settings are applied
-    uniforms.uFillOpacity = { value: 1.0 };
-    return uniforms;
-  }, [material]);
 
-  const solidMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      vertexShader: CityXRayShader.vertexShader,
-      fragmentShader: CityXRayShader.fragmentShader,
-      uniforms: solidMaterialUniforms,
-      transparent: true,
-      depthWrite: true, // Write to depth buffer for solid appearance
-      blending: THREE.NormalBlending,
-      side: THREE.DoubleSide,
-    });
-  }, [solidMaterialUniforms]);
-
-  const solidSkinnedMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      vertexShader: CityXRayShader.vertexShader,
-      fragmentShader: CityXRayShader.fragmentShader,
-      uniforms: solidMaterialUniforms,
-      defines: { USE_SKINNING: '' },
-      transparent: true,
-      depthWrite: true,
-      blending: THREE.NormalBlending,
-      side: THREE.DoubleSide,
-    });
-  }, [solidMaterialUniforms]);
 
   const skinnedLineMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
@@ -164,24 +133,9 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
       if (!mesh) return;
       originalMaterials.set(mesh, mesh.material);
 
-      // Check if a mesh (or its parents) is the simon model
-      let isSimon = false;
-      let current: THREE.Object3D | null = mesh;
-      while (current) {
-        if (current.name && current.name.toLowerCase().includes("simon")) {
-          isSimon = true;
-          break;
-        }
-        current = current.parent;
-      }
-
       // Use skinned variant for SkinnedMesh, base for regular Mesh
       const isSkinned = (mesh as THREE.SkinnedMesh).isSkinnedMesh;
-      if (isSimon) {
-        mesh.material = isSkinned ? solidSkinnedMaterial : solidMaterial;
-      } else {
-        mesh.material = isSkinned ? skinnedMaterial : material;
-      }
+      mesh.material = isSkinned ? skinnedMaterial : material;
       mesh.visible = true; // Override the visible=false set in SceneModel
       mesh.frustumCulled = false; // Disable frustum culling to prevent disappearing when close
 
@@ -279,8 +233,6 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
     material,
     lineMaterial,
     skinnedMaterial,
-    solidMaterial,
-    solidSkinnedMaterial,
     skinnedLineMaterial,
     settings.xrayBorderThreshold
   ]);

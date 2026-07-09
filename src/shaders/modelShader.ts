@@ -64,6 +64,7 @@ export const ModelParticleShader = {
     uniform float uBurnProgress;
     uniform float uFlowStrength;
     uniform float uFlowSpeed;
+    uniform float uFlowFrequency;
 
     // Focus settings
     uniform float uFocusDepth;
@@ -118,7 +119,7 @@ export const ModelParticleShader = {
       vPosY = pos.y;
 
       // ── Curl noise flow displacement (water-like flowing motion) ──
-      vec3 flowInput = pos * 0.15 + vec3(0.0, 0.0, uTime * uFlowSpeed);
+      vec3 flowInput = pos * uFlowFrequency + vec3(0.0, 0.0, uTime * uFlowSpeed);
       vec3 flow = curlNoise(flowInput) * uFlowStrength;
       pos += flow;
 

@@ -113,6 +113,9 @@ export const SceneContainer: React.FC = () => {
             powerPreference: "high-performance",
           }}
           onCreated={({ gl }) => {
+            // Match Blender's viewport: disable tone mapping that darkens PBR materials
+            gl.toneMapping = THREE.NoToneMapping;
+            gl.outputColorSpace = THREE.SRGBColorSpace;
             // Handle context loss gracefully
             const canvas = gl.domElement;
             canvas.addEventListener("webglcontextlost", (e) => {
@@ -123,8 +126,13 @@ export const SceneContainer: React.FC = () => {
         >
           <color attach="background" args={[settings.hazeColor]} />
 
-          <ambientLight intensity={0.6} />
+          <ambientLight intensity={1.5} />
+          <directionalLight position={[5, 10, 7]} intensity={2.5} />
+          <directionalLight position={[-5, 5, -5]} intensity={1.2} />
+          <directionalLight position={[0, -5, 5]} intensity={0.8} />
           <pointLight position={[10, 10, 10]} intensity={1.5} />
+          {/* Hemisphere light for natural Blender-like ambient fill */}
+          <hemisphereLight args={['#ffffff', '#444444', 1.5]} />
 
           <Suspense fallback={null}>
             <ScrollControls pages={5} damping={0.1}>

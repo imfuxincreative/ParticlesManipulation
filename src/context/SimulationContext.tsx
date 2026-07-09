@@ -52,6 +52,10 @@ export interface SimulationSettings {
   showSky: boolean;
   skyColor: string;
   skyExposure: number;
+  wingStartMode: "spine" | "formed" | "scattered";
+  showWingAnchor: boolean;
+  wingFlowFrequency: number;
+  wingFlowStrength: number;
 }
 
 const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
@@ -180,6 +184,10 @@ const defaultSettings: SimulationSettings = {
   showSky: true,
   skyColor: "#ff007f",
   skyExposure: 1.0,
+  wingStartMode: "spine",
+  showWingAnchor: true,
+  wingFlowFrequency: 8.0,
+  wingFlowStrength: 0.045,
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);

@@ -17,9 +17,9 @@ import { ModelParticleShader } from "@/shaders/modelShader";
 
 // ─── Configuration ───
 const PARTICLE_COUNT = 25000; // Denser particle count for a detailed 3D wing
-const SCATTER_RADIUS = 60; // Spread radius for the scattered wings particles
-const SCROLL_START = 0.5; // Gather starts at 50% scroll
-const SCROLL_END = 0.58; // Fully formed by 58% scroll
+const CITY_SCATTER_RANGE = 150; // Spread across the entire city scene bounds
+const SCROLL_START = 0.35; // Gather starts at 35% scroll
+const SCROLL_END = 0.50; // Fully formed by 50% scroll
 const SCATTER_START = 0.65; // Remains fully formed until 65% scroll, then starts scattering again
 const SCATTER_END = 0.82; // Completely scattered again by 82% scroll
 
@@ -75,6 +75,7 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
 
   const scrollData = useScroll();
   const pointsRef = useRef<THREE.Points>(null);
+  const groupRef = useRef<THREE.Group>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
   // Load the SCENE.glb containing the "wing" node (retrieved from R3F cache instantly)
@@ -90,6 +91,11 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
   const wingCenterRef = useRef<THREE.Vector3>(new THREE.Vector3());
   const wingNodeRef = useRef<THREE.Object3D | null>(null);
   const wingScaleFactorRef = useRef<number>(1.0);
+  const velocitiesRef = useRef<Float32Array>(new Float32Array(0));
+  const wingBoxSizeRef = useRef<THREE.Vector3>(new THREE.Vector3(1, 1, 1));
+  const wingBoxCenterRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+  const prevPointerRef = useRef(new THREE.Vector2(-999, -999));
+  const boxRef = useRef<THREE.Mesh>(null);
 
   // ─── Extract and Sample Wing Mesh ───
   useEffect(() => {
@@ -284,19 +290,29 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
     cz /= PARTICLE_COUNT;
     wingCenterRef.current.set(cx, cy, cz);
 
-    // Populate scattered positions around the centroid
-    const compensatedScatterRadius = SCATTER_RADIUS / wingScaleFactorRef.current;
-
+    // Populate scattered positions based on wingStartMode
     for (let i = 0; i < PARTICLE_COUNT; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      const radius = compensatedScatterRadius * (0.3 + Math.random() * 0.7);
+      if (settings.wingStartMode === "spine") {
+        // Option 1: Collapsed at the wing center on the character's back (with a tiny jitter so it looks like a glowing orb of energy)
+        const radius = 0.15;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(Math.random() * 2 - 1);
+        scatteredPos[i * 3] = wingCenterRef.current.x + radius * Math.sin(phi) * Math.cos(theta);
+        scatteredPos[i * 3 + 1] = wingCenterRef.current.y + radius * Math.sin(phi) * Math.sin(theta);
+        scatteredPos[i * 3 + 2] = wingCenterRef.current.z + radius * Math.cos(phi);
+      } else if (settings.wingStartMode === "formed") {
+        // Option 2: Always formed (scatteredPos = targetPos)
+        scatteredPos[i * 3] = targetPos[i * 3];
+        scatteredPos[i * 3 + 1] = targetPos[i * 3 + 1];
+        scatteredPos[i * 3 + 2] = targetPos[i * 3 + 2];
+      } else {
+        // Option 3: Scattered in the city environment
+        scatteredPos[i * 3] = (Math.random() - 0.5) * CITY_SCATTER_RANGE;
+        scatteredPos[i * 3 + 1] = Math.random() * CITY_SCATTER_RANGE * 0.5; // Mostly above ground
+        scatteredPos[i * 3 + 2] = (Math.random() - 0.5) * CITY_SCATTER_RANGE;
+      }
 
-      scatteredPos[i * 3] = cx + Math.sin(phi) * Math.cos(theta) * radius;
-      scatteredPos[i * 3 + 1] = cy + Math.sin(phi) * Math.sin(theta) * radius;
-      scatteredPos[i * 3 + 2] = cz + Math.cos(phi) * radius;
-
-      // Start at scattered positions
+      // Start at scattered positions (visible from scroll 0%)
       dynamicPos[i * 3] = scatteredPos[i * 3];
       dynamicPos[i * 3 + 1] = scatteredPos[i * 3 + 1];
       dynamicPos[i * 3 + 2] = scatteredPos[i * 3 + 2];
@@ -309,6 +325,26 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
       scatterAmts[i] = 1.0;
     }
 
+    // Calculate bounding box and center of the target positions
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const tx = targetPos[i * 3];
+      const ty = targetPos[i * 3 + 1];
+      const tz = targetPos[i * 3 + 2];
+      if (tx < minX) minX = tx;
+      if (ty < minY) minY = ty;
+      if (tz < minZ) minZ = tz;
+      if (tx > maxX) maxX = tx;
+      if (ty > maxY) maxY = ty;
+      if (tz > maxZ) maxZ = tz;
+    }
+    wingBoxSizeRef.current.set(maxX - minX, maxY - minY, maxZ - minZ);
+    wingBoxCenterRef.current.set((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
+
+    // Initialize velocities
+    velocitiesRef.current = new Float32Array(PARTICLE_COUNT * 3).fill(0);
+
     targetPositionsRef.current = targetPos;
     scatteredPositionsRef.current = scatteredPos;
     dynamicPositionsRef.current = dynamicPos;
@@ -319,15 +355,16 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
     console.log(
       `[WingParticles] Sampled ${PARTICLE_COUNT} points from wing subtree`
     );
-  }, [gltf]);
+  }, [gltf, settings.wingStartMode]);
 
   // ─── Shader Uniforms ───
+  // Matches ModelParticleSystem: fluid curl-noise flow, same color, same noise
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uNoiseStrength: { value: 0.0 }, // Disabled to prevent wing waving
+      uNoiseStrength: { value: settings.noiseStrength },
       uNoiseSpeed: { value: settings.noiseSpeed },
-      uPointSize: { value: settings.pointSize * 0.9 }, // Slightly smaller points for details
+      uPointSize: { value: settings.pointSize },
       uFocusDepth: { value: settings.focusDepth },
       uFocusRange: { value: settings.focusRange },
       uBokehScale: { value: settings.bokehScale },
@@ -345,26 +382,27 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
         value: new THREE.Color(settings.xrayBorderColor || "#e91e63"),
       },
       uParticleDefaultColor: {
-        value: new THREE.Color(settings.xrayBorderColor || "#e91e63"),
+        value: new THREE.Color(settings.particleDefaultColor || "#8d8d8d"),
       },
       uBurnProgress: { value: 0.0 },
-      uParticleOpacity: { value: 0.0 },
+      uParticleOpacity: { value: 1.0 },
       uClipY: { value: -15.0 },
       uClipSide: { value: 0.0 },
-      uFlowStrength: { value: 0.0 }, // Disabled to prevent wing waving
-      uFlowSpeed: { value: 0.0 },
+      uFlowStrength: { value: settings.wingFlowStrength },
+      uFlowSpeed: { value: 0.25 },
+      uFlowFrequency: { value: settings.wingFlowFrequency },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
-  // Sync uniforms with settings changes
+  // Sync uniforms with settings changes (matches ModelParticleSystem)
   useEffect(() => {
     if (!materialRef.current) return;
     const u = materialRef.current.uniforms;
-    u.uNoiseStrength.value = 0.0; // Keep disabled to prevent wing waving
+    u.uNoiseStrength.value = settings.noiseStrength;
     u.uNoiseSpeed.value = settings.noiseSpeed;
-    u.uPointSize.value = settings.pointSize * 0.9;
+    u.uPointSize.value = settings.pointSize;
     u.uFocusDepth.value = settings.focusDepth;
     u.uFocusRange.value = settings.focusRange;
     u.uBokehScale.value = settings.bokehScale;
@@ -375,10 +413,11 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
     u.uOpacity.value = settings.opacity;
     u.uDensityControl.value = settings.densityControl;
     u.uPrimaryColor.value.set(settings.xrayBorderColor || "#e91e63");
-    u.uParticleDefaultColor.value.set(settings.xrayBorderColor || "#e91e63");
+    u.uParticleDefaultColor.value.set(settings.particleDefaultColor || "#8d8d8d");
+    u.uFlowStrength.value = settings.wingFlowStrength;
+    u.uFlowFrequency.value = settings.wingFlowFrequency;
   }, [settings]);
 
-  // ─── Per-Frame Animation Loop ───
   useFrame((state) => {
     if (!wingReady || !pointsRef.current || !scrollData) return;
 
@@ -387,29 +426,32 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
     const scrollNorm = scrollNorms[sceneIndex] ?? 0.0;
 
     // Dynamically sync points group transform matrix with the wing node world matrix.
-    // This allows the particles to track the skeletal animation of the character perfectly.
+    // This allows the particles and any anchor meshes to track the skeletal animation of the character perfectly.
     // We normalize the scale to (1, 1, 1) so that local-space shader effects (like noise and flow)
     // are calculated relative to world-space sizes instead of scaling up/down, avoiding distortion.
-    if (wingNodeRef.current && pointsRef.current) {
+    if (wingNodeRef.current && groupRef.current) {
       wingNodeRef.current.updateMatrixWorld(true);
       const pos = new THREE.Vector3();
       const q = new THREE.Quaternion();
       const s = new THREE.Vector3();
       wingNodeRef.current.matrixWorld.decompose(pos, q, s);
-      pointsRef.current.matrixAutoUpdate = false;
-      pointsRef.current.matrix.compose(pos, q, new THREE.Vector3(1, 1, 1));
+      groupRef.current.matrixAutoUpdate = false;
+      groupRef.current.matrix.compose(pos, q, new THREE.Vector3(1, 1, 1));
     }
 
     // Calculate multi-phase gather and scatter animation state
     let eased = 0.0;
-    let particleOpacity = 0.0;
+    let particleOpacity = 1.0; // Visible from the very start
 
-    if (scrollNorm >= SCROLL_START && scrollNorm <= SCROLL_END) {
-      // Phase 1: Gathering (0.0 -> 1.0)
+    if (scrollNorm < SCROLL_START) {
+      // Phase 0: Scattered throughout the city (visible from scroll 0%)
+      eased = 0.0;
+      particleOpacity = 1.0;
+    } else if (scrollNorm >= SCROLL_START && scrollNorm <= SCROLL_END) {
+      // Phase 1: Gathering from city into wing (0.0 -> 1.0)
       const progress = (scrollNorm - SCROLL_START) / (SCROLL_END - SCROLL_START);
       eased = 1 - Math.pow(1 - progress, 3); // Ease-out cubic
-      // Fade in opacity quickly (within 2% scroll)
-      particleOpacity = Math.min((scrollNorm - SCROLL_START) / 0.02, 1.0);
+      particleOpacity = 1.0;
     } else if (scrollNorm > SCROLL_END && scrollNorm <= SCATTER_START) {
       // Phase 2: Held fully formed (1.0)
       eased = 1.0;
@@ -426,34 +468,154 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
       particleOpacity = 0.0;
     }
 
+    // Bounding Box size and center
+    const size = wingBoxSizeRef.current;
+    const boxCenter = wingBoxCenterRef.current;
+    const hx = size.x / 2;
+    const hy = size.y / 2;
+    const hz = size.z / 2;
+    const bcx = boxCenter.x;
+    const bcy = boxCenter.y;
+    const bcz = boxCenter.z;
+
+    // Update invisible raycast box transform
+    if (boxRef.current) {
+      boxRef.current.scale.set(size.x, size.y, size.z);
+      boxRef.current.position.set(bcx, bcy, bcz);
+    }
+
+    state.raycaster.setFromCamera(state.pointer, state.camera);
+
+    let rx = 0, ry = 0, rz = 0, rdx = 0, rdy = 0, rdz = 0;
+    let localSwipeDx = 0, localSwipeDy = 0, localSwipeDz = 0;
+
+    // Calculate mouse velocity (swipe speed) in world space
+    let pointerDelta = 0;
+    let swipeDx = 0;
+    let swipeDy = 0;
+    if (prevPointerRef.current.x !== -999) {
+      swipeDx = state.pointer.x - prevPointerRef.current.x;
+      swipeDy = state.pointer.y - prevPointerRef.current.y;
+      pointerDelta = Math.sqrt(swipeDx * swipeDx + swipeDy * swipeDy);
+    }
+    prevPointerRef.current.copy(state.pointer);
+
+    const worldSwipeDx = swipeDx * 15.0;
+    const worldSwipeDy = swipeDy * 15.0;
+
+    // Check if mouse is over the bounding box
+    let isHovering = false;
+    if (boxRef.current) {
+      const hits = state.raycaster.intersectObject(boxRef.current);
+      isHovering = hits.length > 0;
+    }
+
+    // Convert Ray and Swipe to local space of the points group (which represents the wing)
+    if (groupRef.current) {
+      const inverseMatrix = new THREE.Matrix4().copy(groupRef.current.matrix).invert();
+      const localRay = new THREE.Ray();
+      localRay.copy(state.raycaster.ray).applyMatrix4(inverseMatrix);
+      rx = localRay.origin.x; ry = localRay.origin.y; rz = localRay.origin.z;
+      rdx = localRay.direction.x; rdy = localRay.direction.y; rdz = localRay.direction.z;
+
+      const swipeVec = new THREE.Vector3(worldSwipeDx, worldSwipeDy, 0);
+      swipeVec.transformDirection(inverseMatrix);
+      localSwipeDx = swipeVec.x; localSwipeDy = swipeVec.y; localSwipeDz = swipeVec.z;
+    }
+
     const target = targetPositionsRef.current;
     const scattered = scatteredPositionsRef.current;
     const dynamic = dynamicPositionsRef.current;
+    const vel = velocitiesRef.current;
     const scatterAmts = scatterAmountsRef.current;
     const time = state.clock.elapsedTime;
+
+    // Relative scaling for interaction bounds based on wing size compared to model size (8.0)
+    const wingMaxDim = Math.max(size.x, size.y, size.z);
+    const wingScale = wingMaxDim > 0 ? wingMaxDim / 8.0 : 0.2;
+    const scaledRadius = settings.scatterRadius * wingScale;
+    const scaledRadius2 = scaledRadius * scaledRadius;
+    const impulseStr = settings.scatterStrength * 0.08 * wingScale;
+
+    const DAMPING = 0.85;
+    const EASE = 0.08;
+
+    const isSwiping = isHovering && pointerDelta > 0.001;
+    const currentImpulseStr = impulseStr * (pointerDelta * 50.0);
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const ix = i * 3;
       const iy = ix + 1;
       const iz = ix + 2;
 
-      // Lerp from scattered → target based on eased progress
-      dynamic[ix] = scattered[ix] + (target[ix] - scattered[ix]) * eased;
-      dynamic[iy] = scattered[iy] + (target[iy] - scattered[iy]) * eased;
-      dynamic[iz] = scattered[iz] + (target[iz] - scattered[iz]) * eased;
+      const px = dynamic[ix];
+      const py = dynamic[iy];
+      const pz = dynamic[iz];
 
-      // Floating noise when not fully gathered
-      if (eased < 0.98) {
-        // Swirling noise effect (compensated for the parent scale)
-        const noiseAmt = ((1 - eased) * 15.0) / wingScaleFactorRef.current;
-        const phase = i * 0.073 + time * 0.5;
-        dynamic[ix] += Math.sin(phase * 1.1) * noiseAmt;
-        dynamic[iy] += Math.cos(phase * 0.9 + 1.7) * noiseAmt;
-        dynamic[iz] += Math.sin(phase * 0.7 + 3.1) * noiseAmt;
+      // Dynamic rest position based on gathering progress
+      const rxRest = scattered[ix] + (target[ix] - scattered[ix]) * eased;
+      const ryRest = scattered[iy] + (target[iy] - scattered[iy]) * eased;
+      const rzRest = scattered[iz] + (target[iz] - scattered[iz]) * eased;
+
+      // Apply swipe scatter impulse
+      if (isSwiping) {
+        const tvx = px - rx, tvy = py - ry, tvz = pz - rz;
+        const t = Math.max(0, tvx * rdx + tvy * rdy + tvz * rdz);
+        const cpx = rx + rdx * t, cpy = ry + rdy * t, cpz = rz + rdz * t;
+
+        const dfx = px - cpx, dfy = py - cpy, dfz = pz - cpz;
+        const dist2 = dfx * dfx + dfy * dfy + dfz * dfz;
+
+        if (dist2 < scaledRadius2 && dist2 > 0.0001) {
+          const dist = Math.sqrt(dist2);
+          const pushFactor = (1.0 - dist / scaledRadius);
+          const pushMag = Math.pow(pushFactor, 2.0) * currentImpulseStr * 3.0;
+
+          const noise = (Math.sin(ix * 12.9898 + iy * 78.233) * 43758.5453) % 1;
+          const randVar = 0.5 + Math.abs(noise) * 1.5;
+
+          const invDist = 1.0 / dist;
+          const radialMag = pushMag * 0.3 * randVar;
+          const dragMag = pushMag * 0.7 * randVar;
+
+          vel[ix] += (dfx * invDist * radialMag) + (localSwipeDx * dragMag);
+          vel[iy] += (dfy * invDist * radialMag) + (localSwipeDy * dragMag);
+          vel[iz] += (dfz * invDist * radialMag) + (localSwipeDz * dragMag) + ((noise - 0.5) * dragMag * 0.2);
+        }
       }
 
-      // Scatter amount for glow effect
-      scatterAmts[i] = (1 - eased) * 0.5;
+      vel[ix] *= DAMPING;
+      vel[iy] *= DAMPING;
+      vel[iz] *= DAMPING;
+
+      let newX = px + vel[ix];
+      let newY = py + vel[iy];
+      let newZ = pz + vel[iz];
+
+      newX += (rxRest - newX) * EASE;
+      newY += (ryRest - newY) * EASE;
+      newZ += (rzRest - newZ) * EASE;
+
+      dynamic[ix] = newX;
+      dynamic[iy] = newY;
+      dynamic[iz] = newZ;
+
+      // Clamp within bounding box + bounce
+      if (dynamic[ix] < bcx - hx) { dynamic[ix] = bcx - hx; vel[ix] *= -0.3; }
+      else if (dynamic[ix] > bcx + hx) { dynamic[ix] = bcx + hx; vel[ix] *= -0.3; }
+      if (dynamic[iy] < bcy - hy) { dynamic[iy] = bcy - hy; vel[iy] *= -0.3; }
+      else if (dynamic[iy] > bcy + hy) { dynamic[iy] = bcy + hy; vel[iy] *= -0.3; }
+      if (dynamic[iz] < bcz - hz) { dynamic[iz] = bcz - hz; vel[iz] *= -0.3; }
+      else if (dynamic[iz] > bcz + hz) { dynamic[iz] = bcz + hz; vel[iz] *= -0.3; }
+
+      // Blended scatter amount for glow
+      const gatherGlow = (1 - eased) * 0.5;
+      const dx = dynamic[ix] - rxRest;
+      const dy = dynamic[iy] - ryRest;
+      const dz = dynamic[iz] - rzRest;
+      const displacement = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      const mouseGlow = Math.min(displacement / (2.0 * wingScale), 1.0);
+      scatterAmts[i] = Math.max(gatherGlow, mouseGlow);
     }
 
     // Upload positions to GPU
@@ -479,34 +641,56 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
 
   return (
     <>
-      {/* Particle system — renders the wing as a point cloud */}
-      {wingReady && (
-        <points ref={pointsRef} frustumCulled={false} visible={false}>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              args={[dynamicPositionsRef.current, 3]}
+      <group ref={groupRef}>
+        {/* Glowing Anchor Core on the character's back */}
+        {wingReady && settings.showWingAnchor && (
+          <mesh position={wingCenterRef.current}>
+            <sphereGeometry args={[0.15, 16, 16]} />
+            <meshBasicMaterial
+              color={settings.particleDefaultColor || "#8d8d8d"}
+              transparent
+              opacity={0.8}
             />
-            <bufferAttribute
-              attach="attributes-aColor"
-              args={[colorsRef.current, 3]}
+          </mesh>
+        )}
+
+        {/* Invisible box for raycasting (scatter interaction) */}
+        {wingReady && (
+          <mesh ref={boxRef} frustumCulled={false}>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+          </mesh>
+        )}
+
+        {/* Particle system — renders the wing as a point cloud */}
+        {wingReady && (
+          <points ref={pointsRef} frustumCulled={false} visible={true}>
+            <bufferGeometry>
+              <bufferAttribute
+                attach="attributes-position"
+                args={[dynamicPositionsRef.current, 3]}
+              />
+              <bufferAttribute
+                attach="attributes-aColor"
+                args={[colorsRef.current, 3]}
+              />
+              <bufferAttribute
+                attach="attributes-aScatter"
+                args={[scatterAmountsRef.current, 1]}
+              />
+            </bufferGeometry>
+            <shaderMaterial
+              ref={materialRef}
+              vertexShader={ModelParticleShader.vertexShader}
+              fragmentShader={ModelParticleShader.fragmentShader}
+              uniforms={uniforms}
+              transparent
+              depthWrite={false}
+              blending={THREE.NormalBlending}
             />
-            <bufferAttribute
-              attach="attributes-aScatter"
-              args={[scatterAmountsRef.current, 1]}
-            />
-          </bufferGeometry>
-          <shaderMaterial
-            ref={materialRef}
-            vertexShader={ModelParticleShader.vertexShader}
-            fragmentShader={ModelParticleShader.fragmentShader}
-            uniforms={uniforms}
-            transparent
-            depthWrite={false}
-            blending={THREE.NormalBlending}
-          />
-        </points>
-      )}
+          </points>
+        )}
+      </group>
     </>
   );
 };

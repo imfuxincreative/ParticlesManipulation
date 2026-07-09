@@ -94,6 +94,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
   }, [gltf.animations, activeMixamoActionName]);
 
   // Separate meshes: city meshes and optionally target meshes (for Scene 1's particle system)
+  // Simon meshes (bodypart, hair, pant, sneaker, tshirt) keep their original materials.
   const { cityMeshes, targetMeshes } = useMemo(() => {
     const city: THREE.Mesh[] = [];
     const target: THREE.Mesh[] = [];
@@ -123,6 +124,22 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
         }
         if (isWing) {
           child.visible = false;
+          return;
+        }
+
+        // Exclude simon meshes and hair2 — they keep their original GLB materials (no xray/hologram shader)
+        let isSimon = false;
+        let sNode: THREE.Object3D | null = child;
+        while (sNode) {
+          if (sNode.name && (sNode.name.toLowerCase().includes("simon") || sNode.name === "hair2" || sNode.name === "glass")) {
+            isSimon = true;
+            break;
+          }
+          sNode = sNode.parent;
+        }
+        if (isSimon) {
+          child.visible = true; // Keep meshes visible with original materials
+          child.frustumCulled = false;
           return;
         }
 

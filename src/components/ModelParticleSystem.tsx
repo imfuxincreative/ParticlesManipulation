@@ -559,6 +559,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       uClipSide: { value: 0.0 },
       uFlowStrength: { value: 0.6 },
       uFlowSpeed: { value: 0.3 },
+      uFlowFrequency: { value: 0.15 },
     };
   }, []);
 
