@@ -6,6 +6,7 @@ import { useGLTF, useAnimations } from "@react-three/drei";
 import * as THREE from "three";
 import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
 import { WingParticles } from "./TypographyText";
+import { SimonGlowSystem } from "./SimonGlowSystem";
 
 const CAMERA_NAME = "Camera";
 const TARGET_NAME = "body";
@@ -55,7 +56,7 @@ interface SceneSlotProps {
  * Self-contained component that manages one GLB scene:
  * - Loads GLB, extracts meshes, finds/creates camera
  * - Sets up animations, drives them from gl.userData.sceneScrollNorms[sceneIndex]
- * - Renders <primitive> + <CityXRayMeshSystem>
+ * - Renders <primitive> + <CityXRayMeshSystem> + <SimonGlitchSystem>
  */
 export const SceneSlot: React.FC<SceneSlotProps> = ({
   config,
@@ -93,11 +94,11 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     return max || 1;
   }, [gltf.animations, activeMixamoActionName]);
 
-  // Separate meshes: city meshes and optionally target meshes (for Scene 1's particle system)
-  // Simon meshes (bodypart, hair, pant, sneaker, tshirt) keep their original materials.
-  const { cityMeshes, targetMeshes } = useMemo(() => {
+  // Separate meshes: city meshes, target meshes, and Simon glowing meshes
+  const { cityMeshes, targetMeshes, simonGlowMeshes } = useMemo(() => {
     const city: THREE.Mesh[] = [];
     const target: THREE.Mesh[] = [];
+    const simonGlow: THREE.Mesh[] = [];
 
     gltf.scene.updateMatrixWorld(true);
     gltf.scene.traverse((child) => {
@@ -127,7 +128,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           return;
         }
 
-        // Exclude simon meshes and hair2 — they keep their original GLB materials (no xray/hologram shader)
+        // Simon meshes check
         let isSimon = false;
         let sNode: THREE.Object3D | null = child;
         while (sNode) {
@@ -137,9 +138,29 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           }
           sNode = sNode.parent;
         }
+
         if (isSimon) {
-          child.visible = true; // Keep meshes visible with original materials
-          child.frustumCulled = false;
+          // Identify if it's the bodypart mesh
+          let isBodypart = false;
+          let bNode: THREE.Object3D | null = child;
+          while (bNode) {
+            if (bNode.name === "bodypart") {
+              isBodypart = true;
+              break;
+            }
+            bNode = bNode.parent;
+          }
+
+          if (isBodypart) {
+            // Keep bodypart visible with its original materials
+            child.visible = true;
+            child.frustumCulled = false;
+          } else {
+            // Add other parts to glowing meshes
+            simonGlow.push(child);
+            child.visible = false; // Hidden initially, SimonGlowSystem will apply material & make visible
+            child.frustumCulled = false;
+          }
           return;
         }
 
@@ -166,8 +187,8 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       }
     });
 
-    console.log(`[SceneSlot ${sceneIndex}] Separated: ${city.length} city meshes, ${target.length} target meshes`);
-    return { cityMeshes: city, targetMeshes: target };
+    console.log(`[SceneSlot ${sceneIndex}] Separated: ${city.length} city meshes, ${target.length} target meshes, ${simonGlow.length} simon glow meshes`);
+    return { cityMeshes: city, targetMeshes: target, simonGlowMeshes: simonGlow };
   }, [gltf, config.hasParticleTarget, sceneIndex]);
 
   // Report target meshes to parent (for ModelParticleSystem)
@@ -281,7 +302,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
         }
       });
     }
-  });
+  }, -2);
 
   return (
     <group ref={groupRef}>
@@ -290,6 +311,12 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
         <CityXRayMeshSystem
           meshes={cityMeshes}
           projectionBounds={projectionBounds}
+          sceneIndex={sceneIndex}
+        />
+      )}
+      {simonGlowMeshes.length > 0 && (
+        <SimonGlowSystem
+          meshes={simonGlowMeshes}
           sceneIndex={sceneIndex}
         />
       )}

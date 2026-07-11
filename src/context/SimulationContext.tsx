@@ -56,6 +56,9 @@ export interface SimulationSettings {
   showWingAnchor: boolean;
   wingFlowFrequency: number;
   wingFlowStrength: number;
+  simonGlowIntensity: number;
+  simonBloomIntensity: number;
+  simonGlowColor: string;
 }
 
 const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
@@ -188,6 +191,9 @@ const defaultSettings: SimulationSettings = {
   showWingAnchor: true,
   wingFlowFrequency: 8.0,
   wingFlowStrength: 0.045,
+  simonGlowIntensity: 1.2,
+  simonBloomIntensity: 0.4,
+  simonGlowColor: "#ffffff",
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);

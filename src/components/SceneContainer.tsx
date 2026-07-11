@@ -135,7 +135,7 @@ export const SceneContainer: React.FC = () => {
           <hemisphereLight args={['#ffffff', '#444444', 1.5]} />
 
           <Suspense fallback={null}>
-            <ScrollControls pages={5} damping={0.1}>
+            <ScrollControls pages={5} damping={0.1} infinite>
               <SceneModel />
             </ScrollControls>
           </Suspense>

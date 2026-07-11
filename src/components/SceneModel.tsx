@@ -130,15 +130,19 @@ function getInterpolatedVisuals(t: number): SceneVisualOverrides | null {
   const segmentSize = 1.0 / NUM_SCENES;
   const fadeHalfWidth = 0.05; // 5% scroll buffer on each side (10% total transition window)
 
+  // Wrap t to [0, 1) range to support infinite scrolling and avoid indexing out of bounds
+  const wrappedT = ((t % 1) + 1) % 1;
+
   // Find active segment
-  const activeSegment = Math.min(Math.floor(t / segmentSize), NUM_SCENES - 1);
+  const activeSegment = Math.min(Math.floor(wrappedT / segmentSize), NUM_SCENES - 1);
+  if (activeSegment < 0 || activeSegment >= NUM_SCENES) return null;
 
   // Check boundary transition forward
   const nextSegment = activeSegment + 1;
   if (nextSegment < NUM_SCENES) {
     const boundary = nextSegment * segmentSize;
-    if (t >= boundary - fadeHalfWidth && t <= boundary + fadeHalfWidth) {
-      const factor = (t - (boundary - fadeHalfWidth)) / (fadeHalfWidth * 2.0);
+    if (wrappedT >= boundary - fadeHalfWidth && wrappedT <= boundary + fadeHalfWidth) {
+      const factor = (wrappedT - (boundary - fadeHalfWidth)) / (fadeHalfWidth * 2.0);
       return lerpVisuals(
         SCENE_CONFIGS[activeSegment].visuals,
         SCENE_CONFIGS[nextSegment].visuals,
@@ -151,8 +155,8 @@ function getInterpolatedVisuals(t: number): SceneVisualOverrides | null {
   const prevSegment = activeSegment - 1;
   if (prevSegment >= 0) {
     const boundary = activeSegment * segmentSize;
-    if (t >= boundary - fadeHalfWidth && t <= boundary + fadeHalfWidth) {
-      const factor = (t - (boundary - fadeHalfWidth)) / (fadeHalfWidth * 2.0);
+    if (wrappedT >= boundary - fadeHalfWidth && wrappedT <= boundary + fadeHalfWidth) {
+      const factor = (wrappedT - (boundary - fadeHalfWidth)) / (fadeHalfWidth * 2.0);
       return lerpVisuals(
         SCENE_CONFIGS[prevSegment].visuals,
         SCENE_CONFIGS[activeSegment].visuals,
@@ -193,6 +197,17 @@ export const SceneModel: React.FC = () => {
   const transitionFromRef = useRef(0);
   const transitionToRef = useRef(0);
   const initialInitRef = useRef(false);
+
+  // Wrap-around transition tracking
+  const prevLRef = useRef(0);
+  const wrapStateRef = useRef({
+    active: false,
+    direction: "none" as "forward" | "backward" | "none",
+    progress: 0.0,
+    time: 0.0,
+    fromScene: 0,
+    toScene: 0
+  });
 
   // Camera callbacks — stable refs per scene index
   const cameraCallbacksRef = useRef<((cam: THREE.PerspectiveCamera) => void)[]>([]);
@@ -244,10 +259,68 @@ export const SceneModel: React.FC = () => {
   useFrame((state, delta) => {
     if (!scrollData) return;
 
-    const t = scrollData.offset; // 0..1
     const glUserData = (state.gl as any).userData || {};
     if (!(state.gl as any).userData) {
       (state.gl as any).userData = glUserData;
+    }
+
+    // Wrap-around transition logic
+    const currentL = (scrollData as any).scroll.current;
+    const prevL = prevLRef.current;
+    prevLRef.current = currentL;
+    const wrapState = wrapStateRef.current;
+
+    // Detect wrap triggers
+    if (!wrapState.active) {
+      if (currentL - prevL < -0.5) {
+        // Forward wrap triggered (L.current jumped from ~1 to ~0)
+        wrapState.active = true;
+        wrapState.direction = "forward";
+        wrapState.progress = 0.0;
+        wrapState.time = 0.0;
+        wrapState.fromScene = NUM_SCENES - 1;
+        wrapState.toScene = 0;
+        console.log("[SceneModel] Forward wrap detected! from:", wrapState.fromScene, "to:", wrapState.toScene);
+      } else if (currentL - prevL > 0.5) {
+        // Backward wrap triggered (L.current jumped from ~0 to ~1)
+        wrapState.active = true;
+        wrapState.direction = "backward";
+        wrapState.progress = 0.0;
+        wrapState.time = 0.0;
+        wrapState.fromScene = 0;
+        wrapState.toScene = NUM_SCENES - 1;
+        console.log("[SceneModel] Backward wrap detected! from:", wrapState.fromScene, "to:", wrapState.toScene);
+      }
+    }
+
+    const WRAP_DURATION = 0.6; // Transition duration in seconds
+
+    if (wrapState.active) {
+      wrapState.time += delta;
+      wrapState.progress = THREE.MathUtils.clamp(wrapState.time / WRAP_DURATION, 0.0, 1.0);
+
+      // Check for completion
+      if (wrapState.progress >= 1.0) {
+        wrapState.active = false;
+        wrapState.direction = "none";
+        wrapState.progress = 1.0;
+        wrapState.time = 0.0;
+        setActiveSceneIndex(wrapState.toScene);
+        console.log("[SceneModel] Wrap complete.");
+      }
+    }
+
+    // Wrap the raw scroll offset safely to [0, 1) range to prevent any index errors
+    const tRaw = scrollData.offset;
+    let t = ((tRaw % 1) + 1) % 1;
+
+    // Override t during the wrap transition to lock it at start/end frames
+    if (wrapState.active) {
+      if (wrapState.direction === "forward") {
+        t = wrapState.progress < 0.5 ? 1.0 : 0.0;
+      } else if (wrapState.direction === "backward") {
+        t = wrapState.progress < 0.5 ? 0.0 : 1.0;
+      }
     }
 
     // Compute which scene index the scroll is in
@@ -275,7 +348,7 @@ export const SceneModel: React.FC = () => {
       nextTarget = activeSceneIndex - 1;
     }
 
-    if (nextTarget !== activeSceneIndex && transitionTimeRef.current < 0) {
+    if (nextTarget !== activeSceneIndex && transitionTimeRef.current < 0 && !wrapState.active) {
       transitionFromRef.current = activeSceneIndex;
       transitionToRef.current = nextTarget;
       setActiveSceneIndex(nextTarget);
@@ -314,8 +387,20 @@ export const SceneModel: React.FC = () => {
         activeCamIndex = isPastPeak ? transitionToRef.current : transitionFromRef.current;
         glUserData.incomingSceneIndex = isPastPeak ? transitionFromRef.current : transitionToRef.current;
       }
+    } else if (wrapState.active) {
+      // Lock active camera and set incoming scene index during wrap transition
+      const isPastPeak = wrapState.progress >= 0.5;
+      activeCamIndex = isPastPeak ? wrapState.toScene : wrapState.fromScene;
+      glUserData.incomingSceneIndex = isPastPeak ? wrapState.fromScene : wrapState.toScene;
     } else {
       glUserData.incomingSceneIndex = -1;
+    }
+
+    // Overlay the wrap transition progress and glitch if active
+    if (wrapState.active) {
+      const wrapGlitch = Math.sin(wrapState.progress * Math.PI) * 0.45;
+      transitionGlitch = Math.max(transitionGlitch, wrapGlitch);
+      transitionProgress = Math.max(transitionProgress, wrapState.progress);
     }
 
     // Write shared state
@@ -327,7 +412,11 @@ export const SceneModel: React.FC = () => {
       : (glUserData.autoBgGlitchSeed || 0.0);
 
     // Compute and blend visual overrides smoothly across scroll boundaries
-    if (transitionTimeRef.current >= 0.0) {
+    if (wrapState.active) {
+      const fromVisuals = SCENE_CONFIGS[wrapState.fromScene]?.visuals;
+      const toVisuals = SCENE_CONFIGS[wrapState.toScene]?.visuals;
+      glUserData.sceneVisuals = lerpVisuals(fromVisuals, toVisuals, wrapState.progress);
+    } else if (transitionTimeRef.current >= 0.0) {
       const fromVisuals = SCENE_CONFIGS[transitionFromRef.current]?.visuals;
       const toVisuals = SCENE_CONFIGS[transitionToRef.current]?.visuals;
       glUserData.sceneVisuals = lerpVisuals(fromVisuals, toVisuals, transitionProgress);
@@ -359,11 +448,36 @@ export const SceneModel: React.FC = () => {
       }
     }
 
+    // Apply wrap-around vertical camera offset to make it feel like the camera moves down and enters from the bottom
+    if (wrapState.active && targetCam) {
+      const p = wrapState.progress;
+      const MAX_OFFSET = 35.0; // Max height to offset camera
+
+      if (wrapState.direction === "forward") {
+        if (p < 0.5) {
+          const tHalf = p / 0.5;
+          targetCam.position.y -= MAX_OFFSET * tHalf;
+        } else {
+          const tHalf = (1.0 - p) / 0.5;
+          targetCam.position.y += MAX_OFFSET * tHalf;
+        }
+      } else if (wrapState.direction === "backward") {
+        if (p < 0.5) {
+          const tHalf = p / 0.5;
+          targetCam.position.y += MAX_OFFSET * tHalf;
+        } else {
+          const tHalf = (1.0 - p) / 0.5;
+          targetCam.position.y -= MAX_OFFSET * tHalf;
+        }
+      }
+      targetCam.updateMatrixWorld(true);
+    }
+
     // Maintain model index 0 during active play
     if (settingsRef.current.currentModelIndex !== 0) {
       updateSetting('currentModelIndex', 0);
     }
-  });
+  }, -1);
 
   // Projection bounds from Scene 1's city meshes (used by all systems)
   const cityProjectionBounds = useMemo(() => {

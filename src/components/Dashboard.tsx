@@ -640,6 +640,63 @@ export const Dashboard: React.FC = () => {
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
               </div>
+
+              {/* SIMON GLOW CONFIG */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Character Glow</span>
+              </div>
+
+              {/* Slider: Simon Glow Intensity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">GLOW INTENSITY</span>
+                  <span className="text-slate-300">{(settings.simonGlowIntensity ?? 1.2).toFixed(2)}x</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="5.0" step="0.1"
+                  value={settings.simonGlowIntensity ?? 1.2}
+                  onChange={(e) => updateSetting("simonGlowIntensity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal mt-1">
+                  Controls how bright the character&apos;s clothes glow. 1.0 = pure white, higher = HDR bloom trigger.
+                </p>
+              </div>
+
+              {/* Slider: Simon Bloom Intensity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">BLOOM STRENGTH</span>
+                  <span className="text-slate-300">{(settings.simonBloomIntensity ?? 0.4).toFixed(2)}x</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="3.0" step="0.05"
+                  value={settings.simonBloomIntensity ?? 0.4}
+                  onChange={(e) => updateSetting("simonBloomIntensity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal mt-1">
+                  Controls the soft light halo around the glowing character. 0 = no bloom, higher = stronger halo.
+                </p>
+              </div>
+
+              {/* Color: Simon Glow Color */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">GLOW COLOR</span>
+                  <span className="text-slate-300">{settings.simonGlowColor || "#ffffff"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={settings.simonGlowColor || "#ffffff"}
+                    onChange={(e) => updateSetting("simonGlowColor", e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                  />
+                  <span className="text-[10px] text-slate-500 font-mono">Select color</span>
+                </div>
+              </div>
             </div>
           )}
 

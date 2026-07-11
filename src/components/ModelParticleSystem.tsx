@@ -4,7 +4,7 @@ import React, { useMemo, useRef, useEffect, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, useAnimations, useScroll } from "@react-three/drei";
 import * as THREE from "three";
-import { EffectComposer } from "@react-three/postprocessing";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useSimulation } from "@/context/SimulationContext";
 import { ModelParticleShader } from "@/shaders/modelShader";
 import { Datamosh } from "@/effects/DatamoshEffect";
@@ -1082,6 +1082,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       {/* Postprocessing Stack */}
       <EffectComposer enableNormalPass={false} multisampling={0}>
         <Datamosh ref={datamoshRef} strength={0} seed={0} />
+        <Bloom mipmapBlur intensity={settings.simonBloomIntensity} luminanceThreshold={1.1} luminanceSmoothing={0.1} />
       </EffectComposer>
 
       {/* Particle cloud mesh */}
