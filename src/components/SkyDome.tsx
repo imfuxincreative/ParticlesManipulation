@@ -24,7 +24,10 @@ export const SkyDome: React.FC = () => {
 
     u.uHorizonColor.value.set(settings.skyColor || "#ff007f");
     u.uExposure.value = settings.skyExposure ?? 1.0;
-  }, [settings.skyColor, settings.skyExposure]);
+    if (u.uHorizonMin) {
+      u.uHorizonMin.value = settings.skyHorizonRange ?? 0.0;
+    }
+  }, [settings.skyColor, settings.skyExposure, settings.skyHorizonRange]);
 
   // Centering Sky Dome on the camera every frame
   useFrame((state) => {

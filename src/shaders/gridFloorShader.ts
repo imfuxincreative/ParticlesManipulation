@@ -114,10 +114,8 @@ export const GridFloorShader = {
       float xrayAlpha = 1.0 - smoothstep(fadeStart, uDepthLimit, vDepth);
       float lineAlpha = lineStrength * xrayAlpha * uOpacity;
       
-      // Chessboard tiles disappear based on uSolidDepthLimit
-      float solidFadeStart = max(0.0, uSolidDepthLimit - uFadeZone);
-      float solidXrayAlpha = smoothstep(solidFadeStart, uSolidDepthLimit, vDepth);
-      float tileAlpha = cellFill * (1.0 - lineStrength) * solidXrayAlpha;
+      // Chessboard tiles reveal and fade in unison with the grid lines
+      float tileAlpha = cellFill * (1.0 - lineStrength) * xrayAlpha;
       
       vec3 baseGridColor = mix(uBaseColor, uColor * uGlowIntensity, lineStrength);
       float baseGridAlpha = max(lineAlpha, tileAlpha);

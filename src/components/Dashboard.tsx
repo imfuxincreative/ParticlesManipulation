@@ -655,6 +655,20 @@ export const Dashboard: React.FC = () => {
                 />
               </div>
 
+              {/* Slider: Wing Glow Intensity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">WING GLOW INTENSITY</span>
+                  <span className="text-slate-300">{(settings.wingGlowIntensity ?? 1.5).toFixed(1)}x</span>
+                </div>
+                <input
+                  type="range" min="1.0" max="5.0" step="0.1"
+                  value={settings.wingGlowIntensity ?? 1.5}
+                  onChange={(e) => updateSetting("wingGlowIntensity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
               {/* SIMON GLOW CONFIG */}
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
@@ -813,6 +827,22 @@ export const Dashboard: React.FC = () => {
                     type="range" min="0.0" max="4.0" step="0.05"
                     value={settings.skyExposure}
                     onChange={(e) => updateSetting("skyExposure", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Slider: Sky Horizon Range */}
+              {settings.showSky && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">SKY HORIZON RANGE</span>
+                    <span className="text-slate-300">{settings.skyHorizonRange.toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range" min="-2.0" max="1.0" step="0.05"
+                    value={settings.skyHorizonRange}
+                    onChange={(e) => updateSetting("skyHorizonRange", parseFloat(e.target.value))}
                     className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
                 </div>

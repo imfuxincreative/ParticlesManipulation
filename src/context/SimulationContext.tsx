@@ -53,10 +53,12 @@ export interface SimulationSettings {
   showSky: boolean;
   skyColor: string;
   skyExposure: number;
+  skyHorizonRange: number;
   wingStartMode: "spine" | "formed" | "scattered";
   showWingAnchor: boolean;
   wingFlowFrequency: number;
   wingFlowStrength: number;
+  wingGlowIntensity: number;
   simonGlowIntensity: number;
   simonBloomIntensity: number;
   simonGlowColor: string;
@@ -142,18 +144,18 @@ interface SimulationContextProps {
 
 const defaultSettings: SimulationSettings = {
   gridSize: 512, // Massive density (4 million+ particles) for a completely solid, clear image
-  particleDefaultColor: "#8d8d8d",
-  glitchIntensity: 1.0, // Base glitch burst strength
-  glitchInterval: 2.0, // Calm period base (seconds)
-  glitchDuration: 0.4, // Active burst base (seconds)
-  bgGlitchIntensity: 1.0,
-  bgGlitchInterval: 3.0,
-  bgGlitchDuration: 0.3,
+  particleDefaultColor: "#ffffff",
+  glitchIntensity: 0.0, // Base glitch burst strength
+  glitchInterval: 0.0, // Calm period base (seconds)
+  glitchDuration: 0.0, // Active burst base (seconds)
+  bgGlitchIntensity: 0.0,
+  bgGlitchInterval: 0.0,
+  bgGlitchDuration: 0.0,
   scatterRadius: 2.0,
   scatterStrength: 3.0,
   noiseStrength: 0.1, // Reduced so the footage is clearer and less warped
   noiseSpeed: 0.4,
-  pointSize: .2, // Increased to 2.5px to make particles thicker and improve clarity
+  pointSize: 9.0, // Increased to 2.5px to make particles thicker and improve clarity
   focusDepth: 14.0,
   focusRange: 2.0,
   bokehScale: 4.0,
@@ -176,8 +178,8 @@ const defaultSettings: SimulationSettings = {
   xrayBorderOpacity: 0.5,
   xrayBorderThreshold: 15.0,
   xrayBorderDepthLimit: 20.0,
-  xrayBorderRevealDepth: 400.0,
-  xraySolidRevealDepth: 300.0,
+  xrayBorderRevealDepth: 1000.0,
+  xraySolidRevealDepth: 14.0,
   xrayHoverRadius: 10.0,
   xrayLineGlowIntensity: 2.5,
   showGridFloor: true,
@@ -188,11 +190,13 @@ const defaultSettings: SimulationSettings = {
   gridFloorY: -4.5,
   showSky: true,
   skyColor: "#ff007f",
-  skyExposure: 1.0,
+  skyExposure: 1.55,
+  skyHorizonRange: -1.05,
   wingStartMode: "spine",
   showWingAnchor: true,
-  wingFlowFrequency: 8.0,
-  wingFlowStrength: 0.045,
+  wingFlowFrequency: 1.0,
+  wingFlowStrength: 0.200,
+  wingGlowIntensity: 1.5,
   simonGlowIntensity: 1.2,
   simonBloomIntensity: 0.4,
   simonGlowColor: "#ffffff",

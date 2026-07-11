@@ -560,6 +560,8 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       uFlowStrength: { value: 0.6 },
       uFlowSpeed: { value: 0.3 },
       uFlowFrequency: { value: 0.15 },
+      uGlowIntensity: { value: 1.0 },
+      uScrollProgress: { value: 0.0 },
     };
   }, []);
 
@@ -581,6 +583,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     u.uDensityControl.value = settings.densityControl;
     if (u.uPrimaryColor) u.uPrimaryColor.value.set(settings.xrayBorderColor || "#e91e63");
     if (u.uParticleDefaultColor) u.uParticleDefaultColor.value.set(settings.particleDefaultColor || "#8d8d8d");
+    if (u.uGlowIntensity) u.uGlowIntensity.value = 1.0;
   }, [settings]);
 
   // ─── Autonomous Rapid-Fire Glitch Burst Scheduler ───
@@ -720,6 +723,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       materialRef.current.uniforms.uParticleOpacity.value = particleOpacity;
       materialRef.current.uniforms.uClipY.value = clipY;
       materialRef.current.uniforms.uClipSide.value = clipSide;
+      materialRef.current.uniforms.uScrollProgress.value = scrollData ? scrollData.offset : 0.0;
 
       // Smoothly lerp glitch strength
       const targetGlitch = isGlitchActive ? settings.glitchIntensity : 0.0;

@@ -7,6 +7,7 @@ export const SkyShader = {
     uBurnOut: { value: 0.0 },
     uWipeDirection: { value: new THREE.Vector3(1.0, 0.0, 1.0).normalize() },
     uTime: { value: 0.0 },
+    uHorizonMin: { value: 0.0 },
   },
   vertexShader: `
     varying vec3 vWorldPosition;
@@ -26,6 +27,7 @@ export const SkyShader = {
     uniform float uBurnOut;
     uniform float uTime;
     uniform vec3 uWipeDirection;
+    uniform float uHorizonMin;
     
     varying vec3 vWorldPosition;
 
@@ -71,7 +73,9 @@ export const SkyShader = {
       vec3 zenithColor = uHorizonColor;
       vec3 horizonColor = vec3(1.0); // Clean white
       
-      vec3 baseColor = mix(horizonColor, zenithColor, clamp(y, 0.0, 1.0));
+      // Interpolate with a customizable lower limit uHorizonMin
+      float factor = clamp((y - uHorizonMin) / max(1.0 - uHorizonMin, 0.0001), 0.0, 1.0);
+      vec3 baseColor = mix(horizonColor, zenithColor, factor);
       vec3 baseSkyColor = baseColor * uExposure;
       
       gl_FragColor = vec4(baseSkyColor, 1.0);

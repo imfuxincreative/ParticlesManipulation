@@ -42,7 +42,7 @@ export const GridFloor: React.FC<GridFloorProps> = ({ projectionBounds }) => {
     u.uLineWidth.value = settings.gridLineWidth ?? 1.5; // screen-space pixels width
     
     u.uBaseColor.value.set(settings.xrayBaseColor || "#888888");
-    u.uFillOpacity.value = 0.0;
+    u.uFillOpacity.value = settings.gridFloorFillOpacity ?? 0.15;
 
     // Sync sweep boundaries
     if (projectionBounds) {
@@ -94,7 +94,7 @@ export const GridFloor: React.FC<GridFloorProps> = ({ projectionBounds }) => {
       position={[0, settings.gridFloorY, 0]}
       rotation={[-Math.PI / 2, 0, 0]}
     >
-      <planeGeometry args={[1000, 1000]} />
+      <planeGeometry args={[2000, 2000]} />
       <shaderMaterial
         ref={materialRef}
         vertexShader={GridFloorShader.vertexShader}

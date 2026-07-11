@@ -391,6 +391,8 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
       uFlowStrength: { value: settings.wingFlowStrength },
       uFlowSpeed: { value: 0.25 },
       uFlowFrequency: { value: settings.wingFlowFrequency },
+      uGlowIntensity: { value: settings.wingGlowIntensity ?? 1.5 },
+      uScrollProgress: { value: 0.0 },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -416,6 +418,7 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
     u.uParticleDefaultColor.value.set(settings.particleDefaultColor || "#8d8d8d");
     u.uFlowStrength.value = settings.wingFlowStrength;
     u.uFlowFrequency.value = settings.wingFlowFrequency;
+    u.uGlowIntensity.value = settings.wingGlowIntensity ?? 1.5;
   }, [settings]);
 
   useFrame((state) => {
@@ -633,6 +636,7 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
       u.uMouse.value.copy(state.pointer);
       u.uAspect.value = state.viewport.aspect;
       u.uParticleOpacity.value = particleOpacity;
+      u.uScrollProgress.value = scrollNorm;
     }
 
     // Toggle visibility based on opacity

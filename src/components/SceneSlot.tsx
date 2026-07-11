@@ -29,6 +29,7 @@ export interface SceneVisualOverrides {
   xraySolidRevealDepth?: number;
   xrayHoverRadius?: number;
   skyColor?: string | THREE.Color;
+  skyHorizonRange?: number;
   showSky?: boolean;
   showGridFloor?: boolean;
   gridFloorOpacity?: number;

@@ -65,6 +65,7 @@ export const ModelParticleShader = {
     uniform float uFlowStrength;
     uniform float uFlowSpeed;
     uniform float uFlowFrequency;
+    uniform float uScrollProgress;
 
     // Focus settings
     uniform float uFocusDepth;
@@ -119,7 +120,8 @@ export const ModelParticleShader = {
       vPosY = pos.y;
 
       // ── Curl noise flow displacement (water-like flowing motion) ──
-      vec3 flowInput = pos * uFlowFrequency + vec3(0.0, 0.0, uTime * uFlowSpeed);
+      // Driven by both time and scroll progress for responsive scrolling ripples
+      vec3 flowInput = pos * uFlowFrequency + vec3(0.0, 0.0, uTime * uFlowSpeed + uScrollProgress * 8.0);
       vec3 flow = curlNoise(flowInput) * uFlowStrength;
       pos += flow;
 
@@ -230,6 +232,7 @@ export const ModelParticleShader = {
     uniform float uParticleOpacity;
     uniform float uClipY;
     uniform float uClipSide;
+    uniform float uGlowIntensity;
 
     varying vec3 vColor;
     varying float vDepth;
@@ -268,6 +271,9 @@ export const ModelParticleShader = {
 
       // Apply tint
       vec3 color = mix(baseColor, uTint, uTintMix);
+
+      // Apply particle glow multiplier (bloom trigger)
+      color *= uGlowIntensity;
 
       // Blend with thick white cloud/fog color at the boundary
       vec3 cloudColor = mix(uHazeColor, vec3(0.95, 0.95, 0.98), 0.4);
