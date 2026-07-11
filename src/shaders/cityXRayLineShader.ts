@@ -4,6 +4,7 @@ export const CityXRayLineShader = {
   uniforms: {
     uColor: { value: new THREE.Color(0xe91e63) },
     uOpacity: { value: 0.5 },
+    uGlowIntensity: { value: 2.5 },
     uDepthLimit: { value: 40.0 },    // Animated reveal radius (lerped in useFrame)
     uFadeZone: { value: 15.0 },      // Width of the fade-out band at the edge
     uTime: { value: 0 },
@@ -49,6 +50,7 @@ export const CityXRayLineShader = {
   fragmentShader: `
     uniform vec3 uColor;
     uniform float uOpacity;
+    uniform float uGlowIntensity;
     uniform float uDepthLimit;
     uniform float uFadeZone;
     uniform float uBurnOut;
@@ -152,7 +154,8 @@ export const CityXRayLineShader = {
       
       if (finalAlpha < 0.01) discard;
       
-      gl_FragColor = vec4(uColor, finalAlpha);
+      vec3 finalColor = uColor * uGlowIntensity;
+      gl_FragColor = vec4(finalColor, finalAlpha);
     }
   `
 };

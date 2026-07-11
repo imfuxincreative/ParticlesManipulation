@@ -366,6 +366,20 @@ export const Dashboard: React.FC = () => {
                 />
               </div>
 
+              {/* Slider: Border Glow Intensity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">BORDER GLOW INTENSITY</span>
+                  <span className="text-slate-300">{settings.xrayLineGlowIntensity?.toFixed(1) || "2.5"}x</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="5.0" step="0.1"
+                  value={settings.xrayLineGlowIntensity ?? 2.5}
+                  onChange={(e) => updateSetting("xrayLineGlowIntensity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
               {/* Slider: Border Spread / Complexity */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
@@ -796,7 +810,7 @@ export const Dashboard: React.FC = () => {
                     <span className="text-slate-300">{settings.skyExposure.toFixed(2)}x</span>
                   </div>
                   <input
-                    type="range" min="0.1" max="4.0" step="0.05"
+                    type="range" min="0.0" max="4.0" step="0.05"
                     value={settings.skyExposure}
                     onChange={(e) => updateSetting("skyExposure", parseFloat(e.target.value))}
                     className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"

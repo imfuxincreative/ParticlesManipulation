@@ -4,6 +4,7 @@ export const GridFloorShader = {
   uniforms: {
     uTime: { value: 0 },
     uColor: { value: new THREE.Color('#e91e63') }, // Grid line color
+    uGlowIntensity: { value: 2.5 },                 // Line HDR glow intensity
     uOpacity: { value: 0.35 },                      // Grid line base opacity
     uDepthLimit: { value: 40.0 },    // Reveal depth limit (animated)
     uFadeZone: { value: 15.0 },      // Reveal fade zone width
@@ -36,6 +37,7 @@ export const GridFloorShader = {
   fragmentShader: `
     uniform float uTime;
     uniform vec3 uColor;
+    uniform float uGlowIntensity;
     uniform float uOpacity;
     uniform float uDepthLimit;
     uniform float uFadeZone;
@@ -117,7 +119,7 @@ export const GridFloorShader = {
       float solidXrayAlpha = smoothstep(solidFadeStart, uSolidDepthLimit, vDepth);
       float tileAlpha = cellFill * (1.0 - lineStrength) * solidXrayAlpha;
       
-      vec3 baseGridColor = mix(uBaseColor, uColor, lineStrength);
+      vec3 baseGridColor = mix(uBaseColor, uColor * uGlowIntensity, lineStrength);
       float baseGridAlpha = max(lineAlpha, tileAlpha);
       
       float scanline = sin(vWorldPosition.z * 2.0 - uTime * 3.0) * 0.5 + 0.5;

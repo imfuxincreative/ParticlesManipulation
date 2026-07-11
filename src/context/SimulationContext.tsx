@@ -43,6 +43,7 @@ export interface SimulationSettings {
   xrayBorderRevealDepth: number;
   xraySolidRevealDepth: number;
   xrayHoverRadius: number;
+  xrayLineGlowIntensity: number;
   showGridFloor: boolean;
   gridFloorOpacity: number;
   gridFloorFillOpacity: number;
@@ -178,6 +179,7 @@ const defaultSettings: SimulationSettings = {
   xrayBorderRevealDepth: 400.0,
   xraySolidRevealDepth: 300.0,
   xrayHoverRadius: 10.0,
+  xrayLineGlowIntensity: 2.5,
   showGridFloor: true,
   gridFloorOpacity: 0.35,
   gridFloorFillOpacity: 0.15,

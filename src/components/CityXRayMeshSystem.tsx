@@ -102,9 +102,10 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
       material.uniforms.uHazeColor.value.set(settings.hazeColor);
     }
 
-    // Update border color and opacity
+    // Update border color, opacity, and glow intensity
     lineMaterial.uniforms.uColor.value.set(settings.xrayBorderColor || "#e91e63");
     lineMaterial.uniforms.uOpacity.value = settings.xrayBorderOpacity ?? 0.5;
+    lineMaterial.uniforms.uGlowIntensity.value = settings.xrayLineGlowIntensity ?? 2.5;
 
     // We can also tie scanline speed to noiseSpeed if we want it to react to global controls
     if (settings.noiseSpeed !== undefined) {
