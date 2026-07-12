@@ -7,6 +7,11 @@ export const GridFloorShader = {
     uGlowIntensity: { value: 2.5 },                 // Line HDR glow intensity
     uOpacity: { value: 0.35 },                      // Grid line base opacity
     uDepthLimit: { value: 40.0 },    // Reveal depth limit (animated)
+    uShowFog: { value: 1.0 },
+    uFogColor: { value: new THREE.Color(0x0b0c10) },
+    uFogNear: { value: 15.0 },
+    uFogFar: { value: 80.0 },
+    uFogAmount: { value: 1.0 },
     uFadeZone: { value: 15.0 },      // Reveal fade zone width
     uTileSize: { value: 4.0 },       // Tile grid size (spacing between lines)
     uLineWidth: { value: 1.0 },      // Line width in screen-space pixels
@@ -45,6 +50,12 @@ export const GridFloorShader = {
     uniform float uLineWidth;
     
     uniform vec3 uBaseColor;
+    
+    uniform float uShowFog;
+    uniform vec3 uFogColor;
+    uniform float uFogNear;
+    uniform float uFogFar;
+    uniform float uFogAmount;
     uniform float uFillOpacity;
     uniform float uBurnOut;
     uniform float uSolidDepthLimit;
@@ -124,6 +135,13 @@ export const GridFloorShader = {
       baseGridColor = mix(baseGridColor, baseGridColor * 1.3, scanline * lineStrength * 0.3);
       
       float finalAlpha = baseGridAlpha * alphaFactor;
+      
+      // Apply environmental fog (depth-based fading for grid floor)
+      float fogFactor = clamp((uFogFar - vDepth) / max(uFogFar - uFogNear, 0.0001), 0.0, 1.0);
+      float fogMix = uShowFog * uFogAmount * (1.0 - fogFactor);
+      baseGridColor = mix(baseGridColor, uFogColor, fogMix);
+      finalAlpha = mix(finalAlpha, 0.0, fogMix);
+
       if (finalAlpha < 0.001) discard;
       
       gl_FragColor = vec4(baseGridColor, finalAlpha);

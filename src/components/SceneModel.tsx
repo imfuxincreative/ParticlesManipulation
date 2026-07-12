@@ -18,30 +18,7 @@ const SCENE_CONFIGS: SceneConfig[] = [
     path: "/SCENE.glb",
     hasParticleTarget: true,
     activeAnimationName: "mixamo.com.003",
-    visuals: {
-      hazeColor: "#ff007f",       // Pink haze (Neon preset)
-      xrayBorderColor: "#e91e63", // Pink borders
-      xrayBaseColor: "#888888",
-      xrayOutlineColor: "#ffffff",
-      xrayFillOpacity: 0.15,
-      xrayBorderOpacity: 0.5,
-      skyColor: "#ff007f",
-    },
   },
-  // {
-  //   path: "/cityhall.glb",
-  //   hasParticleTarget: false,
-  //   activeAnimationName: "Action",
-  //   visuals: {
-  //     hazeColor: "#050b14",       // Cyber deep blue background
-  //     xrayBorderColor: "#ff7b00ff", // Bright neon blue borders (updated to user hex)
-  //     xrayBaseColor: "#001b33",   // Deep indigo fill base
-  //     xrayOutlineColor: "#ffab3dff", // Neon blue glow outlines
-  //     xrayFillOpacity: 0.15,
-  //     xrayBorderOpacity: 0.6,
-  //     skyColor: "#0084ffff",
-  //   },
-  // },
 ];
 
 // Preload all scene GLBs
@@ -80,7 +57,7 @@ function lerpVisuals(
   // Color properties: lerp smoothly using THREE.Color
   const colorKeys: (keyof SceneVisualOverrides)[] = [
     "hazeColor", "xrayOutlineColor", "xrayBaseColor",
-    "xrayBorderColor", "skyColor",
+    "xrayBorderColor", "skyColor", "fogColor",
   ];
   for (const key of colorKeys) {
     const fromVal = from[key];
@@ -98,7 +75,7 @@ function lerpVisuals(
     "xrayFillOpacity", "xrayOutlinePower", "xrayScanlineIntensity",
     "xrayBorderOpacity", "xrayBorderThreshold", "xrayBorderRevealDepth",
     "xraySolidRevealDepth", "xrayHoverRadius", "gridFloorOpacity", "gridFloorY",
-    "skyHorizonRange",
+    "skyHorizonRange", "fogNear", "fogFar", "fogAmount",
   ];
   for (const key of numKeys) {
     const fromVal = from[key] as number | undefined;
@@ -111,7 +88,7 @@ function lerpVisuals(
   }
 
   // Boolean properties: snap at midpoint
-  const boolKeys: (keyof SceneVisualOverrides)[] = ["showSky", "showGridFloor"];
+  const boolKeys: (keyof SceneVisualOverrides)[] = ["showSky", "showGridFloor", "showFog"];
   for (const key of boolKeys) {
     const fromVal = from[key];
     const toVal = to[key];
@@ -353,6 +330,25 @@ export const SceneModel: React.FC = () => {
     const currentHazeColor = glUserData.sceneVisuals?.hazeColor || settingsRef.current.hazeColor;
     if (state.scene.background && (state.scene.background as any).isColor) {
       (state.scene.background as THREE.Color).set(currentHazeColor as THREE.Color);
+    }
+
+    // Dynamic environmental fog update for standard materials (such as Simon's bodypart mesh)
+    const showFogVal = glUserData.sceneVisuals?.showFog !== undefined ? glUserData.sceneVisuals.showFog : settingsRef.current.showFog;
+    const fogColorVal = glUserData.sceneVisuals?.fogColor ?? settingsRef.current.fogColor;
+    const fogNearVal = glUserData.sceneVisuals?.fogNear !== undefined ? glUserData.sceneVisuals.fogNear : settingsRef.current.fogNear;
+    const fogFarVal = glUserData.sceneVisuals?.fogFar !== undefined ? glUserData.sceneVisuals.fogFar : settingsRef.current.fogFar;
+
+    if (showFogVal) {
+      if (!state.scene.fog || !(state.scene.fog instanceof THREE.Fog)) {
+        state.scene.fog = new THREE.Fog(fogColorVal, fogNearVal, fogFarVal);
+      } else {
+        const fog = state.scene.fog as THREE.Fog;
+        fog.color.set(fogColorVal);
+        fog.near = fogNearVal;
+        fog.far = fogFarVal;
+      }
+    } else {
+      state.scene.fog = null;
     }
 
     // Switch active R3F camera

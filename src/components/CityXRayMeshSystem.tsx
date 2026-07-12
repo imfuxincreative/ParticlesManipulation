@@ -107,6 +107,19 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
     lineMaterial.uniforms.uOpacity.value = settings.xrayBorderOpacity ?? 0.5;
     lineMaterial.uniforms.uGlowIntensity.value = settings.xrayLineGlowIntensity ?? 2.5;
 
+    // Sync fog settings
+    if (material.uniforms.uShowFog) material.uniforms.uShowFog.value = settings.showFog ? 1.0 : 0.0;
+    if (material.uniforms.uFogColor) material.uniforms.uFogColor.value.set(settings.fogColor);
+    if (material.uniforms.uFogNear) material.uniforms.uFogNear.value = settings.fogNear;
+    if (material.uniforms.uFogFar) material.uniforms.uFogFar.value = settings.fogFar;
+    if (material.uniforms.uFogAmount) material.uniforms.uFogAmount.value = settings.fogAmount;
+
+    if (lineMaterial.uniforms.uShowFog) lineMaterial.uniforms.uShowFog.value = settings.showFog ? 1.0 : 0.0;
+    if (lineMaterial.uniforms.uFogColor) lineMaterial.uniforms.uFogColor.value.set(settings.fogColor);
+    if (lineMaterial.uniforms.uFogNear) lineMaterial.uniforms.uFogNear.value = settings.fogNear;
+    if (lineMaterial.uniforms.uFogFar) lineMaterial.uniforms.uFogFar.value = settings.fogFar;
+    if (lineMaterial.uniforms.uFogAmount) lineMaterial.uniforms.uFogAmount.value = settings.fogAmount;
+
     // We can also tie scanline speed to noiseSpeed if we want it to react to global controls
     if (settings.noiseSpeed !== undefined) {
       material.uniforms.uScanLineSpeed.value = settings.noiseSpeed * 2.0;
@@ -282,6 +295,25 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
 
     lineMaterial.uniforms.uColor.value.set(vis.xrayBorderColor ?? settings.xrayBorderColor);
     lineMaterial.uniforms.uOpacity.value = vis.xrayBorderOpacity ?? settings.xrayBorderOpacity;
+
+    // Apply fog overrides (falling back to global settings)
+    const showFogVal = vis.showFog !== undefined ? vis.showFog : settings.showFog;
+    const fogColorVal = vis.fogColor ?? settings.fogColor;
+    const fogNearVal = vis.fogNear !== undefined ? vis.fogNear : settings.fogNear;
+    const fogFarVal = vis.fogFar !== undefined ? vis.fogFar : settings.fogFar;
+    const fogAmountVal = vis.fogAmount !== undefined ? vis.fogAmount : settings.fogAmount;
+
+    material.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
+    material.uniforms.uFogColor.value.set(fogColorVal);
+    material.uniforms.uFogNear.value = fogNearVal;
+    material.uniforms.uFogFar.value = fogFarVal;
+    material.uniforms.uFogAmount.value = fogAmountVal;
+
+    lineMaterial.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
+    lineMaterial.uniforms.uFogColor.value.set(fogColorVal);
+    lineMaterial.uniforms.uFogNear.value = fogNearVal;
+    lineMaterial.uniforms.uFogFar.value = fogFarVal;
+    lineMaterial.uniforms.uFogAmount.value = fogAmountVal;
 
     // Target depth from visual overrides or settings
     const targetDepth = vis.xrayBorderRevealDepth ?? settings.xrayBorderRevealDepth ?? 40.0;

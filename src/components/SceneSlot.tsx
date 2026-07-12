@@ -7,6 +7,7 @@ import * as THREE from "three";
 import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
 import { WingParticles } from "./TypographyText";
 import { SimonGlowSystem } from "./SimonGlowSystem";
+import { useSimulation } from "@/context/SimulationContext";
 
 const CAMERA_NAME = "Camera";
 const TARGET_NAME = "body";
@@ -34,6 +35,11 @@ export interface SceneVisualOverrides {
   showGridFloor?: boolean;
   gridFloorOpacity?: number;
   gridFloorY?: number;
+  showFog?: boolean;
+  fogColor?: string | THREE.Color;
+  fogNear?: number;
+  fogFar?: number;
+  fogAmount?: number;
 }
 
 export interface SceneConfig {
@@ -68,9 +74,13 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
 }) => {
   const gltf = useGLTF(config.path);
   const { size } = useThree();
+  const { settings } = useSimulation();
   const groupRef = useRef<THREE.Group>(null);
   const { actions, mixer } = useAnimations(gltf.animations, groupRef);
   const cameraReadyRef = useRef(false);
+
+  // Track original properties of Simon's bodypart materials to restore on unmount
+  const originalBodypartPropsRef = useRef<Map<THREE.Material, { transparent: boolean; opacity: number }>>(new Map());
 
   // Find the active mixamo action name
   const activeMixamoActionName = useMemo(() => {
@@ -95,11 +105,12 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     return max || 1;
   }, [gltf.animations, activeMixamoActionName]);
 
-  // Separate meshes: city meshes, target meshes, and Simon glowing meshes
-  const { cityMeshes, targetMeshes, simonGlowMeshes } = useMemo(() => {
+  // Separate meshes: city meshes, target meshes, Simon glowing meshes, and Simon bodypart meshes
+  const { cityMeshes, targetMeshes, simonGlowMeshes, simonBodypartMeshes } = useMemo(() => {
     const city: THREE.Mesh[] = [];
     const target: THREE.Mesh[] = [];
     const simonGlow: THREE.Mesh[] = [];
+    const simonBodypart: THREE.Mesh[] = [];
 
     gltf.scene.updateMatrixWorld(true);
     gltf.scene.traverse((child) => {
@@ -156,12 +167,20 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
             // Keep bodypart visible with its original materials
             child.visible = true;
             child.frustumCulled = false;
+            simonBodypart.push(child);
           } else {
             // Add other parts to glowing meshes
             simonGlow.push(child);
             child.visible = false; // Hidden initially, SimonGlowSystem will apply material & make visible
             child.frustumCulled = false;
           }
+          return;
+        }
+
+        // Hide GLTF floor/ground plane meshes if showGridFloor is turned off
+        const isFloorMesh = child.name.toLowerCase().includes("plane");
+        if (isFloorMesh && !settings.showGridFloor) {
+          child.visible = false;
           return;
         }
 
@@ -188,9 +207,9 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       }
     });
 
-    console.log(`[SceneSlot ${sceneIndex}] Separated: ${city.length} city meshes, ${target.length} target meshes, ${simonGlow.length} simon glow meshes`);
-    return { cityMeshes: city, targetMeshes: target, simonGlowMeshes: simonGlow };
-  }, [gltf, config.hasParticleTarget, sceneIndex]);
+    console.log(`[SceneSlot ${sceneIndex}] Separated: ${city.length} city meshes, ${target.length} target meshes, ${simonGlow.length} simon glow meshes, ${simonBodypart.length} simon bodypart meshes`);
+    return { cityMeshes: city, targetMeshes: target, simonGlowMeshes: simonGlow, simonBodypartMeshes: simonBodypart };
+  }, [gltf, config.hasParticleTarget, sceneIndex, settings.showGridFloor]);
 
   // Report target meshes to parent (for ModelParticleSystem)
   useEffect(() => {
@@ -198,6 +217,33 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       onTargetMeshes(targetMeshes);
     }
   }, [targetMeshes, onTargetMeshes]);
+
+  // Enable transparency on Simon's bodypart meshes on mount, restore on unmount
+  useEffect(() => {
+    simonBodypartMeshes.forEach((mesh) => {
+      if (mesh.material) {
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        materials.forEach((mat) => {
+          if (!originalBodypartPropsRef.current.has(mat)) {
+            originalBodypartPropsRef.current.set(mat, {
+              transparent: mat.transparent,
+              opacity: mat.opacity,
+            });
+          }
+          mat.transparent = true;
+          mat.depthWrite = true;
+        });
+      }
+    });
+
+    return () => {
+      originalBodypartPropsRef.current.forEach((props, mat) => {
+        mat.transparent = props.transparent;
+        mat.opacity = props.opacity;
+      });
+      originalBodypartPropsRef.current.clear();
+    };
+  }, [simonBodypartMeshes]);
 
   // Find and set up the camera
   useEffect(() => {
@@ -293,6 +339,34 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     });
 
     if (mixer) mixer.update(0);
+
+    // Dynamic linear fog opacity fade for Simon's bodypart meshes
+    simonBodypartMeshes.forEach((mesh) => {
+      if (!mesh.material) return;
+
+      const worldPos = new THREE.Vector3();
+      mesh.getWorldPosition(worldPos);
+      
+      const viewSpacePos = worldPos.clone().applyMatrix4(state.camera.matrixWorldInverse);
+      const depth = -viewSpacePos.z;
+
+      const showFogVal = glUserData.sceneVisuals?.showFog !== undefined ? glUserData.sceneVisuals.showFog : settings.showFog;
+      const fogNearVal = glUserData.sceneVisuals?.fogNear !== undefined ? glUserData.sceneVisuals.fogNear : settings.fogNear;
+      const fogFarVal = glUserData.sceneVisuals?.fogFar !== undefined ? glUserData.sceneVisuals.fogFar : settings.fogFar;
+      const fogAmountVal = glUserData.sceneVisuals?.fogAmount !== undefined ? glUserData.sceneVisuals.fogAmount : settings.fogAmount;
+
+      let opacity = 1.0;
+      if (showFogVal) {
+        const fogFactor = THREE.MathUtils.clamp((fogFarVal - depth) / Math.max(fogFarVal - fogNearVal, 0.0001), 0.0, 1.0);
+        const fogMix = fogAmountVal * (1.0 - fogFactor);
+        opacity = 1.0 - fogMix;
+      }
+
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      materials.forEach((mat) => {
+        mat.opacity = opacity;
+      });
+    });
 
     // Keep camera aspect ratio up to date
     if (cameraReadyRef.current) {

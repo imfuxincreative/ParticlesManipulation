@@ -24,6 +24,11 @@ export const CityXRayShader = {
     uHazeColor: { value: new THREE.Color(0x0b0c10) },
     uDepthLimit: { value: 200.0 },
     uFadeZone: { value: 30.0 },
+    uShowFog: { value: 1.0 },
+    uFogColor: { value: new THREE.Color(0x0b0c10) },
+    uFogNear: { value: 15.0 },
+    uFogFar: { value: 80.0 },
+    uFogAmount: { value: 1.0 },
     uGlitchActive: { value: 0.0 },
     uGlitchSeed: { value: 0.0 },
     uTransitionProgress: { value: 0.0 },
@@ -92,6 +97,12 @@ export const CityXRayShader = {
     uniform vec3 uHazeColor;
     uniform float uDepthLimit;
     uniform float uFadeZone;
+
+    uniform float uShowFog;
+    uniform vec3 uFogColor;
+    uniform float uFogNear;
+    uniform float uFogFar;
+    uniform float uFogAmount;
 
     uniform float uGlitchActive;
     uniform float uGlitchSeed;
@@ -228,6 +239,12 @@ export const CityXRayShader = {
       // Blend with thick white fog at the boundary to create cloud cover
       vec3 cloudColor = mix(uHazeColor, vec3(0.95, 0.95, 0.98), 0.4);
       baseHologramColor = mix(cloudColor, baseHologramColor, alphaWipe);
+
+      // Apply environmental fog (depth-based fading)
+      float fogFactor = clamp((uFogFar - vDepth) / max(uFogFar - uFogNear, 0.0001), 0.0, 1.0);
+      float fogMix = uShowFog * uFogAmount * (1.0 - fogFactor);
+      baseHologramColor = mix(baseHologramColor, uFogColor, fogMix);
+      finalAlpha = mix(finalAlpha, 0.0, fogMix);
 
       if (finalAlpha < 0.01) discard;
 

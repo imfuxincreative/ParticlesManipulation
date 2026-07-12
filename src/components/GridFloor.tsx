@@ -44,6 +44,13 @@ export const GridFloor: React.FC<GridFloorProps> = ({ projectionBounds }) => {
     u.uBaseColor.value.set(settings.xrayBaseColor || "#888888");
     u.uFillOpacity.value = settings.gridFloorFillOpacity ?? 0.15;
 
+    // Sync fog settings
+    if (u.uShowFog) u.uShowFog.value = settings.showFog ? 1.0 : 0.0;
+    if (u.uFogColor) u.uFogColor.value.set(settings.fogColor);
+    if (u.uFogNear) u.uFogNear.value = settings.fogNear;
+    if (u.uFogFar) u.uFogFar.value = settings.fogFar;
+    if (u.uFogAmount) u.uFogAmount.value = settings.fogAmount;
+
     // Sync sweep boundaries
     if (projectionBounds) {
       u.uMinProj.value = projectionBounds.min;
@@ -84,9 +91,29 @@ export const GridFloor: React.FC<GridFloorProps> = ({ projectionBounds }) => {
     const burnOut = 0.0;
     if (u.uBurnOut) u.uBurnOut.value = burnOut;
 
-    // Floor opacity remains fully dependent on settings.gridFloorOpacity;
-    // depth limits in the shader handle localized fade-out around the camera.
-    u.uOpacity.value = settings.gridFloorOpacity ?? 0.35;
+    // Apply scroll overrides and fog overrides in the frame loop
+    const glUserData = (state.gl as any).userData || {};
+    const vis = glUserData.sceneVisuals || {};
+
+    const borderGlowColor = vis.xrayBorderColor ?? settings.xrayBorderColor;
+    const baseFillColor = vis.xrayBaseColor ?? settings.xrayBaseColor;
+    const lineOpacity = vis.gridFloorOpacity ?? settings.gridFloorOpacity ?? 0.35;
+
+    u.uColor.value.set(borderGlowColor || "#e91e63");
+    u.uBaseColor.value.set(baseFillColor || "#888888");
+    u.uOpacity.value = lineOpacity;
+
+    const showFogVal = vis.showFog !== undefined ? vis.showFog : settings.showFog;
+    const fogColorVal = vis.fogColor ?? settings.fogColor;
+    const fogNearVal = vis.fogNear !== undefined ? vis.fogNear : settings.fogNear;
+    const fogFarVal = vis.fogFar !== undefined ? vis.fogFar : settings.fogFar;
+    const fogAmountVal = vis.fogAmount !== undefined ? vis.fogAmount : settings.fogAmount;
+
+    if (u.uShowFog) u.uShowFog.value = showFogVal ? 1.0 : 0.0;
+    if (u.uFogColor) u.uFogColor.value.set(fogColorVal);
+    if (u.uFogNear) u.uFogNear.value = fogNearVal;
+    if (u.uFogFar) u.uFogFar.value = fogFarVal;
+    if (u.uFogAmount) u.uFogAmount.value = fogAmountVal;
   });
 
   return (

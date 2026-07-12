@@ -567,6 +567,11 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       uFlowFrequency: { value: 0.15 },
       uGlowIntensity: { value: 1.0 },
       uScrollProgress: { value: 0.0 },
+      uShowFog: { value: settings.showFog ? 1.0 : 0.0 },
+      uFogColor: { value: new THREE.Color(settings.fogColor) },
+      uFogNear: { value: settings.fogNear },
+      uFogFar: { value: settings.fogFar },
+      uFogAmount: { value: settings.fogAmount },
     };
   }, []);
 
@@ -589,6 +594,12 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     if (u.uPrimaryColor) u.uPrimaryColor.value.set(settings.xrayBorderColor || "#e91e63");
     if (u.uParticleDefaultColor) u.uParticleDefaultColor.value.set(settings.particleDefaultColor || "#8d8d8d");
     if (u.uGlowIntensity) u.uGlowIntensity.value = 1.0;
+    
+    if (u.uShowFog) u.uShowFog.value = settings.showFog ? 1.0 : 0.0;
+    if (u.uFogColor) u.uFogColor.value.set(settings.fogColor);
+    if (u.uFogNear) u.uFogNear.value = settings.fogNear;
+    if (u.uFogFar) u.uFogFar.value = settings.fogFar;
+    if (u.uFogAmount) u.uFogAmount.value = settings.fogAmount;
   }, [settings]);
 
   // ─── Autonomous Rapid-Fire Glitch Burst Scheduler ───
@@ -683,6 +694,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
   useFrame((state) => {
     // Write background glitch parameters to shared renderer state
     const glUserData = (state.gl as any).userData || {};
+    const vis = glUserData.sceneVisuals || {};
     glUserData.autoBgGlitchActive = bgGlitchStrengthRef.current;
     glUserData.autoBgGlitchSeed = bgGlitchSeedRef.current;
     const transitionProgress = glUserData.transitionProgress ?? 0.0;
@@ -738,6 +750,19 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         isGlitchActive ? 0.35 : 0.12
       );
       materialRef.current.uniforms.uGlitchStrength.value = glitchStrengthRef.current;
+
+      // Sync fog overrides for main particle system
+      const showFogVal = vis.showFog !== undefined ? vis.showFog : settings.showFog;
+      const fogColorVal = vis.fogColor ?? settings.fogColor;
+      const fogNearVal = vis.fogNear !== undefined ? vis.fogNear : settings.fogNear;
+      const fogFarVal = vis.fogFar !== undefined ? vis.fogFar : settings.fogFar;
+      const fogAmountVal = vis.fogAmount !== undefined ? vis.fogAmount : settings.fogAmount;
+
+      if (materialRef.current.uniforms.uShowFog) materialRef.current.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
+      if (materialRef.current.uniforms.uFogColor) materialRef.current.uniforms.uFogColor.value.set(fogColorVal);
+      if (materialRef.current.uniforms.uFogNear) materialRef.current.uniforms.uFogNear.value = fogNearVal;
+      if (materialRef.current.uniforms.uFogFar) materialRef.current.uniforms.uFogFar.value = fogFarVal;
+      if (materialRef.current.uniforms.uFogAmount) materialRef.current.uniforms.uFogAmount.value = fogAmountVal;
     }
 
     // Update Solid Model Uniforms and Raycasting
@@ -764,6 +789,25 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       solidLineMaterial.uniforms.uBurnOut.value = 0.0;
       solidLineMaterial.uniforms.uClipY.value = clipY;
       solidLineMaterial.uniforms.uClipSide.value = clipSide;
+
+      // Sync fog overrides for solid models and their edges
+      const showFogVal = vis.showFog !== undefined ? vis.showFog : settings.showFog;
+      const fogColorVal = vis.fogColor ?? settings.fogColor;
+      const fogNearVal = vis.fogNear !== undefined ? vis.fogNear : settings.fogNear;
+      const fogFarVal = vis.fogFar !== undefined ? vis.fogFar : settings.fogFar;
+      const fogAmountVal = vis.fogAmount !== undefined ? vis.fogAmount : settings.fogAmount;
+
+      if (solidMaterial.uniforms.uShowFog) solidMaterial.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
+      if (solidMaterial.uniforms.uFogColor) solidMaterial.uniforms.uFogColor.value.set(fogColorVal);
+      if (solidMaterial.uniforms.uFogNear) solidMaterial.uniforms.uFogNear.value = fogNearVal;
+      if (solidMaterial.uniforms.uFogFar) solidMaterial.uniforms.uFogFar.value = fogFarVal;
+      if (solidMaterial.uniforms.uFogAmount) solidMaterial.uniforms.uFogAmount.value = fogAmountVal;
+
+      if (solidLineMaterial.uniforms.uShowFog) solidLineMaterial.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
+      if (solidLineMaterial.uniforms.uFogColor) solidLineMaterial.uniforms.uFogColor.value.set(fogColorVal);
+      if (solidLineMaterial.uniforms.uFogNear) solidLineMaterial.uniforms.uFogNear.value = fogNearVal;
+      if (solidLineMaterial.uniforms.uFogFar) solidLineMaterial.uniforms.uFogFar.value = fogFarVal;
+      if (solidLineMaterial.uniforms.uFogAmount) solidLineMaterial.uniforms.uFogAmount.value = fogAmountVal;
 
       if (projectionBoundsRef.current) {
         solidMaterial.uniforms.uMinProj.value = projectionBoundsRef.current.min;
@@ -1066,6 +1110,19 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       boxLineMaterial.uniforms.uOpacity.value = (settings.xrayBorderOpacity ?? 0.5) * (1.0 - transitionProgress);
       boxLineMaterial.uniforms.uClipY.value = clipY;
       boxLineMaterial.uniforms.uClipSide.value = clipSide;
+
+      // Sync fog overrides for the bounding box line segments
+      const showFogVal = vis.showFog !== undefined ? vis.showFog : settings.showFog;
+      const fogColorVal = vis.fogColor ?? settings.fogColor;
+      const fogNearVal = vis.fogNear !== undefined ? vis.fogNear : settings.fogNear;
+      const fogFarVal = vis.fogFar !== undefined ? vis.fogFar : settings.fogFar;
+      const fogAmountVal = vis.fogAmount !== undefined ? vis.fogAmount : settings.fogAmount;
+
+      if (boxLineMaterial.uniforms.uShowFog) boxLineMaterial.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
+      if (boxLineMaterial.uniforms.uFogColor) boxLineMaterial.uniforms.uFogColor.value.set(fogColorVal);
+      if (boxLineMaterial.uniforms.uFogNear) boxLineMaterial.uniforms.uFogNear.value = fogNearVal;
+      if (boxLineMaterial.uniforms.uFogFar) boxLineMaterial.uniforms.uFogFar.value = fogFarVal;
+      if (boxLineMaterial.uniforms.uFogAmount) boxLineMaterial.uniforms.uFogAmount.value = fogAmountVal;
     }
 
     if (lineMaterialRef.current) {

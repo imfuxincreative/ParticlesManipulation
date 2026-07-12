@@ -2,6 +2,7 @@
 
 import React, { useMemo, useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
+import { useScroll, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
 import { SkyShader } from "@/shaders/skyShader";
@@ -11,6 +12,8 @@ export const SkyDome: React.FC = () => {
   const { camera } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+
+  const gltf = useGLTF("/SCENE.glb");
 
   // Clone uniforms structure
   const uniforms = useMemo(() => {
@@ -29,6 +32,21 @@ export const SkyDome: React.FC = () => {
     }
   }, [settings.skyColor, settings.skyExposure, settings.skyHorizonRange]);
 
+  // Compute max animation duration for this scene (based on SCENE.glb camera action)
+  const maxDuration = useMemo(() => {
+    if (!gltf) return 1;
+    let max = 0;
+    const activeMixamoActionName = "mixamo.com.003";
+    gltf.animations.forEach((clip) => {
+      const name = clip.name;
+      if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) return;
+      max = Math.max(max, clip.duration);
+    });
+    return max || 1;
+  }, [gltf]);
+
+  const scrollData = useScroll();
+
   // Centering Sky Dome on the camera every frame
   useFrame((state) => {
     if (meshRef.current && camera) {
@@ -36,14 +54,31 @@ export const SkyDome: React.FC = () => {
       meshRef.current.position.copy(camera.position);
     }
     
-    // --- Scroll Burnout Calculation ---
-    if (materialRef.current) {
+    // --- Scroll Burnout and Exposure Calculation ---
+    if (materialRef.current && scrollData) {
       const u = materialRef.current.uniforms;
       u.uTime.value = state.clock.elapsedTime;
+
+      // Compute current animation frame based on Scene 0 scroll progress
+      const glUserData = (state.gl as any).userData || {};
+      const scrollNorms: number[] = glUserData.sceneScrollNorms || [];
+      const scrollNorm = scrollNorms[0] ?? 0.0;
+      const globalTime = scrollNorm * maxDuration;
+      const currentFrame = globalTime * 30;
+
+      // Exposure turns to full 0 (black) from frame 1128 to 1195
+      let exposureFactor = 1.0;
+      if (currentFrame >= 1128.0 && currentFrame <= 1195.0) {
+        const progress = (currentFrame - 1128.0) / (1195.0 - 1128.0);
+        exposureFactor = 1.0 - progress;
+      } else if (currentFrame > 1195.0) {
+        exposureFactor = 0.0;
+      }
+
+      u.uExposure.value = (settings.skyExposure ?? 1.0) * exposureFactor;
       
       // Disabled so sky dome doesn't disappear on scroll
-      const burnOut = 0.0;
-      if (u.uBurnOut) u.uBurnOut.value = burnOut;
+      if (u.uBurnOut) u.uBurnOut.value = 0.0;
     }
   });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSimulation, PresetType } from "@/context/SimulationContext";
+import { useSimulation } from "@/context/SimulationContext";
 import {
   Sliders,
   Sparkles,
@@ -11,23 +11,15 @@ import {
 } from "lucide-react";
 
 export const Dashboard: React.FC = () => {
-  const { settings, updateSetting, applyPreset } = useSimulation();
+  const { settings, updateSetting } = useSimulation();
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [activeTab, setActiveTab] = useState<"presets" | "rendering" | "focus">("presets");
+  const [activeTab, setActiveTab] = useState<"rendering" | "focus">("rendering");
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth >= 768) {
       setIsCollapsed(false);
     }
   }, []);
-
-  const presets: { id: PresetType; label: string; desc: string; color: string }[] = [
-    { id: "neon", label: "Neon Haze", desc: "Violet glows and strong noise displacement", color: "bg-purple-500" },
-    { id: "muted", label: "Teal Forest", desc: "Calm green-teal with soft atmosphere", color: "bg-teal-500" },
-    { id: "volcanic", label: "Volcanic Ash", desc: "Intense orange tints and heavy fog", color: "bg-orange-500" },
-    { id: "emerald", label: "Emerald Valley", desc: "Lush green hues and moderate depth", color: "bg-emerald-500" },
-    { id: "monochrome", label: "Monochrome", desc: "Pure grayscale depth visualization", color: "bg-gray-400" },
-  ];
 
   return (
     <div className="fixed inset-0 w-full h-full pointer-events-none select-none z-20 font-sans text-slate-100 flex flex-col justify-between p-6">
@@ -51,13 +43,7 @@ export const Dashboard: React.FC = () => {
             }`}
         >
           {/* Tab Navigation */}
-          <div className="grid grid-cols-3 gap-1 bg-slate-900/80 p-1 rounded-lg border border-white/5 text-xs font-medium text-slate-400">
-            <button
-              onClick={() => setActiveTab("presets")}
-              className={`py-1.5 rounded cursor-pointer transition-all ${activeTab === "presets" ? "bg-purple-600 text-white font-semibold" : "hover:text-slate-200"}`}
-            >
-              Presets
-            </button>
+          <div className="grid grid-cols-2 gap-1 bg-slate-900/80 p-1 rounded-lg border border-white/5 text-xs font-medium text-slate-400">
             <button
               onClick={() => setActiveTab("rendering")}
               className={`py-1.5 rounded cursor-pointer transition-all ${activeTab === "rendering" ? "bg-purple-600 text-white font-semibold" : "hover:text-slate-200"}`}
@@ -71,34 +57,6 @@ export const Dashboard: React.FC = () => {
               Camera
             </button>
           </div>
-
-          {/* TAB 1: PRESETS */}
-          {activeTab === "presets" && (
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Atmospheric Themes</span>
-              </div>
-              <div className="flex flex-col gap-2">
-                {presets.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => applyPreset(p.id)}
-                    className={`w-full text-left p-3 rounded-lg border cursor-pointer transition-all duration-200 ${settings.activePreset === p.id
-                      ? "bg-purple-950/20 border-purple-500 text-white"
-                      : "bg-slate-900/30 border-white/5 text-slate-400 hover:bg-slate-900/60 hover:text-slate-200"
-                      }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`h-2.5 w-2.5 rounded-full ${p.color}`} />
-                      <span className="text-xs font-semibold">{p.label}</span>
-                    </div>
-                    <p className="text-[10px] text-slate-500 font-normal leading-relaxed">{p.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* TAB 2: RENDERING CONFIG */}
           {activeTab === "rendering" && (
@@ -735,6 +693,23 @@ export const Dashboard: React.FC = () => {
                 </p>
               </div>
 
+              {/* Slider: Simon Glow Opacity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">OUTFIT BASE OPACITY</span>
+                  <span className="text-slate-300">{((settings.simonGlowOpacity ?? 0.4) * 100).toFixed(0)}%</span>
+                </div>
+                <input
+                  type="range" min="0.05" max="1.0" step="0.05"
+                  value={settings.simonGlowOpacity ?? 0.4}
+                  onChange={(e) => updateSetting("simonGlowOpacity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal mt-1">
+                  Controls the base transparency of Simon&apos;s outfits when fully revealed.
+                </p>
+              </div>
+
               {/* Slider: Simon Bloom Intensity */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
@@ -906,6 +881,94 @@ export const Dashboard: React.FC = () => {
                       className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
                     />
                     <span className="text-[10px] text-slate-500">Select color</span>
+                  </div>
+                </div>
+              )}
+
+              {/* ENVIRONMENTAL FOG CONFIG */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
+                <Camera className="w-3.5 h-3.5" />
+                <span>Environmental Fog</span>
+              </div>
+
+              {/* Toggle: Show Fog */}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500 font-mono text-[10px]">SHOW DISTANT FOG</span>
+                <button
+                  onClick={() => updateSetting("showFog", !settings.showFog)}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showFog ? "bg-purple-600" : "bg-slate-800"
+                    }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showFog ? "translate-x-4" : "translate-x-0"
+                      }`}
+                  />
+                </button>
+              </div>
+
+              {/* Slider: Fog Near (Start distance) */}
+              {settings.showFog && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">FOG NEAR DISTANCE</span>
+                    <span className="text-slate-300">{settings.fogNear.toFixed(1)}u</span>
+                  </div>
+                  <input
+                    type="range" min="1.0" max="100.0" step="0.5"
+                    value={settings.fogNear}
+                    onChange={(e) => updateSetting("fogNear", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Slider: Fog Far (Full opacity distance) */}
+              {settings.showFog && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">FOG FAR DISTANCE</span>
+                    <span className="text-slate-300">{settings.fogFar.toFixed(0)}u</span>
+                  </div>
+                  <input
+                    type="range" min="10.0" max="300.0" step="1.0"
+                    value={settings.fogFar}
+                    onChange={(e) => updateSetting("fogFar", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Slider: Fog Amount (Density/Strength) */}
+              {settings.showFog && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">FOG MAX DENSITY</span>
+                    <span className="text-slate-300">{(settings.fogAmount * 100).toFixed(0)}%</span>
+                  </div>
+                  <input
+                    type="range" min="0.0" max="1.0" step="0.05"
+                    value={settings.fogAmount}
+                    onChange={(e) => updateSetting("fogAmount", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Color: Fog Color */}
+              {settings.showFog && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">FOG MIST COLOR</span>
+                    <span className="text-slate-300">{settings.fogColor}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={settings.fogColor}
+                      onChange={(e) => updateSetting("fogColor", e.target.value)}
+                      className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                    />
+                    <span className="text-[10px] text-slate-500 font-mono">Select color</span>
                   </div>
                 </div>
               )}

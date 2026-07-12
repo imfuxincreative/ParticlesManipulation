@@ -83,6 +83,7 @@ export const ModelParticleShader = {
     varying float vScatter;
     varying float vPosY;
     varying vec3 vWorldPosition;
+    varying float vCameraDist;
 
     // 2D hash for block grid randomization
     float hash2D(vec2 p, float seed) {
@@ -154,6 +155,7 @@ export const ModelParticleShader = {
 
       // Depth from camera
       float cameraDist = -mvPosition.z;
+      vCameraDist = cameraDist;
 
       // Focus/blur
       float distFromFocus = abs(cameraDist - uFocusDepth);
@@ -241,6 +243,13 @@ export const ModelParticleShader = {
     varying float vScatter;
     varying float vPosY;
     varying vec3 vWorldPosition;
+    varying float vCameraDist;
+
+    uniform float uShowFog;
+    uniform vec3 uFogColor;
+    uniform float uFogNear;
+    uniform float uFogFar;
+    uniform float uFogAmount;
 
     // Simple hash for sparkle noise
     float hash(vec2 p) {
@@ -281,6 +290,12 @@ export const ModelParticleShader = {
 
       // Apply atmospheric haze based on blur (distance from focus)
       color = mix(color, uHazeColor, vBlur * uHazeDensity);
+
+      // Apply environmental fog (depth-based fading for model particles)
+      float fogFactor = clamp((uFogFar - vCameraDist) / max(uFogFar - uFogNear, 0.0001), 0.0, 1.0);
+      float fogMix = uShowFog * uFogAmount * (1.0 - fogFactor);
+      color = mix(color, uFogColor, fogMix);
+      alpha = mix(alpha, 0.0, fogMix);
 
       // --- Scatter Burn Glow ---
       // Particles displaced from rest glow using the primary color

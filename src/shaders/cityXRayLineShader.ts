@@ -7,6 +7,11 @@ export const CityXRayLineShader = {
     uGlowIntensity: { value: 2.5 },
     uDepthLimit: { value: 40.0 },    // Animated reveal radius (lerped in useFrame)
     uFadeZone: { value: 15.0 },      // Width of the fade-out band at the edge
+    uShowFog: { value: 1.0 },
+    uFogColor: { value: new THREE.Color(0x0b0c10) },
+    uFogNear: { value: 15.0 },
+    uFogFar: { value: 80.0 },
+    uFogAmount: { value: 1.0 },
     uTime: { value: 0 },
     uBurnOut: { value: 0.0 },
     uWipeDirection: { value: new THREE.Vector3(1.0, 0.0, 1.0).normalize() },
@@ -60,6 +65,12 @@ export const CityXRayLineShader = {
     uniform float uMaxProj;
     uniform float uClipY;
     uniform float uClipSide;
+
+    uniform float uShowFog;
+    uniform vec3 uFogColor;
+    uniform float uFogNear;
+    uniform float uFogFar;
+    uniform float uFogAmount;
 
     uniform float uGlitchActive;
     uniform float uGlitchSeed;
@@ -152,9 +163,16 @@ export const CityXRayLineShader = {
       
       float finalAlpha = alpha * alphaFactor * alphaWipe;
       
+      // Apply environmental fog (depth-based fading for lines)
+      float fogFactor = clamp((uFogFar - vDepth) / max(uFogFar - uFogNear, 0.0001), 0.0, 1.0);
+      float fogMix = uShowFog * uFogAmount * (1.0 - fogFactor);
+      finalAlpha = mix(finalAlpha, 0.0, fogMix);
+
       if (finalAlpha < 0.01) discard;
       
       vec3 finalColor = uColor * uGlowIntensity;
+      finalColor = mix(finalColor, uFogColor, fogMix);
+
       gl_FragColor = vec4(finalColor, finalAlpha);
     }
   `

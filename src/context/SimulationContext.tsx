@@ -2,8 +2,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
-export type PresetType = "neon" | "muted" | "volcanic" | "monochrome" | "emerald";
-
 export interface SimulationSettings {
   gridSize: 128 | 192 | 256 | 384 | 512 | 768 | 1024 | 1536 | 2048;
   particleDefaultColor: string;
@@ -30,7 +28,6 @@ export interface SimulationSettings {
   models: string[];
   currentModelIndex: number;
   isPlaying: boolean;
-  activePreset: PresetType;
   xrayFillOpacity: number;
   xrayOutlineColor: string;
   xrayBaseColor: string;
@@ -62,87 +59,21 @@ export interface SimulationSettings {
   simonGlowIntensity: number;
   simonBloomIntensity: number;
   simonGlowColor: string;
+  simonGlowOpacity: number;
   titleSize: number;
   titleYOffset: number;
   showWings: boolean;
+  showFog: boolean;
+  fogColor: string;
+  fogNear: number;
+  fogFar: number;
+  fogAmount: number;
 }
-
-const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
-  neon: {
-    hazeColor: "#ff0000ff",
-    tintColor: "#ff0000ff", // Violet
-    tintMix: 0.1, // Drastically reduced to preserve original video color
-    glitchIntensity: 0.2,
-    glitchInterval: 2.0,
-    glitchDuration: 0.3,
-    bgGlitchIntensity: 2.0,
-    bgGlitchInterval: 3.0,
-    bgGlitchDuration: 0.2,
-    noiseStrength: 0.35,
-    noiseSpeed: 0.6,
-    hazeDensity: 0.4,
-    bokehScale: 5.0,
-    skyColor: "#ff007f",
-  },
-  muted: {
-    hazeColor: "#0b0c10",
-    tintColor: "#4fd1c5", // Teal
-    tintMix: 0.1, // Drastically reduced
-    glitchIntensity: 0.0,
-    glitchInterval: 3.0,
-    glitchDuration: 0.2,
-    noiseStrength: 0.2,
-    noiseSpeed: 0.3,
-    hazeDensity: 0.3,
-    bokehScale: 3.5,
-    skyColor: "#00bfa5",
-  },
-  volcanic: {
-    hazeColor: "#0d0505",
-    tintColor: "#f97316", // Orange
-    tintMix: 0.2, // Reduced
-    glitchIntensity: 0.5,
-    glitchInterval: 1.5,
-    glitchDuration: 0.5,
-    noiseStrength: 0.5,
-    noiseSpeed: 0.9,
-    hazeDensity: 0.5,
-    bokehScale: 6.0,
-    skyColor: "#ff5722",
-  },
-  monochrome: {
-    hazeColor: "#0a0a0a",
-    tintColor: "#ffffff", // White
-    tintMix: 0.0,
-    glitchIntensity: 0.1,
-    glitchInterval: 2.5,
-    glitchDuration: 0.3,
-    noiseStrength: 0.15,
-    noiseSpeed: 0.2,
-    hazeDensity: 0.7,
-    bokehScale: 4.0,
-    skyColor: "#555555",
-  },
-  emerald: {
-    hazeColor: "#020804",
-    tintColor: "#10b981", // Emerald
-    tintMix: 0.1,
-    glitchIntensity: 0.0,
-    glitchInterval: 3.0,
-    glitchDuration: 0.2,
-    noiseStrength: 0.3,
-    noiseSpeed: 0.5,
-    hazeDensity: 0.4,
-    bokehScale: 4.5,
-    skyColor: "#00e676",
-  },
-};
 
 interface SimulationContextProps {
   settings: SimulationSettings;
   updateSetting: <K extends keyof SimulationSettings>(key: K, value: SimulationSettings[K]) => void;
   updateSettings: (newSettings: Partial<SimulationSettings>) => void;
-  applyPreset: (preset: PresetType) => void;
 }
 
 const defaultSettings: SimulationSettings = {
@@ -171,7 +102,6 @@ const defaultSettings: SimulationSettings = {
   models: ["/bird.glb", "/figure.glb"],
   currentModelIndex: 0,
   isPlaying: false,
-  activePreset: "neon",
   xrayFillOpacity: 0.15,
   xrayOutlineColor: "#ffffff",
   xrayBaseColor: "#888888",
@@ -181,7 +111,7 @@ const defaultSettings: SimulationSettings = {
   xrayBorderOpacity: 0.5,
   xrayBorderThreshold: 15.0,
   xrayBorderDepthLimit: 20.0,
-  xrayBorderRevealDepth: 1000.0,
+  xrayBorderRevealDepth: 80.0,
   xraySolidRevealDepth: 14.0,
   xrayHoverRadius: 10.0,
   xrayLineGlowIntensity: 2.5,
@@ -196,16 +126,22 @@ const defaultSettings: SimulationSettings = {
   skyExposure: 1.55,
   skyHorizonRange: -1.05,
   wingStartMode: "spine",
-  showWingAnchor: true,
+  showWingAnchor: false,
   wingFlowFrequency: 1.0,
   wingFlowStrength: 0.200,
   wingGlowIntensity: 1.5,
   simonGlowIntensity: 1.2,
   simonBloomIntensity: 0.4,
   simonGlowColor: "#ffffff",
+  simonGlowOpacity: 0.4,
   titleSize: 8.0,
   titleYOffset: -0.5,
-  showWings: true,
+  showWings: false,
+  showFog: true,
+  fogColor: "#ffffff",
+  fogNear: 100.0,
+  fogFar: 600.0,
+  fogAmount: 1.0,
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);
@@ -230,21 +166,12 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setSettings((prev) => ({ ...prev, ...newSettings }));
   }, []);
 
-  const applyPreset = useCallback((preset: PresetType) => {
-    setSettings((prev) => ({
-      ...prev,
-      ...PRESETS[preset],
-      activePreset: preset,
-    }));
-  }, []);
-
   return (
     <SimulationContext.Provider
       value={{
         settings,
         updateSetting,
         updateSettings,
-        applyPreset,
       }}
     >
       {children}
