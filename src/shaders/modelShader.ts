@@ -286,22 +286,8 @@ export const ModelParticleShader = {
       // Particles displaced from rest glow using the primary color
       float s = max(vScatter, uBurnProgress);
       if (s > 0.01) {
-        // Create a glow gradient based on uPrimaryColor
-        vec3 emberLow = uPrimaryColor * 0.3;      // Darker core
-        vec3 emberMid = uPrimaryColor * 0.8;      // Base primary color
-        vec3 emberHigh = mix(uPrimaryColor, vec3(1.0), 0.5); // Whitish primary
-        vec3 emberWhite = vec3(1.0, 1.0, 0.95);   // White-hot
-        
-        vec3 emberColor;
-        if (s < 0.25) {
-          emberColor = mix(color, emberLow, s * 4.0);
-        } else if (s < 0.5) {
-          emberColor = mix(emberLow, emberMid, (s - 0.25) * 4.0);
-        } else if (s < 0.75) {
-          emberColor = mix(emberMid, emberHigh, (s - 0.5) * 4.0);
-        } else {
-          emberColor = mix(emberHigh, emberWhite, (s - 0.75) * 4.0);
-        }
+        // Direct transition from base color (white) to primary color to avoid grayish intermediate values.
+        vec3 emberColor = mix(color, uPrimaryColor, clamp(s, 0.0, 1.0));
         
         color = emberColor;
         // Additive bloom using primary color

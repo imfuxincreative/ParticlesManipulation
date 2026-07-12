@@ -627,6 +627,21 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
 
+              {/* Toggle: Show Wing System */}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500 font-mono text-[10px]">SHOW WING SYSTEM</span>
+                <button
+                  onClick={() => updateSetting("showWings", !settings.showWings)}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showWings ? "bg-purple-600" : "bg-slate-800"
+                    }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showWings ? "translate-x-4" : "translate-x-0"
+                      }`}
+                  />
+                </button>
+              </div>
+
               {/* Slider: Wing Flow Frequency / Detail */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
@@ -665,6 +680,34 @@ export const Dashboard: React.FC = () => {
                   type="range" min="1.0" max="5.0" step="0.1"
                   value={settings.wingGlowIntensity ?? 1.5}
                   onChange={(e) => updateSetting("wingGlowIntensity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Title Size */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">TITLE SIZE</span>
+                  <span className="text-slate-300">{(settings.titleSize ?? 8.0).toFixed(1)}u</span>
+                </div>
+                <input
+                  type="range" min="1.0" max="40.0" step="0.5"
+                  value={settings.titleSize ?? 8.0}
+                  onChange={(e) => updateSetting("titleSize", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Title Y Offset */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">TITLE Y OFFSET</span>
+                  <span className="text-slate-300">{(settings.titleYOffset ?? -3.5).toFixed(2)}u</span>
+                </div>
+                <input
+                  type="range" min="-3.0" max="3.0" step="0.1"
+                  value={settings.titleYOffset ?? -0.5}
+                  onChange={(e) => updateSetting("titleYOffset", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
               </div>

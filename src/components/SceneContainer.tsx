@@ -89,9 +89,14 @@ const WebGLFallback: React.FC = () => (
 export const SceneContainer: React.FC = () => {
   const { settings } = useSimulation();
   const [webglAvailable, setWebglAvailable] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setWebglAvailable(isWebGLAvailable());
+    const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    const isSmallScreen = window.innerWidth <= 768;
+    setIsMobile(isMobileUA || isSmallScreen);
   }, []);
 
   if (!webglAvailable) {
@@ -108,8 +113,9 @@ export const SceneContainer: React.FC = () => {
             near: 0.1,
             far: 100,
           }}
+          dpr={isMobile ? 1.2 : [1, 1.5]}
           gl={{
-            antialias: true,
+            antialias: !isMobile,
             powerPreference: "high-performance",
           }}
           onCreated={({ gl }) => {

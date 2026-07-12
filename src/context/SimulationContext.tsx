@@ -62,6 +62,9 @@ export interface SimulationSettings {
   simonGlowIntensity: number;
   simonBloomIntensity: number;
   simonGlowColor: string;
+  titleSize: number;
+  titleYOffset: number;
+  showWings: boolean;
 }
 
 const PRESETS: Record<PresetType, Partial<SimulationSettings>> = {
@@ -200,6 +203,9 @@ const defaultSettings: SimulationSettings = {
   simonGlowIntensity: 1.2,
   simonBloomIntensity: 0.4,
   simonGlowColor: "#ffffff",
+  titleSize: 8.0,
+  titleYOffset: -0.5,
+  showWings: true,
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);
@@ -210,6 +216,15 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const updateSetting = useCallback(<K extends keyof SimulationSettings>(key: K, value: SimulationSettings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   }, []);
+
+  useEffect(() => {
+    const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    const isSmallScreen = typeof window !== "undefined" && window.innerWidth <= 768;
+    if (isMobileUA || isSmallScreen) {
+      updateSetting("gridSize", 192);
+    }
+  }, [updateSetting]);
 
   const updateSettings = useCallback((newSettings: Partial<SimulationSettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));

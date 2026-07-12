@@ -474,6 +474,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
   // Create a mutable reference for positions for the GPU buffer (physics writes into this)
   const dynamicPositionsRef = useRef<Float32Array>(new Float32Array(0));
+  const framesToSimulateRef = useRef(120);
 
   // Initialize physics arrays when rest positions change
   useEffect(() => {
@@ -488,6 +489,10 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       dynamicPositionsRef.current = new Float32Array(centeredPositions);
       scatterAmountsRef.current = new Float32Array(centeredPositions.length / 3).fill(0);
       physicsReady.current = true;
+      framesToSimulateRef.current = 120;
+    } else {
+      // Morphing transition between models: budget 180 frames (3 seconds) to morph fully
+      framesToSimulateRef.current = 180;
     }
     // If physics is already ready, DO NOT overwrite dynamicPositionsRef.
     // The easing physics will automatically morph particles to the new rest positions!
@@ -903,90 +908,118 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       const isSwiping = isHovering && pointerDelta > 0.001 && settings.currentModelIndex !== 2;
       const currentImpulseStr = settings.currentModelIndex === 2 ? 0.0 : scaledImpulse * (pointerDelta * 50.0); // Scale by swipe speed
 
-      for (let i = 0; i < count; i++) {
-        const ix = i * 3;
-        const iy = ix + 1;
-        const iz = ix + 2;
-
-        const px = posArr[ix], py = posArr[iy], pz = posArr[iz];
-
-        // ── Scatter impulse (only when hovering the box AND swiping) ──
-        if (isSwiping) {
-          // Closest point on ray to this particle
-          const tvx = px - rx, tvy = py - ry, tvz = pz - rz;
-          const t = Math.max(0, tvx * rdx + tvy * rdy + tvz * rdz);
-          const cpx = rx + rdx * t, cpy = ry + rdy * t, cpz = rz + rdz * t;
-
-          const dfx = px - cpx, dfy = py - cpy, dfz = pz - cpz;
-          const dist2 = dfx * dfx + dfy * dfy + dfz * dfz;
-
-          if (dist2 < scaledRadius2 && dist2 > 0.0001) {
-            const dist = Math.sqrt(dist2);
-            const pushFactor = (1.0 - dist / scaledRadius);
-
-            // Softer falloff for wider visible effect
-            const pushMag = Math.pow(pushFactor, 2.0) * currentImpulseStr * 3.0;
-
-            // Fast pseudo-random variation based on index to prevent perfect rings
-            const noise = (Math.sin(ix * 12.9898 + iy * 78.233) * 43758.5453) % 1;
-            const randVar = 0.5 + Math.abs(noise) * 1.5; // 0.5 to 2.0
-
-            const invDist = 1.0 / dist;
-
-            // Blend radial outward push (30%) with directional swipe drag (70%)
-            const radialMag = pushMag * 0.3 * randVar;
-            const dragMag = pushMag * 0.7 * randVar;
-
-            vel[ix] += (dfx * invDist * radialMag) + (localSwipeDx * dragMag);
-            vel[iy] += (dfy * invDist * radialMag) + (localSwipeDy * dragMag);
-            vel[iz] += (dfz * invDist * radialMag) + (localSwipeDz * dragMag) + ((noise - 0.5) * dragMag * 0.2); // random Z drag
-          }
-        }
-
-        // ── Damping (friction) kills the swipe momentum quickly ──
-        vel[ix] *= DAMPING;
-        vel[iy] *= DAMPING;
-        vel[iz] *= DAMPING;
-
-        // ── Update position with velocity ──
-        let newX = px + vel[ix];
-        let newY = py + vel[iy];
-        let newZ = pz + vel[iz];
-
-        // ── Pure Ease-Out back to rest (No elasticity/bounce) ──
-        newX += (rest[ix] - newX) * EASE;
-        newY += (rest[iy] - newY) * EASE;
-        newZ += (rest[iz] - newZ) * EASE;
-
-        posArr[ix] = newX;
-        posArr[iy] = newY;
-        posArr[iz] = newZ;
-
-        // ── Clamp within bounding box + bounce ──
-        if (posArr[ix] < bcx - hx) { posArr[ix] = bcx - hx; vel[ix] *= -0.3; }
-        else if (posArr[ix] > bcx + hx) { posArr[ix] = bcx + hx; vel[ix] *= -0.3; }
-        if (posArr[iy] < bcy - hy) { posArr[iy] = bcy - hy; vel[iy] *= -0.3; }
-        else if (posArr[iy] > bcy + hy) { posArr[iy] = bcy + hy; vel[iy] *= -0.3; }
-        if (posArr[iz] < bcz - hz) { posArr[iz] = bcz - hz; vel[iz] *= -0.3; }
-        else if (posArr[iz] > bcz + hz) { posArr[iz] = bcz + hz; vel[iz] *= -0.3; }
-
-        // ── Compute scatter displacement for glow ──
-        const dx = posArr[ix] - rest[ix];
-        const dy = posArr[iy] - rest[iy];
-        const dz = posArr[iz] - rest[iz];
-        const displacement = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        // Normalize to 0..1 range (saturate at ~2 units displacement)
-        scatterAmountsRef.current[i] = Math.min(displacement / 2.0, 1.0);
+      if (isSwiping) {
+        framesToSimulateRef.current = 120;
       }
 
-      // Upload modified positions to GPU
-      const posAttr = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute;
-      posAttr.needsUpdate = true;
+      if (framesToSimulateRef.current > 0) {
+        for (let i = 0; i < count; i++) {
+          const ix = i * 3;
+          const iy = ix + 1;
+          const iz = ix + 2;
 
-      // Upload scatter amounts to GPU
-      const scatterAttr = pointsRef.current.geometry.attributes.aScatter as THREE.BufferAttribute;
-      if (scatterAttr) {
-        scatterAttr.needsUpdate = true;
+          const px = posArr[ix], py = posArr[iy], pz = posArr[iz];
+
+          // ── Scatter impulse (only when hovering the box AND swiping) ──
+          if (isSwiping) {
+            // Closest point on ray to this particle
+            const tvx = px - rx, tvy = py - ry, tvz = pz - rz;
+            const t = Math.max(0, tvx * rdx + tvy * rdy + tvz * rdz);
+            const cpx = rx + rdx * t, cpy = ry + rdy * t, cpz = rz + rdz * t;
+
+            const dfx = px - cpx, dfy = py - cpy, dfz = pz - cpz;
+            const dist2 = dfx * dfx + dfy * dfy + dfz * dfz;
+
+            if (dist2 < scaledRadius2 && dist2 > 0.0001) {
+              const dist = Math.sqrt(dist2);
+              const pushFactor = (1.0 - dist / scaledRadius);
+
+              // Softer falloff for wider visible effect
+              const pushMag = Math.pow(pushFactor, 2.0) * currentImpulseStr * 3.0;
+
+              // Fast pseudo-random variation based on index to prevent perfect rings
+              const noise = (Math.sin(ix * 12.9898 + iy * 78.233) * 43758.5453) % 1;
+              const randVar = 0.5 + Math.abs(noise) * 1.5; // 0.5 to 2.0
+
+              const invDist = 1.0 / dist;
+
+              // Blend radial outward push (30%) with directional swipe drag (70%)
+              const radialMag = pushMag * 0.3 * randVar;
+              const dragMag = pushMag * 0.7 * randVar;
+
+              vel[ix] += (dfx * invDist * radialMag) + (localSwipeDx * dragMag);
+              vel[iy] += (dfy * invDist * radialMag) + (localSwipeDy * dragMag);
+              vel[iz] += (dfz * invDist * radialMag) + (localSwipeDz * dragMag) + ((noise - 0.5) * dragMag * 0.2); // random Z drag
+            }
+          }
+
+          // ── Damping (friction) kills the swipe momentum quickly ──
+          vel[ix] *= DAMPING;
+          vel[iy] *= DAMPING;
+          vel[iz] *= DAMPING;
+
+          // ── Update position with velocity ──
+          let newX = px + vel[ix];
+          let newY = py + vel[iy];
+          let newZ = pz + vel[iz];
+
+          // ── Pure Ease-Out back to rest (No elasticity/bounce) ──
+          newX += (rest[ix] - newX) * EASE;
+          newY += (rest[iy] - newY) * EASE;
+          newZ += (rest[iz] - newZ) * EASE;
+
+          posArr[ix] = newX;
+          posArr[iy] = newY;
+          posArr[iz] = newZ;
+
+          // ── Clamp within bounding box + bounce ──
+          if (posArr[ix] < bcx - hx) { posArr[ix] = bcx - hx; vel[ix] *= -0.3; }
+          else if (posArr[ix] > bcx + hx) { posArr[ix] = bcx + hx; vel[ix] *= -0.3; }
+          if (posArr[iy] < bcy - hy) { posArr[iy] = bcy - hy; vel[iy] *= -0.3; }
+          else if (posArr[iy] > bcy + hy) { posArr[iy] = bcy + hy; vel[iy] *= -0.3; }
+          if (posArr[iz] < bcz - hz) { posArr[iz] = bcz - hz; vel[iz] *= -0.3; }
+          else if (posArr[iz] > bcz + hz) { posArr[iz] = bcz + hz; vel[iz] *= -0.3; }
+
+          // ── Compute scatter displacement for glow ──
+          const dx = posArr[ix] - rest[ix];
+          const dy = posArr[iy] - rest[iy];
+          const dz = posArr[iz] - rest[iz];
+          const displacement = Math.sqrt(dx * dx + dy * dy + dz * dz);
+          // Normalize to 0..1 range (saturate at ~2 units displacement)
+          scatterAmountsRef.current[i] = Math.min(displacement / 2.0, 1.0);
+        }
+
+        // Upload modified positions to GPU
+        const posAttr = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute;
+        posAttr.needsUpdate = true;
+
+        // Upload scatter amounts to GPU
+        const scatterAttr = pointsRef.current.geometry.attributes.aScatter as THREE.BufferAttribute;
+        if (scatterAttr) {
+          scatterAttr.needsUpdate = true;
+        }
+
+        framesToSimulateRef.current--;
+
+        // Snap exactly to rest positions when budget ends
+        if (framesToSimulateRef.current === 0) {
+          for (let i = 0; i < count; i++) {
+            const ix = i * 3;
+            const iy = ix + 1;
+            const iz = ix + 2;
+            posArr[ix] = rest[ix];
+            posArr[iy] = rest[iy];
+            posArr[iz] = rest[iz];
+            vel[ix] = 0;
+            vel[iy] = 0;
+            vel[iz] = 0;
+            scatterAmountsRef.current[i] = 0.0;
+          }
+          posAttr.needsUpdate = true;
+          if (scatterAttr) {
+            scatterAttr.needsUpdate = true;
+          }
+        }
       }
     }
 

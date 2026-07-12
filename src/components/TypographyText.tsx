@@ -64,6 +64,82 @@ function triangleArea(
   return ab.cross(ac).length() * 0.5;
 }
 
+/**
+ * Generate 2D particle positions for text drawn on a hidden canvas.
+ */
+function generateTextPositions(
+  text: string,
+  fontName: string,
+  count: number,
+  targetWidth: number
+): Float32Array {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return new Float32Array(count * 3);
+
+  // Clear canvas
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw text
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `bold 160px ${fontName}`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+  // Extract filled pixels
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const pixels: { x: number; y: number }[] = [];
+  for (let y = 0; y < canvas.height; y += 1) {
+    for (let x = 0; x < canvas.width; x += 1) {
+      const idx = (y * canvas.width + x) * 4;
+      const r = imgData.data[idx];
+      if (r > 128) {
+        pixels.push({ x, y });
+      }
+    }
+  }
+
+  const positions = new Float32Array(count * 3);
+  if (pixels.length === 0) {
+    // Fallback if no pixels are drawn
+    for (let i = 0; i < count; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 5.0;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 2.0;
+      positions[i * 3 + 2] = 0;
+    }
+    return positions;
+  }
+
+  // Find bounding box
+  let minX = Infinity, minY = Infinity;
+  let maxX = -Infinity, maxY = -Infinity;
+  pixels.forEach((p) => {
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  });
+
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  const width = maxX - minX;
+
+  const scale = targetWidth / width;
+
+  for (let i = 0; i < count; i++) {
+    const p = pixels[Math.floor(Math.random() * pixels.length)];
+    positions[i * 3] = (p.x - cx) * scale;
+    positions[i * 3 + 1] = -(p.y - cy) * scale; // invert Y since canvas Y goes down
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 0.15; // Z depth thickness
+  }
+
+  return positions;
+}
+
 export const WingParticles: React.FC<WingParticlesProps> = ({
   sceneIndex,
 }) => {
@@ -77,6 +153,14 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
   const pointsRef = useRef<THREE.Points>(null);
   const groupRef = useRef<THREE.Group>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+
+  // --- Text Morphing States & Refs ---
+  const [textPositions, setTextPositions] = useState<Float32Array | null>(null);
+  const textPositionsRef = useRef<Float32Array | null>(null);
+  const spinePos756Ref = useRef<THREE.Vector3 | null>(null);
+  const viewDir756Ref = useRef<THREE.Vector3 | null>(null);
+  const qText756Ref = useRef<THREE.Quaternion | null>(null);
+  const morphProgressRef = useRef(0.0);
 
   // Load the SCENE.glb containing the "wing" node (retrieved from R3F cache instantly)
   const gltf = useGLTF("/SCENE.glb");
@@ -96,6 +180,8 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
   const wingBoxCenterRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
   const prevPointerRef = useRef(new THREE.Vector2(-999, -999));
   const boxRef = useRef<THREE.Mesh>(null);
+  const framesToSimulateRef = useRef(120);
+  const prevScrollNormRef = useRef(0.0);
 
   // ─── Extract and Sample Wing Mesh ───
   useEffect(() => {
@@ -352,10 +438,52 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
     scatterAmountsRef.current = scatterAmts;
 
     setWingReady(true);
+    framesToSimulateRef.current = 120;
     console.log(
       `[WingParticles] Sampled ${PARTICLE_COUNT} points from wing subtree`
     );
   }, [gltf, settings.wingStartMode]);
+
+  // Compute max animation duration for this scene
+  const maxDuration = useMemo(() => {
+    if (!gltf) return 1;
+    let max = 0;
+    const activeMixamoActionName = "mixamo.com.003"; // standard active action
+    gltf.animations.forEach((clip) => {
+      const name = clip.name;
+      if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) return;
+      max = Math.max(max, clip.duration);
+    });
+    return max || 1;
+  }, [gltf]);
+
+  // Load font and generate text positions
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const loadFontAndGenerate = async () => {
+      try {
+        console.log("[WingParticles] Loading font DxBurst-Smooth.otf...");
+        const font = new FontFace("DxBurst", "url(/DxBurst-Smooth.otf)");
+        const loadedFont = await font.load();
+        document.fonts.add(loadedFont);
+        console.log("[WingParticles] Font DxBurst-Smooth.otf loaded successfully");
+        
+        const points = generateTextPositions("Skylr", "DxBurst", PARTICLE_COUNT, settings.titleSize ?? 8.0);
+        setTextPositions(points);
+        textPositionsRef.current = points;
+      } catch (err) {
+        console.error("[WingParticles] Error loading font, falling back to sans-serif:", err);
+        const points = generateTextPositions("Skylr", "sans-serif", PARTICLE_COUNT, settings.titleSize ?? 8.0);
+        setTextPositions(points);
+        textPositionsRef.current = points;
+      }
+    };
+
+    loadFontAndGenerate();
+  }, [settings.titleSize]);
+
+  // Bypassed static pre-calculation to capture spine position dynamically at frame 756
 
   // ─── Shader Uniforms ───
   // Matches ModelParticleSystem: fluid curl-noise flow, same color, same noise
@@ -422,11 +550,15 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
   }, [settings]);
 
   useFrame((state) => {
-    if (!wingReady || !pointsRef.current || !scrollData) return;
+    if (!settings.showWings || !wingReady || !pointsRef.current || !scrollData) return;
 
     const glUserData = (state.gl as any).userData || {};
     const scrollNorms: number[] = glUserData.sceneScrollNorms || [];
     const scrollNorm = scrollNorms[sceneIndex] ?? 0.0;
+
+    const globalTime = scrollNorm * maxDuration;
+    const currentFrame = globalTime * 30;
+    const isTextActive = currentFrame >= 756.0;
 
     // Dynamically sync points group transform matrix with the wing node world matrix.
     // This allows the particles and any anchor meshes to track the skeletal animation of the character perfectly.
@@ -440,6 +572,58 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
       wingNodeRef.current.matrixWorld.decompose(pos, q, s);
       groupRef.current.matrixAutoUpdate = false;
       groupRef.current.matrix.compose(pos, q, new THREE.Vector3(1, 1, 1));
+    }
+
+    // Capture the active spine position dynamically in world space at frame 756
+    if (isTextActive) {
+      if (!spinePos756Ref.current && wingNodeRef.current) {
+        const spinePos = new THREE.Vector3();
+        wingNodeRef.current.getWorldPosition(spinePos);
+        spinePos756Ref.current = spinePos;
+
+        let targetCamera: any = null;
+        gltf.scene.traverse((child) => {
+          if (child.name === "Camera" || (child as any).isCamera) {
+            targetCamera = child;
+          }
+        });
+
+        const camPos = new THREE.Vector3();
+        if (targetCamera) {
+          targetCamera.getWorldPosition(camPos);
+        } else {
+          state.camera.getWorldPosition(camPos);
+        }
+
+        const viewDir = new THREE.Vector3().subVectors(spinePos, camPos);
+        viewDir.y = 0;
+        viewDir.normalize();
+        viewDir756Ref.current = viewDir;
+
+        const zAxis = new THREE.Vector3().copy(viewDir).negate();
+        const yAxis = new THREE.Vector3(0, 1, 0);
+        const xAxis = new THREE.Vector3().crossVectors(yAxis, zAxis).normalize();
+        yAxis.crossVectors(zAxis, xAxis).normalize();
+
+        const rotationMatrix = new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis);
+        const textRotationQuaternion = new THREE.Quaternion().setFromRotationMatrix(rotationMatrix);
+        qText756Ref.current = textRotationQuaternion;
+
+        console.log("[WingParticles] Captured spine position at frame 756 dynamically.");
+      }
+    } else {
+      if (spinePos756Ref.current) {
+        spinePos756Ref.current = null;
+        viewDir756Ref.current = null;
+        qText756Ref.current = null;
+      }
+    }
+
+    // Gradual morph progress interpolation
+    if (isTextActive) {
+      morphProgressRef.current += (1.0 - morphProgressRef.current) * 0.08;
+    } else {
+      morphProgressRef.current += (0.0 - morphProgressRef.current) * 0.08;
     }
 
     // Calculate multi-phase gather and scatter animation state
@@ -469,6 +653,11 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
       // Phase 4: Fully scattered / Hidden (0.0)
       eased = 0.0;
       particleOpacity = 0.0;
+    }
+
+    if (isTextActive) {
+      eased = 1.0;
+      particleOpacity = 1.0;
     }
 
     // Bounding Box size and center
@@ -543,91 +732,179 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
     const DAMPING = 0.85;
     const EASE = 0.08;
 
-    const isSwiping = isHovering && pointerDelta > 0.001;
+    const isSwiping = isHovering && pointerDelta > 0.001 && !isTextActive;
     const currentImpulseStr = impulseStr * (pointerDelta * 50.0);
 
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      const ix = i * 3;
-      const iy = ix + 1;
-      const iz = ix + 2;
+    // If text is active, compute local text positions by combining matrices
+    let localTextPos: Float32Array | null = null;
 
-      const px = dynamic[ix];
-      const py = dynamic[iy];
-      const pz = dynamic[iz];
+    const isScrolling = Math.abs(scrollNorm - prevScrollNormRef.current) > 0.0005;
+    prevScrollNormRef.current = scrollNorm;
 
-      // Dynamic rest position based on gathering progress
-      const rxRest = scattered[ix] + (target[ix] - scattered[ix]) * eased;
-      const ryRest = scattered[iy] + (target[iy] - scattered[iy]) * eased;
-      const rzRest = scattered[iz] + (target[iz] - scattered[iz]) * eased;
+    const isTransitioning = (isTextActive && morphProgressRef.current < 0.995) || (!isTextActive && morphProgressRef.current > 0.005);
 
-      // Apply swipe scatter impulse
-      if (isSwiping) {
-        const tvx = px - rx, tvy = py - ry, tvz = pz - rz;
-        const t = Math.max(0, tvx * rdx + tvy * rdy + tvz * rdz);
-        const cpx = rx + rdx * t, cpy = ry + rdy * t, cpz = rz + rdz * t;
+    if (isScrolling || isSwiping || isTransitioning || isTextActive) {
+      framesToSimulateRef.current = 120;
+    }
 
-        const dfx = px - cpx, dfy = py - cpy, dfz = pz - cpz;
-        const dist2 = dfx * dfx + dfy * dfy + dfz * dfz;
+    if (framesToSimulateRef.current > 0) {
+      if (isTextActive && textPositionsRef.current && spinePos756Ref.current && viewDir756Ref.current && qText756Ref.current && groupRef.current) {
+        // 1. Calculate textCenter with dynamic Y offset
+        const textCenter = new THREE.Vector3()
+          .copy(spinePos756Ref.current)
+          .addScaledVector(viewDir756Ref.current, 3.5);
+        textCenter.y += settings.titleYOffset ?? -0.5;
 
-        if (dist2 < scaledRadius2 && dist2 > 0.0001) {
-          const dist = Math.sqrt(dist2);
-          const pushFactor = (1.0 - dist / scaledRadius);
-          const pushMag = Math.pow(pushFactor, 2.0) * currentImpulseStr * 3.0;
+        // 2. Compose textMatrix
+        const textMatrix = new THREE.Matrix4().compose(
+          textCenter,
+          qText756Ref.current,
+          new THREE.Vector3(1, 1, 1)
+        );
 
-          const noise = (Math.sin(ix * 12.9898 + iy * 78.233) * 43758.5453) % 1;
-          const randVar = 0.5 + Math.abs(noise) * 1.5;
+        // 3. Combine with inverse of points group matrix
+        const invMat = new THREE.Matrix4().copy(groupRef.current.matrix).invert();
+        const combinedMatrix = invMat.multiply(textMatrix);
+        const m = combinedMatrix.elements;
 
-          const invDist = 1.0 / dist;
-          const radialMag = pushMag * 0.3 * randVar;
-          const dragMag = pushMag * 0.7 * randVar;
+        // 4. Apply combined matrix to local text coordinates
+        const count = PARTICLE_COUNT;
+        localTextPos = new Float32Array(count * 3);
+        const textPos = textPositionsRef.current;
 
-          vel[ix] += (dfx * invDist * radialMag) + (localSwipeDx * dragMag);
-          vel[iy] += (dfy * invDist * radialMag) + (localSwipeDy * dragMag);
-          vel[iz] += (dfz * invDist * radialMag) + (localSwipeDz * dragMag) + ((noise - 0.5) * dragMag * 0.2);
+        for (let i = 0; i < count; i++) {
+          const ix = i * 3;
+          const iy = ix + 1;
+          const iz = ix + 2;
+
+          const tx = textPos[ix];
+          const ty = textPos[iy];
+          const tz = textPos[iz];
+
+          localTextPos[ix] = m[0] * tx + m[4] * ty + m[8] * tz + m[12];
+          localTextPos[iy] = m[1] * tx + m[5] * ty + m[9] * tz + m[13];
+          localTextPos[iz] = m[2] * tx + m[6] * ty + m[10] * tz + m[14];
         }
       }
 
-      vel[ix] *= DAMPING;
-      vel[iy] *= DAMPING;
-      vel[iz] *= DAMPING;
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const ix = i * 3;
+        const iy = ix + 1;
+        const iz = ix + 2;
 
-      let newX = px + vel[ix];
-      let newY = py + vel[iy];
-      let newZ = pz + vel[iz];
+        const px = dynamic[ix];
+        const py = dynamic[iy];
+        const pz = dynamic[iz];
 
-      newX += (rxRest - newX) * EASE;
-      newY += (ryRest - newY) * EASE;
-      newZ += (rzRest - newZ) * EASE;
+        // Dynamic rest position based on gathering progress or active text target
+        let rxRest = 0;
+        let ryRest = 0;
+        let rzRest = 0;
 
-      dynamic[ix] = newX;
-      dynamic[iy] = newY;
-      dynamic[iz] = newZ;
+        if (isTextActive && localTextPos) {
+          rxRest = localTextPos[ix];
+          ryRest = localTextPos[iy];
+          rzRest = localTextPos[iz];
+        } else {
+          rxRest = scattered[ix] + (target[ix] - scattered[ix]) * eased;
+          ryRest = scattered[iy] + (target[iy] - scattered[iy]) * eased;
+          rzRest = scattered[iz] + (target[iz] - scattered[iz]) * eased;
+        }
 
-      // Clamp within bounding box + bounce
-      if (dynamic[ix] < bcx - hx) { dynamic[ix] = bcx - hx; vel[ix] *= -0.3; }
-      else if (dynamic[ix] > bcx + hx) { dynamic[ix] = bcx + hx; vel[ix] *= -0.3; }
-      if (dynamic[iy] < bcy - hy) { dynamic[iy] = bcy - hy; vel[iy] *= -0.3; }
-      else if (dynamic[iy] > bcy + hy) { dynamic[iy] = bcy + hy; vel[iy] *= -0.3; }
-      if (dynamic[iz] < bcz - hz) { dynamic[iz] = bcz - hz; vel[iz] *= -0.3; }
-      else if (dynamic[iz] > bcz + hz) { dynamic[iz] = bcz + hz; vel[iz] *= -0.3; }
+        // Apply swipe scatter impulse
+        if (isSwiping) {
+          const tvx = px - rx, tvy = py - ry, tvz = pz - rz;
+          const t = Math.max(0, tvx * rdx + tvy * rdy + tvz * rdz);
+          const cpx = rx + rdx * t, cpy = ry + rdy * t, cpz = rz + rdz * t;
 
-      // Blended scatter amount for glow
-      const gatherGlow = (1 - eased) * 0.5;
-      const dx = dynamic[ix] - rxRest;
-      const dy = dynamic[iy] - ryRest;
-      const dz = dynamic[iz] - rzRest;
-      const displacement = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      const mouseGlow = Math.min(displacement / (2.0 * wingScale), 1.0);
-      scatterAmts[i] = Math.max(gatherGlow, mouseGlow);
+          const dfx = px - cpx, dfy = py - cpy, dfz = pz - cpz;
+          const dist2 = dfx * dfx + dfy * dfy + dfz * dfz;
+
+          if (dist2 < scaledRadius2 && dist2 > 0.0001) {
+            const dist = Math.sqrt(dist2);
+            const pushFactor = (1.0 - dist / scaledRadius);
+            const pushMag = Math.pow(pushFactor, 2.0) * currentImpulseStr * 3.0;
+
+            const noise = (Math.sin(ix * 12.9898 + iy * 78.233) * 43758.5453) % 1;
+            const randVar = 0.5 + Math.abs(noise) * 1.5;
+
+            const invDist = 1.0 / dist;
+            const radialMag = pushMag * 0.3 * randVar;
+            const dragMag = pushMag * 0.7 * randVar;
+
+            vel[ix] += (dfx * invDist * radialMag) + (localSwipeDx * dragMag);
+            vel[iy] += (dfy * invDist * radialMag) + (localSwipeDy * dragMag);
+            vel[iz] += (dfz * invDist * radialMag) + (localSwipeDz * dragMag) + ((noise - 0.5) * dragMag * 0.2);
+          }
+        }
+
+        vel[ix] *= DAMPING;
+        vel[iy] *= DAMPING;
+        vel[iz] *= DAMPING;
+
+        let newX = px + vel[ix];
+        let newY = py + vel[iy];
+        let newZ = pz + vel[iz];
+
+        newX += (rxRest - newX) * EASE;
+        newY += (ryRest - newY) * EASE;
+        newZ += (rzRest - newZ) * EASE;
+
+        dynamic[ix] = newX;
+        dynamic[iy] = newY;
+        dynamic[iz] = newZ;
+
+        // Clamp within bounding box + bounce (only when text is not active)
+        if (!isTextActive) {
+          if (dynamic[ix] < bcx - hx) { dynamic[ix] = bcx - hx; vel[ix] *= -0.3; }
+          else if (dynamic[ix] > bcx + hx) { dynamic[ix] = bcx + hx; vel[ix] *= -0.3; }
+          if (dynamic[iy] < bcy - hy) { dynamic[iy] = bcy - hy; vel[iy] *= -0.3; }
+          else if (dynamic[iy] > bcy + hy) { dynamic[iy] = bcy + hy; vel[iy] *= -0.3; }
+          if (dynamic[iz] < bcz - hz) { dynamic[iz] = bcz - hz; vel[iz] *= -0.3; }
+          else if (dynamic[iz] > bcz + hz) { dynamic[iz] = bcz + hz; vel[iz] *= -0.3; }
+        }
+
+        // Blended scatter amount for glow
+        const gatherGlow = (1 - eased) * 0.5;
+        const dx = dynamic[ix] - rxRest;
+        const dy = dynamic[iy] - ryRest;
+        const dz = dynamic[iz] - rzRest;
+        const displacement = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        const mouseGlow = Math.min(displacement / (2.0 * wingScale), 1.0);
+        scatterAmts[i] = Math.max(gatherGlow, mouseGlow);
+      }
+
+      // Upload positions to GPU
+      const posAttr = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute;
+      posAttr.needsUpdate = true;
+      const scatterAttr = pointsRef.current.geometry.attributes.aScatter as THREE.BufferAttribute;
+      if (scatterAttr) scatterAttr.needsUpdate = true;
+
+      framesToSimulateRef.current--;
+
+      // Final frame cleanup to snap exactly to rest positions when budget ends
+      if (framesToSimulateRef.current === 0) {
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+          const ix = i * 3;
+          const iy = ix + 1;
+          const iz = ix + 2;
+          let rxRest = scattered[ix] + (target[ix] - scattered[ix]) * eased;
+          let ryRest = scattered[iy] + (target[iy] - scattered[iy]) * eased;
+          let rzRest = scattered[iz] + (target[iz] - scattered[iz]) * eased;
+
+          dynamic[ix] = rxRest;
+          dynamic[iy] = ryRest;
+          dynamic[iz] = rzRest;
+          vel[ix] = 0;
+          vel[iy] = 0;
+          vel[iz] = 0;
+        }
+        const gatherGlow = (1 - eased) * 0.5;
+        scatterAmts.fill(gatherGlow);
+        posAttr.needsUpdate = true;
+        if (scatterAttr) scatterAttr.needsUpdate = true;
+      }
     }
-
-    // Upload positions to GPU
-    const posAttr = pointsRef.current.geometry.attributes
-      .position as THREE.BufferAttribute;
-    posAttr.needsUpdate = true;
-    const scatterAttr = pointsRef.current.geometry.attributes
-      .aScatter as THREE.BufferAttribute;
-    if (scatterAttr) scatterAttr.needsUpdate = true;
 
     // Update shader uniforms
     if (materialRef.current) {
@@ -637,6 +914,15 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
       u.uAspect.value = state.viewport.aspect;
       u.uParticleOpacity.value = particleOpacity;
       u.uScrollProgress.value = scrollNorm;
+
+      // Reduce ripple strength to 0 gradually as text forms
+      u.uFlowStrength.value = (1.0 - morphProgressRef.current) * settings.wingFlowStrength;
+
+      // Make base particle color transition to pink (border color) gradually as text forms
+      const defaultCol = new THREE.Color(settings.particleDefaultColor || "#8d8d8d");
+      const borderCol = new THREE.Color(settings.xrayBorderColor || "#e91e63");
+      const blendedCol = new THREE.Color().copy(defaultCol).lerp(borderCol, morphProgressRef.current);
+      u.uParticleDefaultColor.value.copy(blendedCol);
     }
 
     // Toggle visibility based on opacity
@@ -645,7 +931,7 @@ export const WingParticles: React.FC<WingParticlesProps> = ({
 
   return (
     <>
-      <group ref={groupRef}>
+      <group ref={groupRef} visible={settings.showWings}>
         {/* Glowing Anchor Core on the character's back */}
         {wingReady && settings.showWingAnchor && (
           <mesh position={wingCenterRef.current}>
