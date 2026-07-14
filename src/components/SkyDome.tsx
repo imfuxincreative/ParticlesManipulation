@@ -47,11 +47,12 @@ export const SkyDome: React.FC = () => {
 
   const scrollData = useScroll();
 
-  // Centering Sky Dome on the camera every frame
+  // Centering and rotating Sky Dome with the camera every frame
   useFrame((state) => {
     if (meshRef.current && camera) {
-      // Keeps the dome centered on the camera so the camera never leaves it
-      meshRef.current.position.copy(camera.position);
+      // Keeps the dome centered on the camera and aligned with its world orientation
+      camera.getWorldPosition(meshRef.current.position);
+      camera.getWorldQuaternion(meshRef.current.quaternion);
     }
     
     // --- Scroll Burnout and Exposure Calculation ---
@@ -66,16 +67,8 @@ export const SkyDome: React.FC = () => {
       const globalTime = scrollNorm * maxDuration;
       const currentFrame = globalTime * 30;
 
-      // Exposure turns to full 0 (black) from frame 1128 to 1195
-      let exposureFactor = 1.0;
-      if (currentFrame >= 1128.0 && currentFrame <= 1195.0) {
-        const progress = (currentFrame - 1128.0) / (1195.0 - 1128.0);
-        exposureFactor = 1.0 - progress;
-      } else if (currentFrame > 1195.0) {
-        exposureFactor = 0.0;
-      }
-
-      u.uExposure.value = (settings.skyExposure ?? 1.0) * exposureFactor;
+      // Exposure kept as configured in settings (scroll-based fading disabled)
+      u.uExposure.value = settings.skyExposure ?? 1.0;
       
       // Disabled so sky dome doesn't disappear on scroll
       if (u.uBurnOut) u.uBurnOut.value = 0.0;

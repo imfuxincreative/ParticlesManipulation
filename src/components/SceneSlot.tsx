@@ -7,6 +7,7 @@ import * as THREE from "three";
 import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
 import { WingParticles } from "./TypographyText";
 import { SimonGlowSystem } from "./SimonGlowSystem";
+import { GridFloorMeshSystem } from "./GridFloorMeshSystem";
 import { useSimulation } from "@/context/SimulationContext";
 
 const CAMERA_NAME = "Camera";
@@ -105,12 +106,13 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     return max || 1;
   }, [gltf.animations, activeMixamoActionName]);
 
-  // Separate meshes: city meshes, target meshes, Simon glowing meshes, and Simon bodypart meshes
-  const { cityMeshes, targetMeshes, simonGlowMeshes, simonBodypartMeshes } = useMemo(() => {
+  // Separate meshes: city meshes, target meshes, Simon glowing meshes, Simon bodypart meshes, and floor meshes
+  const { cityMeshes, targetMeshes, simonGlowMeshes, simonBodypartMeshes, floorMeshes } = useMemo(() => {
     const city: THREE.Mesh[] = [];
     const target: THREE.Mesh[] = [];
     const simonGlow: THREE.Mesh[] = [];
     const simonBodypart: THREE.Mesh[] = [];
+    const floor: THREE.Mesh[] = [];
 
     gltf.scene.updateMatrixWorld(true);
     gltf.scene.traverse((child) => {
@@ -178,9 +180,15 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
         }
 
         // Hide GLTF floor/ground plane meshes if showGridFloor is turned off
-        const isFloorMesh = child.name.toLowerCase().includes("plane");
+        const isFloorMesh = child.name.toLowerCase().includes("plane") || child.name.toLowerCase().includes("floor");
         if (isFloorMesh && !settings.showGridFloor) {
           child.visible = false;
+          return;
+        }
+
+        if (isFloorMesh) {
+          floor.push(child);
+          child.visible = false; // Rendered by GridFloorMeshSystem
           return;
         }
 
@@ -207,8 +215,8 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       }
     });
 
-    console.log(`[SceneSlot ${sceneIndex}] Separated: ${city.length} city meshes, ${target.length} target meshes, ${simonGlow.length} simon glow meshes, ${simonBodypart.length} simon bodypart meshes`);
-    return { cityMeshes: city, targetMeshes: target, simonGlowMeshes: simonGlow, simonBodypartMeshes: simonBodypart };
+    console.log(`[SceneSlot ${sceneIndex}] Separated: ${city.length} city meshes, ${target.length} target meshes, ${simonGlow.length} simon glow meshes, ${simonBodypart.length} simon bodypart meshes, ${floor.length} floor meshes`);
+    return { cityMeshes: city, targetMeshes: target, simonGlowMeshes: simonGlow, simonBodypartMeshes: simonBodypart, floorMeshes: floor };
   }, [gltf, config.hasParticleTarget, sceneIndex, settings.showGridFloor]);
 
   // Report target meshes to parent (for ModelParticleSystem)
@@ -392,6 +400,13 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       {simonGlowMeshes.length > 0 && (
         <SimonGlowSystem
           meshes={simonGlowMeshes}
+          sceneIndex={sceneIndex}
+        />
+      )}
+      {floorMeshes.length > 0 && settings.showGridFloor && (
+        <GridFloorMeshSystem
+          meshes={floorMeshes}
+          projectionBounds={projectionBounds}
           sceneIndex={sceneIndex}
         />
       )}

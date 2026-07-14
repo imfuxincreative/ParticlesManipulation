@@ -10,12 +10,12 @@ export const SkyShader = {
     uHorizonMin: { value: 0.0 },
   },
   vertexShader: `
-    varying vec3 vWorldPosition;
+    varying vec3 vPosition;
     
     void main() {
+      vPosition = position;
       // Calculate world position
       vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-      vWorldPosition = worldPosition.xyz;
       
       // Make it render infinitely far (independent of camera translation, handled in SkyDome component)
       gl_Position = projectionMatrix * viewMatrix * worldPosition;
@@ -29,7 +29,7 @@ export const SkyShader = {
     uniform vec3 uWipeDirection;
     uniform float uHorizonMin;
     
-    varying vec3 vWorldPosition;
+    varying vec3 vPosition;
 
     // 2D Random hash
     float hash(vec2 p) {
@@ -63,13 +63,13 @@ export const SkyShader = {
     }
     
     void main() {
-      // Direction vector from camera to sky dome fragment
-      vec3 viewDir = normalize(vWorldPosition - cameraPosition);
+      // Direction vector in camera space / local space of the rotated sphere
+      vec3 viewDir = normalize(vPosition);
       
-      // Vertical view direction (-1.0 at nadir, 0.0 at horizon, 1.0 at zenith)
+      // Vertical view direction (-1.0 at bottom of screen, 0.0 at center, 1.0 at top of screen)
       float y = viewDir.y;
       
-      // Pure solid gradient from white (horizon and below) to pink (zenith)
+      // Pure solid gradient from white (bottom and below) to pink (top)
       vec3 zenithColor = uHorizonColor;
       vec3 horizonColor = vec3(1.0); // Clean white
       

@@ -138,7 +138,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     cloned.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.material = mat;
-        
+
         // Remove existing lines if any, then add custom border lines
         const toRemove: THREE.Object3D[] = [];
         child.children.forEach(c => {
@@ -594,7 +594,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     if (u.uPrimaryColor) u.uPrimaryColor.value.set(settings.xrayBorderColor || "#e91e63");
     if (u.uParticleDefaultColor) u.uParticleDefaultColor.value.set(settings.particleDefaultColor || "#8d8d8d");
     if (u.uGlowIntensity) u.uGlowIntensity.value = 1.0;
-    
+
     if (u.uShowFog) u.uShowFog.value = settings.showFog ? 1.0 : 0.0;
     if (u.uFogColor) u.uFogColor.value.set(settings.fogColor);
     if (u.uFogNear) u.uFogNear.value = settings.fogNear;
@@ -1214,13 +1214,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         </mesh>
       )}
 
-      {/* XRay depth-faded bounding box edges */}
-      {boxSize && (
-        <lineSegments ref={boxLinesRef} frustumCulled={false}>
-          <wireframeGeometry args={[new THREE.BoxGeometry(1, 1, 1)]} />
-          <primitive object={boxLineMaterial} attach="material" />
-        </lineSegments>
-      )}
+
 
       {/* Measurement Telemetry Web Lines */}
       {selectedIndices.length > 0 && (
