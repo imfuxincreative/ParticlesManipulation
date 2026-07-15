@@ -300,7 +300,7 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-300">{settings.modelFlowNormalLimit.toFixed(3)}u</span>
                 </div>
                 <input
-                  type="range" min="0.0" max="10.5" step="0.01"
+                  type="range" min="0.0" max="20.0" step="0.01"
                   value={settings.modelFlowNormalLimit}
                   onChange={(e) => updateSetting("modelFlowNormalLimit", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"

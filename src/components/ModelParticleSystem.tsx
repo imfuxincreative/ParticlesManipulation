@@ -95,6 +95,22 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
   const activeModel = settings.models[settings.currentModelIndex] || settings.models[0];
   const gltf = useGLTF(activeModel);
 
+  // Load the main scene GLTF to obtain total duration for frame counter calculation
+  const sceneGltf = useGLTF("/SCENE.glb");
+
+  // Compute max animation duration for the scene (based on SCENE.glb camera action)
+  const sceneMaxDuration = useMemo(() => {
+    if (!sceneGltf) return 1;
+    let max = 0;
+    const activeMixamoActionName = "mixamo.com.003";
+    sceneGltf.animations.forEach((clip) => {
+      const name = clip.name;
+      if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) return;
+      max = Math.max(max, clip.duration);
+    });
+    return max || 1;
+  }, [sceneGltf]);
+
   // ─── Solid model mesh and wireframe for transition phase ───
   const { solidMaterial, solidLineMaterial, solidSceneCloned } = useMemo(() => {
     // Only compile shaders and clone scene if we are on the last model
@@ -755,6 +771,21 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     glUserData.autoBgGlitchSeed = bgGlitchSeedRef.current;
     const transitionProgress = glUserData.transitionProgress ?? 0.0;
 
+    // Compute current animation frame based on Scene 0 scroll progress
+    const scrollNorms: number[] = glUserData.sceneScrollNorms || [];
+    const scrollNorm = scrollNorms[0] ?? (scrollData ? scrollData.offset : 0.0);
+    const globalTime = scrollNorm * sceneMaxDuration;
+    const currentFrame = globalTime * 30;
+
+    // Calculate fog multiplier to gradually fade out fog influence (fade in particles opacity-like) between frames 1129 and 1405
+    let fogMultiplier = 1.0;
+    if (currentFrame >= 1405.0) {
+      fogMultiplier = 0.0;
+    } else if (currentFrame >= 1129.0) {
+      const t = (currentFrame - 1129.0) / (1405.0 - 1129.0);
+      fogMultiplier = THREE.MathUtils.lerp(1.0, 0.0, t);
+    }
+
     // --- Scroll-Driven Model transition calculation ---
     let burnProgress = 0.0;
     let particleOpacity = 1.0;
@@ -798,6 +829,27 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       materialRef.current.uniforms.uClipSide.value = clipSide;
       materialRef.current.uniforms.uScrollProgress.value = scrollData ? scrollData.offset : 0.0;
 
+
+      // Restrict shape displacement limit dynamically: transition gradually from settings.modelFlowNormalLimit to 0.0 between frames 1405 and 2101
+      let flowNormalLimit = settings.modelFlowNormalLimit;
+      if (currentFrame >= 2101.0) {
+        flowNormalLimit = 0.0;
+      } else if (currentFrame >= 1405.0) {
+        const t = (currentFrame - 1405.0) / (2101.0 - 1405.0);
+        flowNormalLimit = THREE.MathUtils.lerp(settings.modelFlowNormalLimit, 0.0, t);
+      }
+      materialRef.current.uniforms.uFlowNormalLimit.value = flowNormalLimit;
+
+      // Restrict ripple strength dynamically: transition gradually from settings.modelFlowStrength to 5.0 between frames 1405 and 2101
+      let flowStrength = settings.modelFlowStrength;
+      if (currentFrame >= 2101.0) {
+        flowStrength = 5.0;
+      } else if (currentFrame >= 1405.0) {
+        const t = (currentFrame - 1405.0) / (2101.0 - 1405.0);
+        flowStrength = THREE.MathUtils.lerp(settings.modelFlowStrength, 5.0, t);
+      }
+      materialRef.current.uniforms.uFlowStrength.value = flowStrength;
+
       // Smoothly lerp glitch strength
       const targetGlitch = isGlitchActive ? settings.glitchIntensity : 0.0;
       glitchStrengthRef.current = THREE.MathUtils.lerp(
@@ -807,6 +859,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       );
       materialRef.current.uniforms.uGlitchStrength.value = glitchStrengthRef.current;
 
+
       // Sync fog overrides for main particle system
       const showFogVal = vis.showFog !== undefined ? vis.showFog : settings.showFog;
       const fogColorVal = vis.fogColor ?? settings.fogColor;
@@ -814,7 +867,11 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       const fogFarVal = vis.fogFar !== undefined ? vis.fogFar : settings.fogFar;
       const fogAmountVal = vis.fogAmount !== undefined ? vis.fogAmount : settings.fogAmount;
 
-      if (materialRef.current.uniforms.uShowFog) materialRef.current.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
+      if (state.clock.elapsedTime % 1 < 0.02) {
+        console.log("[DEBUG FOG] currentFrame:", currentFrame.toFixed(1), "fogMultiplier:", fogMultiplier.toFixed(3), "showFogVal:", showFogVal);
+      }
+
+      if (materialRef.current.uniforms.uShowFog) materialRef.current.uniforms.uShowFog.value = showFogVal ? fogMultiplier : 0.0;
       if (materialRef.current.uniforms.uFogColor) materialRef.current.uniforms.uFogColor.value.set(fogColorVal);
       if (materialRef.current.uniforms.uFogNear) materialRef.current.uniforms.uFogNear.value = fogNearVal;
       if (materialRef.current.uniforms.uFogFar) materialRef.current.uniforms.uFogFar.value = fogFarVal;
@@ -853,13 +910,13 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       const fogFarVal = vis.fogFar !== undefined ? vis.fogFar : settings.fogFar;
       const fogAmountVal = vis.fogAmount !== undefined ? vis.fogAmount : settings.fogAmount;
 
-      if (solidMaterial.uniforms.uShowFog) solidMaterial.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
+      if (solidMaterial.uniforms.uShowFog) solidMaterial.uniforms.uShowFog.value = showFogVal ? fogMultiplier : 0.0;
       if (solidMaterial.uniforms.uFogColor) solidMaterial.uniforms.uFogColor.value.set(fogColorVal);
       if (solidMaterial.uniforms.uFogNear) solidMaterial.uniforms.uFogNear.value = fogNearVal;
       if (solidMaterial.uniforms.uFogFar) solidMaterial.uniforms.uFogFar.value = fogFarVal;
       if (solidMaterial.uniforms.uFogAmount) solidMaterial.uniforms.uFogAmount.value = fogAmountVal;
 
-      if (solidLineMaterial.uniforms.uShowFog) solidLineMaterial.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
+      if (solidLineMaterial.uniforms.uShowFog) solidLineMaterial.uniforms.uShowFog.value = showFogVal ? fogMultiplier : 0.0;
       if (solidLineMaterial.uniforms.uFogColor) solidLineMaterial.uniforms.uFogColor.value.set(fogColorVal);
       if (solidLineMaterial.uniforms.uFogNear) solidLineMaterial.uniforms.uFogNear.value = fogNearVal;
       if (solidLineMaterial.uniforms.uFogFar) solidLineMaterial.uniforms.uFogFar.value = fogFarVal;

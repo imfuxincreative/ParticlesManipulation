@@ -148,11 +148,11 @@ const defaultSettings: SimulationSettings = {
   fogNear: 100.0,
   fogFar: 400.0,
   fogAmount: 1.0,
-  modelFlowSpeed: 1.85,
-  modelFlowStrength: 2.90,
-  modelFlowFrequency: 0.78,
-  modelFlowNormalLimit: 1.32,
-  modelScatterColorScale: 0.065,
+  modelFlowSpeed: 0.40,
+  modelFlowStrength: 10.0,
+  modelFlowFrequency: 0.090,
+  modelFlowNormalLimit: 15.0,
+  modelScatterColorScale: 0.040,
   modelFlowClumping: 0.35,
 };
 
