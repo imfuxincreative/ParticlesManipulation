@@ -347,6 +347,20 @@ export const Dashboard: React.FC = () => {
                 />
               </div>
 
+              {/* Slider: City Hologram Opacity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">CITY HOLOGRAM OPACITY</span>
+                  <span className="text-slate-300">{(settings.cityHologramOpacity ?? 1.0).toFixed(2)}</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="2.0" step="0.02"
+                  value={settings.cityHologramOpacity ?? 1.0}
+                  onChange={(e) => updateSetting("cityHologramOpacity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
               {/* Slider: Outline Power */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">

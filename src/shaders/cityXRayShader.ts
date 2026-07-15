@@ -201,13 +201,15 @@ export const CityXRayShader = {
       scanline = smoothstep(0.4, 0.6, scanline) * 0.2 * uScanLineIntensity;
 
       // Base translucent structure color
-      vec3 baseHologramColor = uColor * uFillOpacity; 
+      float fillFactor = smoothstep(1.0, 2.0, uOpacity);
+      float dynamicFillOpacity = mix(uFillOpacity, 1.0, fillFactor);
+      vec3 baseHologramColor = uColor * dynamicFillOpacity; 
       
       // Interactive Hover Light Effect
       if (uHoverActive > 0.5) {
         float dist = distance(vWorldPosition, uMouseWorld);
         float hoverInfluence = 1.0 - smoothstep(0.0, uHoverRadius, dist);
-        float boostedOpacity = mix(uFillOpacity, 1.0, hoverInfluence * 0.8);
+        float boostedOpacity = mix(dynamicFillOpacity, 1.0, hoverInfluence * 0.8);
         vec3 hoveredColor = mix(uColor, uHoverColor, hoverInfluence);
         baseHologramColor = hoveredColor * boostedOpacity;
       }
@@ -227,7 +229,7 @@ export const CityXRayShader = {
       baseHologramColor += uHoverColor * transitionGlow * 2.0;
 
       // Alpha: fill opacity forms the solid base, fresnel adds edge highlight on top
-      float baseHologramAlpha = clamp(uFillOpacity + fresnel * (1.0 - uFillOpacity) * 1.5 + scanline + transitionGlow * 0.8, 0.0, 1.0) * uOpacity;
+      float baseHologramAlpha = clamp(dynamicFillOpacity + fresnel * (1.0 - dynamicFillOpacity) * 1.5 + scanline + transitionGlow * 0.8, 0.0, 1.0) * min(uOpacity, 1.0);
 
       // Apply depth limit fading
       float fadeStart = max(0.0, uDepthLimit - uFadeZone);

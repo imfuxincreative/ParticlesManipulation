@@ -87,8 +87,16 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
 
   // Sync settings to uniforms and line material
   useEffect(() => {
-    // If there's an opacity setting in the simulation context, use it, otherwise default to 1.0
-    material.uniforms.uOpacity.value = settings.opacity !== undefined ? settings.opacity : 1.0;
+    // Use the specific city hologram opacity setting
+    const opacityVal = settings.cityHologramOpacity !== undefined ? settings.cityHologramOpacity : 1.0;
+    material.uniforms.uOpacity.value = opacityVal;
+
+    // Toggle transparency and depthWrite for solid rendering
+    const isSolid = (opacityVal >= 1.99);
+    material.depthWrite = isSolid;
+    material.transparent = !isSolid;
+    skinnedMaterial.depthWrite = isSolid;
+    skinnedMaterial.transparent = !isSolid;
 
     // Sync new settings
     material.uniforms.uFillOpacity.value = settings.xrayFillOpacity;

@@ -74,6 +74,7 @@ export interface SimulationSettings {
   modelFlowNormalLimit: number;
   modelScatterColorScale: number;
   modelFlowClumping: number;
+  cityHologramOpacity: number;
 }
 
 interface SimulationContextProps {
@@ -154,6 +155,7 @@ const defaultSettings: SimulationSettings = {
   modelFlowNormalLimit: 15.0,
   modelScatterColorScale: 0.040,
   modelFlowClumping: 0.35,
+  cityHologramOpacity: 1.0,
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);
