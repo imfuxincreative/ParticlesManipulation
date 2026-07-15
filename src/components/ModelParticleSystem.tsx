@@ -190,10 +190,12 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
   const localTransformRef = useRef(new THREE.Matrix4());
 
   // Extract all vertices AND thickened shell duplicates from the loaded model
-  const { extractedPositions, extractedColors } = useMemo(() => {
+  const { extractedPositions, extractedColors, extractedNormals } = useMemo(() => {
     const allPositions: number[] = [];
     const allColors: number[] = [];
+    const allNormals: number[] = [];
     const tempPos = new THREE.Vector3();
+    const tempNormal = new THREE.Vector3();
 
     const sourceMeshes: THREE.Mesh[] = [];
 
@@ -206,6 +208,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     // ── Step 1: Extract surface vertices (original behavior) ──
     const surfacePositions: number[] = [];
     const surfaceColors: number[] = [];
+    const surfaceNormals: number[] = [];
 
     for (const mesh of sourceMeshes) {
       const geometry = mesh.geometry;
@@ -214,8 +217,10 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
       const posAttr = geometry.attributes.position;
       const colorAttr = geometry.attributes.color;
+      const normalAttr = geometry.attributes.normal;
 
       const worldMatrix = mesh.matrixWorld;
+      const normalMatrix = new THREE.Matrix3().getNormalMatrix(worldMatrix);
 
       for (let i = 0; i < posAttr.count; i++) {
         tempPos.set(
@@ -227,6 +232,18 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         tempPos.applyMatrix4(worldMatrix);
 
         surfacePositions.push(tempPos.x, tempPos.y, tempPos.z);
+
+        if (normalAttr) {
+          tempNormal.set(
+            normalAttr.getX(i),
+            normalAttr.getY(i),
+            normalAttr.getZ(i)
+          );
+          tempNormal.applyMatrix3(normalMatrix).normalize();
+          surfaceNormals.push(tempNormal.x, tempNormal.y, tempNormal.z);
+        } else {
+          surfaceNormals.push(0.0, 1.0, 0.0);
+        }
 
         if (colorAttr) {
           surfaceColors.push(
@@ -246,6 +263,9 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     }
     for (let i = 0; i < surfaceColors.length; i++) {
       allColors.push(surfaceColors[i]);
+    }
+    for (let i = 0; i < surfaceNormals.length; i++) {
+      allNormals.push(surfaceNormals[i]);
     }
 
     const surfaceCount = surfacePositions.length / 3;
@@ -292,6 +312,10 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
             sz + dz * t + (Math.random() - 0.5) * 0.005
           );
 
+          // Inherit normal from original vertex
+          const ni = i;
+          allNormals.push(surfaceNormals[ni], surfaceNormals[ni + 1], surfaceNormals[ni + 2]);
+
           // Inherit color from original vertex
           const ci = i; // same index in surfaceColors
           allColors.push(surfaceColors[ci], surfaceColors[ci + 1], surfaceColors[ci + 2]);
@@ -304,15 +328,17 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     return {
       extractedPositions: new Float32Array(allPositions),
       extractedColors: new Float32Array(allColors),
+      extractedNormals: new Float32Array(allNormals),
     };
   }, [gltf]);
 
   // Sample vertices based on gridSize, and apply depthScale/centering
-  const { centeredPositions, colors, modelScale, boxSize, boxCenter, cOriginal, cRotated, modelRotation } = useMemo(() => {
+  const { centeredPositions, colors, normals, modelScale, boxSize, boxCenter, cOriginal, cRotated, modelRotation } = useMemo(() => {
     if (extractedPositions.length === 0) {
       return {
         centeredPositions: new Float32Array(0),
         colors: new Float32Array(0),
+        normals: new Float32Array(0),
         modelScale: 1,
         boxSize: null,
         boxCenter: null,
@@ -327,6 +353,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 
     const sampledPositions = new Float32Array(targetCount * 3);
     const sampledColors = new Float32Array(targetCount * 3);
+    const sampledNormals = new Float32Array(targetCount * 3);
 
     // Uniformly sample vertices from the extracted pool
     const step = sourceCount / targetCount;
@@ -343,6 +370,10 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       sampledColors[i * 3] = extractedColors[srcIdx];
       sampledColors[i * 3 + 1] = extractedColors[srcIdx + 1];
       sampledColors[i * 3 + 2] = extractedColors[srcIdx + 2];
+
+      sampledNormals[i * 3] = extractedNormals[srcIdx];
+      sampledNormals[i * 3 + 1] = extractedNormals[srcIdx + 1];
+      sampledNormals[i * 3 + 2] = extractedNormals[srcIdx + 2];
     }
 
     let minX = Infinity, minY = Infinity, minZ = Infinity;
@@ -371,6 +402,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     );
     const quaternion = new THREE.Quaternion().setFromEuler(euler);
     const tempVec = new THREE.Vector3();
+    const tempNormal = new THREE.Vector3();
 
     for (let i = 0; i < sampledPositions.length; i += 3) {
       tempVec.set(
@@ -382,6 +414,17 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       sampledPositions[i] = tempVec.x;
       sampledPositions[i + 1] = tempVec.y;
       sampledPositions[i + 2] = tempVec.z;
+
+      // Rotate normal by the same quaternion
+      tempNormal.set(
+        sampledNormals[i],
+        sampledNormals[i + 1],
+        sampledNormals[i + 2]
+      );
+      tempNormal.applyQuaternion(quaternion).normalize();
+      sampledNormals[i] = tempNormal.x;
+      sampledNormals[i + 1] = tempNormal.y;
+      sampledNormals[i + 2] = tempNormal.z;
     }
 
     // Recalculate bounding box and center for the rotated vertices
@@ -428,6 +471,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         return {
           centeredPositions: sampledPositions,
           colors: sampledColors,
+          normals: sampledNormals,
           modelScale: fitScale,
           boxSize: [sizeX * fitScale, sizeY * fitScale, sizeZ * fitScale] as [number, number, number],
           boxCenter: bodyBBox.center,
@@ -441,6 +485,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       return {
         centeredPositions: sampledPositions,
         colors: sampledColors,
+        normals: sampledNormals,
         modelScale: 1,
         boxSize: [sizeX, sizeY, sizeZ] as [number, number, number],
         boxCenter: [0, 0, 0] as [number, number, number],
@@ -463,6 +508,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     return {
       centeredPositions: sampledPositions,
       colors: sampledColors,
+      normals: sampledNormals,
       modelScale: scale,
       boxSize: [sizeX * scale, sizeY * scale, sizeZ * scale] as [number, number, number],
       boxCenter: [0, 0, 0] as [number, number, number],
@@ -470,7 +516,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       cRotated: [rcx, rcy, rcz] as [number, number, number],
       modelRotation: quaternion,
     };
-  }, [extractedPositions, extractedColors, settings.gridSize, targetNode, bodyBBox, settings.currentModelIndex]);
+  }, [extractedPositions, extractedColors, extractedNormals, settings.gridSize, targetNode, bodyBBox, settings.currentModelIndex]);
 
   // Create a mutable reference for positions for the GPU buffer (physics writes into this)
   const dynamicPositionsRef = useRef<Float32Array>(new Float32Array(0));
@@ -562,9 +608,11 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       uParticleOpacity: { value: 1.0 },
       uClipY: { value: 0.0 },
       uClipSide: { value: 0.0 },
-      uFlowStrength: { value: 0.6 },
-      uFlowSpeed: { value: 0.3 },
-      uFlowFrequency: { value: 0.15 },
+      uFlowStrength: { value: settings.modelFlowStrength },
+      uFlowSpeed: { value: settings.modelFlowSpeed },
+      uFlowFrequency: { value: settings.modelFlowFrequency },
+      uFlowNormalLimit: { value: settings.modelFlowNormalLimit },
+      uFlowClumping: { value: settings.modelFlowClumping },
       uGlowIntensity: { value: 1.0 },
       uScrollProgress: { value: 0.0 },
       uShowFog: { value: settings.showFog ? 1.0 : 0.0 },
@@ -572,6 +620,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       uFogNear: { value: settings.fogNear },
       uFogFar: { value: settings.fogFar },
       uFogAmount: { value: settings.fogAmount },
+      uScatterColorScale: { value: settings.modelScatterColorScale },
     };
   }, []);
 
@@ -600,6 +649,13 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
     if (u.uFogNear) u.uFogNear.value = settings.fogNear;
     if (u.uFogFar) u.uFogFar.value = settings.fogFar;
     if (u.uFogAmount) u.uFogAmount.value = settings.fogAmount;
+
+    if (u.uFlowStrength) u.uFlowStrength.value = settings.modelFlowStrength;
+    if (u.uFlowSpeed) u.uFlowSpeed.value = settings.modelFlowSpeed;
+    if (u.uFlowFrequency) u.uFlowFrequency.value = settings.modelFlowFrequency;
+    if (u.uFlowNormalLimit) u.uFlowNormalLimit.value = settings.modelFlowNormalLimit;
+    if (u.uFlowClumping) u.uFlowClumping.value = settings.modelFlowClumping;
+    if (u.uScatterColorScale) u.uScatterColorScale.value = settings.modelScatterColorScale;
   }, [settings]);
 
   // ─── Autonomous Rapid-Fire Glitch Burst Scheduler ───
@@ -1029,8 +1085,8 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
           const dy = posArr[iy] - rest[iy];
           const dz = posArr[iz] - rest[iz];
           const displacement = Math.sqrt(dx * dx + dy * dy + dz * dz);
-          // Normalize to 0..1 range (saturate at ~2 units displacement)
-          scatterAmountsRef.current[i] = Math.min(displacement / 2.0, 1.0);
+          // Pass raw displacement to GPU (color sensitivity scale is applied in shader)
+          scatterAmountsRef.current[i] = displacement;
         }
 
         // Upload modified positions to GPU
@@ -1194,6 +1250,10 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
             attach="attributes-aColor"
             args={[colors, 3]}
           />
+          <bufferAttribute
+            attach="attributes-aNormal"
+            args={[normals, 3]}
+          />
         </bufferGeometry>
         <shaderMaterial
           ref={materialRef}
@@ -1255,6 +1315,8 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
 };
 
 useGLTF.preload("/model.glb");
+useGLTF.preload("/robot.glb");
+useGLTF.preload("/heart.glb");
 useGLTF.preload("/bird.glb");
 useGLTF.preload("/figure.glb");
 useGLTF.preload("/old_door.glb");

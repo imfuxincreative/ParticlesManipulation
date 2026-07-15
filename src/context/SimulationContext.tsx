@@ -68,6 +68,12 @@ export interface SimulationSettings {
   fogNear: number;
   fogFar: number;
   fogAmount: number;
+  modelFlowSpeed: number;
+  modelFlowStrength: number;
+  modelFlowFrequency: number;
+  modelFlowNormalLimit: number;
+  modelScatterColorScale: number;
+  modelFlowClumping: number;
 }
 
 interface SimulationContextProps {
@@ -99,7 +105,7 @@ const defaultSettings: SimulationSettings = {
   tintMix: 0.0,
   opacity: 1.0, // Full opacity for clear footage
   densityControl: 0.0, // Turned off particle dropping so the entire video renders cleanly
-  models: ["/bird.glb", "/figure.glb"],
+  models: ["/heart.glb", "/robot.glb", "/bird.glb", "/figure.glb", "/old_door.glb"],
   currentModelIndex: 0,
   isPlaying: false,
   xrayFillOpacity: 0.15,
@@ -140,8 +146,14 @@ const defaultSettings: SimulationSettings = {
   showFog: true,
   fogColor: "#ffffff",
   fogNear: 100.0,
-  fogFar: 600.0,
+  fogFar: 400.0,
   fogAmount: 1.0,
+  modelFlowSpeed: 1.85,
+  modelFlowStrength: 2.90,
+  modelFlowFrequency: 0.78,
+  modelFlowNormalLimit: 1.32,
+  modelScatterColorScale: 0.065,
+  modelFlowClumping: 0.35,
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);

@@ -228,6 +228,105 @@ export const Dashboard: React.FC = () => {
                 />
               </div>
 
+              {/* MODEL FLOW / RIPPLE CONFIG */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
+                <Sliders className="w-3.5 h-3.5" />
+                <span>Model Ripple Settings</span>
+              </div>
+
+              {/* Slider: Flow Speed */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">RIPPLE FLOW SPEED</span>
+                  <span className="text-slate-300">{settings.modelFlowSpeed.toFixed(2)}x</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="2.0" step="0.05"
+                  value={settings.modelFlowSpeed}
+                  onChange={(e) => updateSetting("modelFlowSpeed", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Flow Strength */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">RIPPLE STRENGTH</span>
+                  <span className="text-slate-300">{settings.modelFlowStrength.toFixed(2)}u</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="10.0" step="0.05"
+                  value={settings.modelFlowStrength}
+                  onChange={(e) => updateSetting("modelFlowStrength", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Flow Frequency */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">RIPPLE FREQUENCY (SCALE)</span>
+                  <span className="text-slate-300">{settings.modelFlowFrequency.toFixed(3)}</span>
+                </div>
+                <input
+                  type="range" min="0.01" max="1.0" step="0.01"
+                  value={settings.modelFlowFrequency}
+                  onChange={(e) => updateSetting("modelFlowFrequency", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Flow Clumping / Unevenness */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">RIPPLE CLUMPING (UNEVENNESS)</span>
+                  <span className="text-slate-300">{(settings.modelFlowClumping * 100).toFixed(0)}%</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="1.0" step="0.05"
+                  value={settings.modelFlowClumping}
+                  onChange={(e) => updateSetting("modelFlowClumping", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Modulates displacement with a low-frequency mask. Higher values create organic clumping and uneven scattering, leaving some areas solid.
+                </p>
+              </div>
+
+              {/* Slider: Flow Normal Limit */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">SHAPE DISPLACEMENT LIMIT</span>
+                  <span className="text-slate-300">{settings.modelFlowNormalLimit.toFixed(3)}u</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="10.5" step="0.01"
+                  value={settings.modelFlowNormalLimit}
+                  onChange={(e) => updateSetting("modelFlowNormalLimit", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Restricts movement perpendicular to the surface. Set to 0 to keep particles completely inside the original shape.
+                </p>
+              </div>
+
+              {/* Slider: Scatter Color Scale */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">RIPPLE GLOW COLOR SENSITIVITY</span>
+                  <span className="text-slate-300">{settings.modelScatterColorScale.toFixed(3)}x</span>
+                </div>
+                <input
+                  type="range" min="0.000" max="0.500" step="0.005"
+                  value={settings.modelScatterColorScale}
+                  onChange={(e) => updateSetting("modelScatterColorScale", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Controls how quickly particles turn pink/glow based on displacement distance. High values cause more pink coloring.
+                </p>
+              </div>
+
               {/* HOLOGRAPHIC ARCHITECTURE */}
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
                 <Sliders className="w-3.5 h-3.5" />

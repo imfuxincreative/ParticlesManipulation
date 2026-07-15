@@ -65,6 +65,8 @@ export const ModelParticleShader = {
     uniform float uFlowStrength;
     uniform float uFlowSpeed;
     uniform float uFlowFrequency;
+    uniform float uFlowNormalLimit;
+    uniform float uFlowClumping;
     uniform float uScrollProgress;
 
     // Focus settings
@@ -75,6 +77,7 @@ export const ModelParticleShader = {
     // Color attribute (from vertex colors or computed)
     attribute vec3 aColor;
     attribute float aScatter;
+    attribute vec3 aNormal;
 
     varying vec3 vColor;
     varying float vDepth;
@@ -84,6 +87,7 @@ export const ModelParticleShader = {
     varying float vPosY;
     varying vec3 vWorldPosition;
     varying float vCameraDist;
+    varying float vGpuScatter;
 
     // 2D hash for block grid randomization
     float hash2D(vec2 p, float seed) {
@@ -123,8 +127,23 @@ export const ModelParticleShader = {
       // ── Curl noise flow displacement (water-like flowing motion) ──
       // Driven by both time and scroll progress for responsive scrolling ripples
       vec3 flowInput = pos * uFlowFrequency + vec3(0.0, 0.0, uTime * uFlowSpeed + uScrollProgress * 8.0);
-      vec3 flow = curlNoise(flowInput) * uFlowStrength;
-      pos += flow;
+      vec3 flow = curlNoise(flowInput);
+      
+      // Low-frequency noise mask for organic uneven clumping
+      vec3 maskInput = position * (uFlowFrequency * 0.4) + vec3(0.0, 0.0, uTime * uFlowSpeed * 0.3);
+      float flowMask = smoothstep(-0.3, 0.5, snoise(maskInput));
+      float clumpingMask = mix(1.0, flowMask, uFlowClumping);
+
+      vec3 N = aNormal;
+      float len = length(N);
+      if (len > 0.01) {
+        N = N / len;
+        vec3 tangentFlow = flow - dot(flow, N) * N;
+        vec3 normalFlow = dot(flow, N) * N;
+        pos += (tangentFlow * uFlowStrength + normalFlow * uFlowNormalLimit) * clumpingMask;
+      } else {
+        pos += flow * uFlowStrength * clumpingMask;
+      }
 
       vec4 worldPos = modelMatrix * vec4(pos, 1.0);
       vWorldPosition = worldPos.xyz;
@@ -145,6 +164,9 @@ export const ModelParticleShader = {
         (noiseVal * 1.2) * uNoiseStrength
       );
 
+
+      // The distance the particle was displaced on the GPU
+      vGpuScatter = distance(pos, position);
 
       // Standard view/projection transform
       vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
@@ -244,6 +266,8 @@ export const ModelParticleShader = {
     varying float vPosY;
     varying vec3 vWorldPosition;
     varying float vCameraDist;
+    varying float vGpuScatter;
+    uniform float uScatterColorScale;
 
     uniform float uShowFog;
     uniform vec3 uFogColor;
@@ -291,18 +315,12 @@ export const ModelParticleShader = {
       // Apply atmospheric haze based on blur (distance from focus)
       color = mix(color, uHazeColor, vBlur * uHazeDensity);
 
-      // Apply environmental fog (depth-based fading for model particles)
-      float fogFactor = clamp((uFogFar - vCameraDist) / max(uFogFar - uFogNear, 0.0001), 0.0, 1.0);
-      float fogMix = uShowFog * uFogAmount * (1.0 - fogFactor);
-      color = mix(color, uFogColor, fogMix);
-      alpha = mix(alpha, 0.0, fogMix);
-
       // --- Scatter Burn Glow ---
       // Particles displaced from rest glow using the primary color
-      float s = max(vScatter, uBurnProgress);
+      float s = clamp(max(max(vScatter, vGpuScatter) * uScatterColorScale, uBurnProgress), 0.0, 1.0);
       if (s > 0.01) {
         // Direct transition from base color (white) to primary color to avoid grayish intermediate values.
-        vec3 emberColor = mix(color, uPrimaryColor, clamp(s, 0.0, 1.0));
+        vec3 emberColor = mix(color, uPrimaryColor, s);
         
         color = emberColor;
         // Additive bloom using primary color
@@ -331,6 +349,12 @@ export const ModelParticleShader = {
       float focusAlpha = mix(1.0, 1.0 - vBlur, uDensityControl);
 
       alpha *= uOpacity * focusAlpha * uParticleOpacity * alphaWipe;
+
+      // Apply environmental fog (depth-based fading for model particles)
+      float fogFactor = clamp((uFogFar - vCameraDist) / max(uFogFar - uFogNear, 0.0001), 0.0, 1.0);
+      float fogMix = uShowFog * uFogAmount * (1.0 - fogFactor);
+      color = mix(color, uFogColor, fogMix);
+      alpha = mix(alpha, 0.0, fogMix);
 
       // Drop fully transparent particles
       if (alpha < 0.01) discard;
