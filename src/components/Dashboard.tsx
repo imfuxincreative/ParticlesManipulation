@@ -609,6 +609,70 @@ export const Dashboard: React.FC = () => {
                 </div>
               )}
 
+              {/* Slider: Grid Floor Fall Radius */}
+              {settings.showGridFloor && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">FALL TRIGGER RADIUS</span>
+                    <span className="text-slate-300">{settings.gridFloorFallRadius.toFixed(1)}u</span>
+                  </div>
+                  <input
+                    type="range" min="5.0" max="150.0" step="1.0"
+                    value={settings.gridFloorFallRadius}
+                    onChange={(e) => updateSetting("gridFloorFallRadius", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Slider: Grid Floor Fall Range */}
+              {settings.showGridFloor && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">FALL TRANSITION RANGE</span>
+                    <span className="text-slate-300">{settings.gridFloorFallRadiusRange.toFixed(1)}u</span>
+                  </div>
+                  <input
+                    type="range" min="1.0" max="100.0" step="1.0"
+                    value={settings.gridFloorFallRadiusRange}
+                    onChange={(e) => updateSetting("gridFloorFallRadiusRange", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Slider: Grid Floor Fall Max Distance */}
+              {settings.showGridFloor && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">FALL MAX DEPTH</span>
+                    <span className="text-slate-300">{settings.gridFloorFallMaxDistance.toFixed(1)}u</span>
+                  </div>
+                  <input
+                    type="range" min="5.0" max="200.0" step="1.0"
+                    value={settings.gridFloorFallMaxDistance}
+                    onChange={(e) => updateSetting("gridFloorFallMaxDistance", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Slider: Grid Floor Fall Randomness */}
+              {settings.showGridFloor && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">FALL RADIUS JITTER</span>
+                    <span className="text-slate-300">{settings.gridFloorFallRandomness.toFixed(1)}u</span>
+                  </div>
+                  <input
+                    type="range" min="0.0" max="50.0" step="1.0"
+                    value={settings.gridFloorFallRandomness}
+                    onChange={(e) => updateSetting("gridFloorFallRandomness", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
 
               {/* Slider: Haze Density */}
               <div className="flex flex-col gap-1">

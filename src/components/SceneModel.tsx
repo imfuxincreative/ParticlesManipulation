@@ -175,6 +175,7 @@ export const SceneModel: React.FC = () => {
   const transitionFromRef = useRef(0);
   const transitionToRef = useRef(0);
   const initialInitRef = useRef(false);
+  const hasScrolledRef = useRef(false);
 
 
 
@@ -224,9 +225,95 @@ export const SceneModel: React.FC = () => {
     }
   }, [activeSceneIndex, updateSettings]);
 
+  // Listen for wheel and touch events on the scroll container to enable looping 
+  // immediately at the top (frame -182 / scrollTop=0) when scrolling up
+  useEffect(() => {
+    if (!scrollData) return;
+    const el = scrollData.el;
+
+    let touchStartY = 0;
+
+    const handleWheel = (e: WheelEvent) => {
+      const scrollThreshold = el.scrollHeight - el.clientHeight;
+      if (scrollThreshold <= 0) return;
+
+      // Scrolling up at the very top (scrollTop <= 0)
+      if (el.scrollTop <= 0 && e.deltaY < 0) {
+        hasScrolledRef.current = true;
+        el.scrollTop = scrollThreshold - 1;
+        (scrollData as any).scroll.current = 1.0;
+        scrollData.offset = 1.0;
+      }
+      // Scrolling down at the very bottom
+      else if (el.scrollTop >= scrollThreshold - 1 && e.deltaY > 0) {
+        hasScrolledRef.current = true;
+        el.scrollTop = 1;
+        (scrollData as any).scroll.current = 0.0;
+        scrollData.offset = 0.0;
+      }
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        touchStartY = e.touches[0].clientY;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const scrollThreshold = el.scrollHeight - el.clientHeight;
+      if (scrollThreshold <= 0) return;
+
+      if (e.touches.length > 0) {
+        const touchY = e.touches[0].clientY;
+        const deltaY = touchStartY - touchY; // positive scrolling down, negative scrolling up
+        
+        if (el.scrollTop <= 0 && deltaY < 0) {
+          hasScrolledRef.current = true;
+          el.scrollTop = scrollThreshold - 1;
+          (scrollData as any).scroll.current = 1.0;
+          scrollData.offset = 1.0;
+        }
+        else if (el.scrollTop >= scrollThreshold - 1 && deltaY > 0) {
+          hasScrolledRef.current = true;
+          el.scrollTop = 1;
+          (scrollData as any).scroll.current = 0.0;
+          scrollData.offset = 0.0;
+        }
+      }
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: true });
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: true });
+
+    return () => {
+      el.removeEventListener("wheel", handleWheel);
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, [scrollData]);
+
   // Main orchestration loop
   useFrame((state, delta) => {
     if (!scrollData) return;
+
+    const el = scrollData.el;
+    const scrollThreshold = el.scrollHeight - el.clientHeight;
+    
+    // Mark as scrolled once offset moves past initial threshold
+    if (scrollData.offset > 0.02) {
+      hasScrolledRef.current = true;
+    }
+
+    if (el.scrollTop >= scrollThreshold - 1 && scrollData.offset > 0.98) {
+      el.scrollTop = 1; // 1 pixel in to allow upward scroll
+      (scrollData as any).scroll.current = 0.0;
+      scrollData.offset = 0.0;
+    } else if (el.scrollTop <= 0 && hasScrolledRef.current && scrollData.offset < 0.02) {
+      el.scrollTop = scrollThreshold - 1;
+      (scrollData as any).scroll.current = 1.0;
+      scrollData.offset = 1.0;
+    }
 
     const glUserData = (state.gl as any).userData || {};
     if (!(state.gl as any).userData) {

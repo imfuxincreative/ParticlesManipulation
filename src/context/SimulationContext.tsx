@@ -47,6 +47,10 @@ export interface SimulationSettings {
   gridTileSize: number;
   gridLineWidth: number;
   gridFloorY: number;
+  gridFloorFallRadius: number;
+  gridFloorFallRadiusRange: number;
+  gridFloorFallMaxDistance: number;
+  gridFloorFallRandomness: number;
   showSky: boolean;
   skyColor: string;
   skyExposure: number;
@@ -128,6 +132,10 @@ const defaultSettings: SimulationSettings = {
   gridTileSize: 4.0,
   gridLineWidth: 1.5,
   gridFloorY: -4.5,
+  gridFloorFallRadius: 68.0,
+  gridFloorFallRadiusRange: 11.0,
+  gridFloorFallMaxDistance: 5.0,
+  gridFloorFallRandomness: 50.0,
   showSky: true,
   skyColor: "#ff007f",
   skyExposure: 1.55,
