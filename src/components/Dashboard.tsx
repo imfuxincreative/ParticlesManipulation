@@ -926,6 +926,46 @@ export const Dashboard: React.FC = () => {
           {/* TAB 3: FOCUS & CAM CONFIG */}
           {activeTab === "focus" && (
             <div className="flex flex-col gap-4 text-xs">
+              {/* SCROLL CONTROL */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mb-1">
+                <Sliders className="w-3.5 h-3.5" />
+                <span>Scroll Control</span>
+              </div>
+
+              {/* Slider: Scroll Speed */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">SCROLL SPEED</span>
+                  <span className="text-slate-300">{settings.scrollSpeed.toFixed(2)}x</span>
+                </div>
+                <input
+                  type="range" min="0.1" max="2.0" step="0.05"
+                  value={settings.scrollSpeed}
+                  onChange={(e) => updateSetting("scrollSpeed", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Lower = slower scroll. Higher = faster scroll.
+                </p>
+              </div>
+
+              {/* Slider: Scroll Damping */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">SCROLL DAMPING</span>
+                  <span className="text-slate-300">{settings.scrollDamping.toFixed(2)}</span>
+                </div>
+                <input
+                  type="range" min="0.01" max="1.0" step="0.01"
+                  value={settings.scrollDamping}
+                  onChange={(e) => updateSetting("scrollDamping", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Lower = smoother & slower easing. Higher = snappier response.
+                </p>
+              </div>
+
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mb-1">
                 <Camera className="w-3.5 h-3.5" />
                 <span>Optics & Perspective</span>

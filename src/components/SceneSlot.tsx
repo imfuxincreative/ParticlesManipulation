@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useGLTF, useAnimations } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
 import { WingParticles } from "./TypographyText";
@@ -12,6 +12,7 @@ import { useSimulation } from "@/context/SimulationContext";
 
 const CAMERA_NAME = "Camera";
 const TARGET_NAME = "body";
+const BLENDER_START_FRAME = -513;
 
 /**
  * Visual properties each scene can customize.
@@ -77,7 +78,24 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
   const { size } = useThree();
   const { settings } = useSimulation();
   const groupRef = useRef<THREE.Group>(null);
-  const { actions, mixer } = useAnimations(gltf.animations, groupRef);
+  
+  const mixer = useMemo(() => new THREE.AnimationMixer(gltf.scene), [gltf.scene]);
+  const actions = useMemo(() => {
+    const act: Record<string, THREE.AnimationAction> = {};
+    gltf.animations.forEach((clip) => {
+      act[clip.name] = mixer.clipAction(clip);
+    });
+    return act;
+  }, [gltf.animations, mixer]);
+
+  useEffect(() => {
+    return () => {
+      if (mixer) {
+        mixer.stopAllAction();
+      }
+    };
+  }, [mixer]);
+
   const cameraReadyRef = useRef(false);
 
   // Track original properties of Simon's bodypart materials to restore on unmount
@@ -342,7 +360,13 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       if (action) {
         const clip = gltf.animations.find((c) => c.name === name);
         const duration = clip ? clip.duration : 1.0;
-        action.time = Math.min(globalTime, duration);
+
+        // Shift all animations except camera by the Blender start frame offset
+        const isCamera = name.toLowerCase().includes("camera");
+        const timelineOffset = -BLENDER_START_FRAME / 30; // 17.1 seconds
+        const evalTime = isCamera ? globalTime : (globalTime - timelineOffset);
+
+        action.time = Math.min(Math.max(0, evalTime), duration);
       }
     });
 

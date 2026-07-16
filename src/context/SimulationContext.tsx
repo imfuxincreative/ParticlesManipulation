@@ -79,6 +79,8 @@ export interface SimulationSettings {
   modelScatterColorScale: number;
   modelFlowClumping: number;
   cityHologramOpacity: number;
+  scrollSpeed: number;
+  scrollDamping: number;
 }
 
 interface SimulationContextProps {
@@ -164,6 +166,8 @@ const defaultSettings: SimulationSettings = {
   modelScatterColorScale: 0.040,
   modelFlowClumping: 0.35,
   cityHologramOpacity: 1.0,
+  scrollSpeed: 0.5,
+  scrollDamping: 0.05,
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);
