@@ -329,16 +329,7 @@ export const ModelParticleShader = {
         alpha = min(1.0, alpha + s * 0.8);
       }
 
-      // --- Vertical Scanning Wave Glow ---
-      // Creates a continuous light pulse moving from bottom to top
-      float wavePhase = vPosY * 0.15 - uTime * 2.5; 
-      float wavePulse = (sin(wavePhase) + 1.0) * 0.5;
-      wavePulse = pow(wavePulse, 16.0); // Make the wave a sharp, tight band
 
-      // Add intense glow based on the primary color
-      vec3 waveGlowColor = mix(vec3(1.0), uPrimaryColor, 0.6);
-      color += waveGlowColor * wavePulse * 1.5;
-      alpha = min(1.0, alpha + wavePulse * 0.8);
 
       // Sparkle noise effect
       float sparkle = hash(gl_FragCoord.xy + uTime * 3.0);

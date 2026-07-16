@@ -342,12 +342,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       if (action) {
         const clip = gltf.animations.find((c) => c.name === name);
         const duration = clip ? clip.duration : 1.0;
-        let targetTime = globalTime;
-        if (name !== "CameraAction.001") {
-          // Shift all animations except the camera to account for negative frames [-182 to 0] in Blender
-          targetTime = globalTime - (182.0 / 30.0);
-        }
-        action.time = Math.max(0.0, Math.min(targetTime, duration));
+        action.time = Math.min(globalTime, duration);
       }
     });
 
