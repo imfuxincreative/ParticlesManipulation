@@ -81,6 +81,9 @@ export interface SimulationSettings {
   cityHologramOpacity: number;
   scrollSpeed: number;
   scrollDamping: number;
+  enableScrollSnap: boolean;
+  scrollSnapDuration: number;
+  scrollSnapThreshold: number;
 }
 
 interface SimulationContextProps {
@@ -168,6 +171,9 @@ const defaultSettings: SimulationSettings = {
   cityHologramOpacity: 1.0,
   scrollSpeed: 0.5,
   scrollDamping: 0.05,
+  enableScrollSnap: true,
+  scrollSnapDuration: 2.2,
+  scrollSnapThreshold: 0.20,
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);

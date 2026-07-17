@@ -966,6 +966,59 @@ export const Dashboard: React.FC = () => {
                 </p>
               </div>
 
+              {/* Toggle: Scroll Snapping */}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500 font-mono text-[10px]">ENABLE SCROLL SNAPPING</span>
+                <button
+                  onClick={() => updateSetting("enableScrollSnap", !settings.enableScrollSnap)}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.enableScrollSnap ? "bg-purple-600" : "bg-slate-800"
+                    }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.enableScrollSnap ? "translate-x-4" : "translate-x-0"
+                      }`}
+                  />
+                </button>
+              </div>
+
+              {/* Slider: Scroll Snap Duration */}
+              {settings.enableScrollSnap && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">SNAP GLIDE DURATION</span>
+                    <span className="text-slate-300">{(settings.scrollSnapDuration ?? 2.2).toFixed(1)}s</span>
+                  </div>
+                  <input
+                    type="range" min="0.5" max="4.0" step="0.1"
+                    value={settings.scrollSnapDuration ?? 2.2}
+                    onChange={(e) => updateSetting("scrollSnapDuration", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                  <p className="text-[9px] text-slate-500 leading-normal">
+                    Duration of the magnetic snap correction. Higher values make the landing feel looser and softer.
+                  </p>
+                </div>
+              )}
+
+              {/* Slider: Scroll Snap Trigger Threshold */}
+              {settings.enableScrollSnap && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">SNAP TRIGGER THRESHOLD</span>
+                    <span className="text-slate-300">{((settings.scrollSnapThreshold ?? 0.20) * 100).toFixed(0)}%</span>
+                  </div>
+                  <input
+                    type="range" min="0.05" max="0.95" step="0.05"
+                    value={settings.scrollSnapThreshold ?? 0.20}
+                    onChange={(e) => updateSetting("scrollSnapThreshold", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                  <p className="text-[9px] text-slate-500 leading-normal">
+                    How far you need to scroll from the previous checkpoint to trigger snapping to the next one. Low = snaps forward easily. High = holds back.
+                  </p>
+                </div>
+              )}
+
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mb-1">
                 <Camera className="w-3.5 h-3.5" />
                 <span>Optics & Perspective</span>
