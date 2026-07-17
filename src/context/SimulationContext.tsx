@@ -105,7 +105,7 @@ const defaultSettings: SimulationSettings = {
   scatterStrength: 3.0,
   noiseStrength: 0.1, // Reduced so the footage is clearer and less warped
   noiseSpeed: 0.4,
-  pointSize: 9.0, // Increased to 2.5px to make particles thicker and improve clarity
+  pointSize: 16.0, // Increased to 2.5px to make particles thicker and improve clarity
   focusDepth: 14.0,
   focusRange: 2.0,
   bokehScale: 4.0,

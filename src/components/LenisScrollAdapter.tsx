@@ -11,12 +11,17 @@ interface SnapRange {
   end: number;
 }
 
-// Configurable checkpoints for magnetic snapping
+// Blender frame offset: GLTF scroll offset 0.0 maps to Blender frame -493
+const BLENDER_FRAME_OFFSET = -493;
+
+// Configurable checkpoints for magnetic snapping (in Blender frame numbers)
 const SNAP_RANGES: SnapRange[] = [
-  { start: 3579, end: 4092 },
-  { start: 1199, end: 1883 },
-  { start: 1183, end: 2311 },
-  { start: 2321, end: 2995 },
+  { start: -493, end: 0 },
+  { start: 720, end: 1212 },
+  { start: 1857, end: 2493 },
+  { start: 3116, end: 3613 },
+  { start: 4057, end: 4561 },
+
 ];
 
 export const LenisScrollAdapter: React.FC = () => {
@@ -88,7 +93,7 @@ export const LenisScrollAdapter: React.FC = () => {
         console.warn("[LenisScrollAdapter] Lenis is not ready yet.");
         return;
       }
-      const targetOffset = frame / (sceneMaxDuration * 30);
+      const targetOffset = (frame - BLENDER_FRAME_OFFSET) / (sceneMaxDuration * 30);
       const targetScroll = targetOffset * lenisRef.current.limit;
       console.log(`[LenisScrollAdapter] Manually snapping to frame ${frame} (Offset: ${targetOffset.toFixed(4)}, Pixels: ${targetScroll.toFixed(1)})`);
       isSnappingRef.current = true;
@@ -104,9 +109,9 @@ export const LenisScrollAdapter: React.FC = () => {
     (window as any).getScrollInfo = () => {
       if (!lenisRef.current) return { ready: false };
       const currentOffset = scroll.offset;
-      const currentFrame = currentOffset * sceneMaxDuration * 30;
+      const currentFrame = currentOffset * sceneMaxDuration * 30 + BLENDER_FRAME_OFFSET;
       const targetOffset = lenisRef.current.limit > 0 ? lenisRef.current.targetScroll / lenisRef.current.limit : 0;
-      const targetFrame = targetOffset * sceneMaxDuration * 30;
+      const targetFrame = targetOffset * sceneMaxDuration * 30 + BLENDER_FRAME_OFFSET;
       return {
         ready: true,
         scroll: lenisRef.current.scroll,
@@ -198,7 +203,7 @@ export const LenisScrollAdapter: React.FC = () => {
     // Calculate and update the DOM overlay values smoothly from the raw scroll state immediately.
     // This runs independent of Lenis, ensuring the overlay frame count is always active as you scroll.
     const rawOffset = scroll ? scroll.offset : 0;
-    const rawFrame = rawOffset * sceneMaxDuration * 30;
+    const rawFrame = rawOffset * sceneMaxDuration * 30 + BLENDER_FRAME_OFFSET;
 
     const frameValEl = document.getElementById("overlay-frame-val");
     const offsetValEl = document.getElementById("overlay-offset-val");
@@ -233,10 +238,10 @@ export const LenisScrollAdapter: React.FC = () => {
       const isUserNotInteracting = !isInteractingRef.current || timeSinceLastInput > 800;
 
       const targetOffset = lenis.limit > 0 ? lenis.targetScroll / lenis.limit : 0;
-      const targetFrame = targetOffset * sceneMaxDuration * 30;
+      const targetFrame = targetOffset * sceneMaxDuration * 30 + BLENDER_FRAME_OFFSET;
 
       const currentOffset = lenis.limit > 0 ? lenis.scroll / lenis.limit : 0;
-      const currentFrame = currentOffset * sceneMaxDuration * 30;
+      const currentFrame = currentOffset * sceneMaxDuration * 30 + BLENDER_FRAME_OFFSET;
 
       // Snapping is triggered only when the scroll velocity is low (almost stopped)
       const isLowVelocity = Math.abs(lenis.velocity) < 2.5;
@@ -275,7 +280,7 @@ export const LenisScrollAdapter: React.FC = () => {
 
             // Tolerance check (0.2 frame)
             if (Math.abs(currentFrame - snapTargetFrame) > 0.2) {
-              const snapTargetOffset = snapTargetFrame / (sceneMaxDuration * 30);
+              const snapTargetOffset = (snapTargetFrame - BLENDER_FRAME_OFFSET) / (sceneMaxDuration * 30);
               const targetScrollPixels = snapTargetOffset * lenis.limit;
 
               isSnappingRef.current = true;

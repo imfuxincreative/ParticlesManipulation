@@ -871,7 +871,7 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
         console.log("[DEBUG FOG] currentFrame:", currentFrame.toFixed(1), "fogMultiplier:", fogMultiplier.toFixed(3), "showFogVal:", showFogVal);
       }
 
-      if (materialRef.current.uniforms.uShowFog) materialRef.current.uniforms.uShowFog.value = showFogVal ? fogMultiplier : 0.0;
+      if (materialRef.current.uniforms.uShowFog) materialRef.current.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
       if (materialRef.current.uniforms.uFogColor) materialRef.current.uniforms.uFogColor.value.set(fogColorVal);
       if (materialRef.current.uniforms.uFogNear) materialRef.current.uniforms.uFogNear.value = fogNearVal;
       if (materialRef.current.uniforms.uFogFar) materialRef.current.uniforms.uFogFar.value = fogFarVal;
@@ -910,13 +910,13 @@ export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes
       const fogFarVal = vis.fogFar !== undefined ? vis.fogFar : settings.fogFar;
       const fogAmountVal = vis.fogAmount !== undefined ? vis.fogAmount : settings.fogAmount;
 
-      if (solidMaterial.uniforms.uShowFog) solidMaterial.uniforms.uShowFog.value = showFogVal ? fogMultiplier : 0.0;
+      if (solidMaterial.uniforms.uShowFog) solidMaterial.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
       if (solidMaterial.uniforms.uFogColor) solidMaterial.uniforms.uFogColor.value.set(fogColorVal);
       if (solidMaterial.uniforms.uFogNear) solidMaterial.uniforms.uFogNear.value = fogNearVal;
       if (solidMaterial.uniforms.uFogFar) solidMaterial.uniforms.uFogFar.value = fogFarVal;
       if (solidMaterial.uniforms.uFogAmount) solidMaterial.uniforms.uFogAmount.value = fogAmountVal;
 
-      if (solidLineMaterial.uniforms.uShowFog) solidLineMaterial.uniforms.uShowFog.value = showFogVal ? fogMultiplier : 0.0;
+      if (solidLineMaterial.uniforms.uShowFog) solidLineMaterial.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
       if (solidLineMaterial.uniforms.uFogColor) solidLineMaterial.uniforms.uFogColor.value.set(fogColorVal);
       if (solidLineMaterial.uniforms.uFogNear) solidLineMaterial.uniforms.uFogNear.value = fogNearVal;
       if (solidLineMaterial.uniforms.uFogFar) solidLineMaterial.uniforms.uFogFar.value = fogFarVal;

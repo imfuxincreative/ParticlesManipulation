@@ -12,7 +12,7 @@ import { useSimulation } from "@/context/SimulationContext";
 
 const CAMERA_NAME = "Camera";
 const TARGET_NAME = "body";
-const BLENDER_START_FRAME = -513;
+const BLENDER_START_FRAME = -493;
 
 /**
  * Visual properties each scene can customize.
