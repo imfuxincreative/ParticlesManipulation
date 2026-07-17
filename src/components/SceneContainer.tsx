@@ -6,6 +6,7 @@ import { ScrollControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
 import { SceneModel } from "./SceneModel";
+import { LenisScrollAdapter } from "./LenisScrollAdapter";
 
 // --- WebGL Error Boundary ---
 interface ErrorBoundaryProps {
@@ -142,6 +143,7 @@ export const SceneContainer: React.FC = () => {
 
           <Suspense fallback={null}>
             <ScrollControls pages={Math.max(1, Math.round(5 / settings.scrollSpeed))} damping={settings.scrollDamping}>
+              <LenisScrollAdapter />
               <SceneModel />
             </ScrollControls>
           </Suspense>
