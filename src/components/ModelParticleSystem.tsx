@@ -34,7 +34,6 @@ const MODEL_ROTATION_OFFSETS_DEGREES: [number, number, number][] = [
   [90, -230, 0],   // model.glb
   [90, -230, 0],   // bird.glb
   [90, -230, 0],   // figure.glb
-  [90, -230, 0],   // old_door.glb
 ];
 
 export const ModelParticleSystem: React.FC<ModelParticleSystemProps> = ({ meshes, targetNode, projectionBounds }) => {
@@ -1376,7 +1375,6 @@ useGLTF.preload("/robot.glb");
 useGLTF.preload("/heart.glb");
 useGLTF.preload("/bird.glb");
 useGLTF.preload("/figure.glb");
-useGLTF.preload("/old_door.glb");
 useGLTF.preload("/plane.glb");
 useGLTF.preload("/myscene_v2.glb");
 

@@ -175,13 +175,7 @@ export const SceneModel: React.FC = () => {
   const transitionFromRef = useRef(0);
   const transitionToRef = useRef(0);
   const initialInitRef = useRef(false);
-
-  // Initialize scroll position to 1 on mount to allow scroll-up wrapping immediately
-  useEffect(() => {
-    if (scrollData && scrollData.el) {
-      scrollData.el.scrollTop = 1;
-    }
-  }, [scrollData]);
+  // Initial scroll position is initialized to frame 0 by LenisScrollAdapter.
 
 
 

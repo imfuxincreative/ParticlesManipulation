@@ -115,7 +115,7 @@ const defaultSettings: SimulationSettings = {
   tintMix: 0.0,
   opacity: 1.0, // Full opacity for clear footage
   densityControl: 0.0, // Turned off particle dropping so the entire video renders cleanly
-  models: ["/heart.glb", "/robot.glb", "/bird.glb", "/figure.glb", "/old_door.glb"],
+  models: ["/heart.glb", "/robot.glb", "/bird.glb", "/figure.glb"],
   currentModelIndex: 0,
   isPlaying: false,
   xrayFillOpacity: 0.15,

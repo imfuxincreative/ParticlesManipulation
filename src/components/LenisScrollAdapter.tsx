@@ -87,6 +87,22 @@ export const LenisScrollAdapter: React.FC = () => {
 
     lenisRef.current = lenis;
 
+    // Set initial scroll position to frame 0 on first time load
+    let initialized = false;
+    const initScrollToFrameZero = () => {
+      if (initialized) return;
+      if (lenis.limit > 0) {
+        const targetOffset = (0 - BLENDER_FRAME_OFFSET) / (sceneMaxDuration * 30);
+        const targetScroll = targetOffset * lenis.limit;
+        lenis.scrollTo(targetScroll, { immediate: true });
+        initialized = true;
+        console.log(`[LenisScrollAdapter] Initialized scroll to frame 0 (Offset: ${targetOffset.toFixed(4)}, Scroll: ${targetScroll.toFixed(1)})`);
+      } else {
+        requestAnimationFrame(initScrollToFrameZero);
+      }
+    };
+    requestAnimationFrame(initScrollToFrameZero);
+
     // Expose window functions for manual developer console diagnosis
     (window as any).snapToFrame = (frame: number) => {
       if (!lenisRef.current) {

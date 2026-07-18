@@ -12,7 +12,7 @@ import { useSimulation } from "@/context/SimulationContext";
 
 const CAMERA_NAME = "Camera";
 const TARGET_NAME = "body";
-const BLENDER_START_FRAME = -493;
+const BLENDER_START_FRAME = -492;
 
 /**
  * Visual properties each scene can customize.
@@ -78,7 +78,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
   const { size } = useThree();
   const { settings } = useSimulation();
   const groupRef = useRef<THREE.Group>(null);
-  
+
   const mixer = useMemo(() => new THREE.AnimationMixer(gltf.scene), [gltf.scene]);
   const actions = useMemo(() => {
     const act: Record<string, THREE.AnimationAction> = {};
@@ -101,16 +101,25 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
   // Track original properties of Simon's bodypart materials to restore on unmount
   const originalBodypartPropsRef = useRef<Map<THREE.Material, { transparent: boolean; opacity: number }>>(new Map());
 
-  // Find the active mixamo action name
-  const activeMixamoActionName = useMemo(() => {
-    if (config.activeAnimationName !== undefined) {
-      return config.activeAnimationName;
-    }
+  // Find the active mixamo action names (supports multiple characters)
+  const activeMixamoActionNames = useMemo(() => {
     const names = gltf.animations.map((clip) => clip.name);
     const mixamoNames = names.filter((name) => name.toLowerCase().includes("mixamo"));
-    if (mixamoNames.length === 0) return "";
     mixamoNames.sort();
-    return mixamoNames[mixamoNames.length - 1];
+
+    const active: string[] = [];
+    if (config.activeAnimationName !== undefined && mixamoNames.includes(config.activeAnimationName)) {
+      active.push(config.activeAnimationName);
+    }
+
+    // Automatically pick up the newest/last mixamo animation for the second character
+    if (mixamoNames.length > 0) {
+      const last = mixamoNames[mixamoNames.length - 1];
+      if (!active.includes(last)) {
+        active.push(last);
+      }
+    }
+    return active;
   }, [gltf.animations, config.activeAnimationName]);
 
   // Compute max animation duration for this scene
@@ -118,11 +127,11 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     let max = 0;
     gltf.animations.forEach((clip) => {
       const name = clip.name;
-      if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) return;
+      if (name.toLowerCase().includes("mixamo") && !activeMixamoActionNames.includes(name)) return;
       max = Math.max(max, clip.duration);
     });
     return max || 1;
-  }, [gltf.animations, activeMixamoActionName]);
+  }, [gltf.animations, activeMixamoActionNames]);
 
   // Separate meshes: city meshes, target meshes, Simon glowing meshes, Simon bodypart meshes, and floor meshes
   const { cityMeshes, targetMeshes, simonGlowMeshes, simonBodypartMeshes, floorMeshes } = useMemo(() => {
@@ -160,11 +169,22 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           return;
         }
 
-        // Simon meshes check
+        // Simon and new character meshes check
         let isSimon = false;
         let sNode: THREE.Object3D | null = child;
         while (sNode) {
-          if (sNode.name && (sNode.name.toLowerCase().includes("simon") || sNode.name === "hair2" || sNode.name === "glass")) {
+          const lowerName = sNode.name ? sNode.name.toLowerCase() : "";
+          if (
+            lowerName.includes("simon") ||
+            lowerName === "hair2" ||
+            lowerName === "glass" ||
+            lowerName === "glass.001" ||
+            lowerName.includes("armature") ||
+            lowerName === "shirt2" ||
+            lowerName === "pant2" ||
+            lowerName === "hair.001" ||
+            lowerName === "bodypart2"
+          ) {
             isSimon = true;
             break;
           }
@@ -172,11 +192,12 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
         }
 
         if (isSimon) {
-          // Identify if it's the bodypart mesh
+          // Identify if it's the bodypart mesh (which shouldn't glow)
           let isBodypart = false;
           let bNode: THREE.Object3D | null = child;
           while (bNode) {
-            if (bNode.name === "bodypart") {
+            const bName = bNode.name ? bNode.name.toLowerCase() : "";
+            if (bName === "bodypart" || bName === "bodypart2") {
               isBodypart = true;
               break;
             }
@@ -243,6 +264,46 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       onTargetMeshes(targetMeshes);
     }
   }, [targetMeshes, onTargetMeshes]);
+
+  // Copy and clone material from original bodypart to bodypart2 so they match exactly,
+  // without sharing the same material instance (which causes disappearance bugs).
+  useEffect(() => {
+    let originalMat: THREE.Material | null = null;
+    simonBodypartMeshes.forEach((mesh) => {
+      let isOriginal = false;
+      let node: THREE.Object3D | null = mesh;
+      while (node) {
+        const name = node.name ? node.name.toLowerCase() : "";
+        if (name === "bodypart" || name === "simon.001") {
+          isOriginal = true;
+          break;
+        }
+        node = node.parent;
+      }
+      if (isOriginal && mesh.material) {
+        originalMat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
+      }
+    });
+
+    if (originalMat) {
+      simonBodypartMeshes.forEach((mesh) => {
+        let isBodypart2 = false;
+        let node: THREE.Object3D | null = mesh;
+        while (node) {
+          const name = node.name ? node.name.toLowerCase() : "";
+          if (name === "bodypart2") {
+            isBodypart2 = true;
+            break;
+          }
+          node = node.parent;
+        }
+        if (isBodypart2) {
+          // Clone the material to prevent shared instance opacity bugs
+          mesh.material = originalMat!.clone();
+        }
+      });
+    }
+  }, [simonBodypartMeshes]);
 
   // Enable transparency on Simon's bodypart meshes on mount, restore on unmount
   useEffect(() => {
@@ -320,10 +381,10 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     }
   }, [gltf, size, sceneIndex, onCameraReady]);
 
-  // Set up all animations (play paused)
+  // Set up active animations (play paused)
   useEffect(() => {
     Object.keys(actions).forEach((name) => {
-      if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) {
+      if (name.toLowerCase().includes("mixamo") && !activeMixamoActionNames.includes(name)) {
         return;
       }
       const action = actions[name];
@@ -332,7 +393,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
         action.paused = true;
       }
     });
-  }, [actions, activeMixamoActionName]);
+  }, [actions, activeMixamoActionNames]);
 
   // Drive animations from shared scroll state
   useFrame((state) => {
@@ -355,7 +416,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
 
     // Update all active actions
     Object.keys(actions).forEach((name) => {
-      if (name.toLowerCase().includes("mixamo") && name !== activeMixamoActionName) return;
+      if (name.toLowerCase().includes("mixamo") && !activeMixamoActionNames.includes(name)) return;
       const action = actions[name];
       if (action) {
         const clip = gltf.animations.find((c) => c.name === name);
@@ -378,7 +439,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
 
       const worldPos = new THREE.Vector3();
       mesh.getWorldPosition(worldPos);
-      
+
       const viewSpacePos = worldPos.clone().applyMatrix4(state.camera.matrixWorldInverse);
       const depth = -viewSpacePos.z;
 
