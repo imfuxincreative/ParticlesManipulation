@@ -25,7 +25,7 @@ export const Dashboard: React.FC = () => {
     <div className="fixed inset-0 w-full h-full pointer-events-none select-none z-20 font-sans text-slate-100 flex flex-col justify-between p-6">
 
       {/* Quick Access Top Bar: Always Show Loader Toggle */}
-      <div className="fixed top-6 right-16 z-40 pointer-events-auto flex items-center">
+      {/* <div className="fixed top-6 right-16 z-40 pointer-events-auto flex items-center">
         <button
           onClick={() => {
             const nextVal = !settings.alwaysShowLoader;
@@ -43,7 +43,7 @@ export const Dashboard: React.FC = () => {
           <span className={`w-2 h-2 rounded-full ${settings.alwaysShowLoader ? "bg-purple-400 animate-pulse" : "bg-slate-500"}`} />
           <span>LOADER: {settings.alwaysShowLoader ? "ALWAYS ON" : "REAL"}</span>
         </button>
-      </div>
+      </div> */}
 
       {/* Burger Menu Button in Top Right Corner */}
       <div className="fixed top-6 right-6 z-40 pointer-events-auto">

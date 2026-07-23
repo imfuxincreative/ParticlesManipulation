@@ -185,7 +185,7 @@ export const SceneContainer: React.FC = () => {
         </Canvas>
 
         {/* Floating Frame Overlay HUD */}
-        <div
+        {/* <div
           id="scroll-frame-overlay"
           className="fixed top-6 left-6 z-50 bg-slate-950/80 backdrop-blur-md border border-white/10 px-4 py-2.5 rounded-xl font-mono text-xs text-slate-100 flex flex-col gap-1 pointer-events-none select-none shadow-xl shadow-black/40"
         >
@@ -197,7 +197,7 @@ export const SceneContainer: React.FC = () => {
             <span className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">Scroll Offset</span>
             <span id="overlay-offset-val" className="text-slate-300">0.0000</span>
           </div>
-        </div>
+        </div> */}
       </div>
     </WebGLErrorBoundary>
   );
