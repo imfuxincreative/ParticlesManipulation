@@ -132,6 +132,7 @@ export const SceneContainer: React.FC = () => {
   if (!shouldRenderCanvas) {
     return <div className="w-full h-full absolute inset-0 z-0 bg-slate-950" />;
   }
+  console.log('m')
 
   return (
     <WebGLErrorBoundary fallback={<WebGLFallback />}>
