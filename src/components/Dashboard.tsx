@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 export const Dashboard: React.FC = () => {
-  const { settings, updateSetting } = useSimulation();
+  const { settings, updateSetting, triggerSceneEntrance } = useSimulation();
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [activeTab, setActiveTab] = useState<"rendering" | "focus">("rendering");
 
@@ -23,6 +23,27 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="fixed inset-0 w-full h-full pointer-events-none select-none z-20 font-sans text-slate-100 flex flex-col justify-between p-6">
+
+      {/* Quick Access Top Bar: Always Show Loader Toggle */}
+      <div className="fixed top-6 right-16 z-40 pointer-events-auto flex items-center">
+        <button
+          onClick={() => {
+            const nextVal = !settings.alwaysShowLoader;
+            updateSetting("alwaysShowLoader", nextVal);
+            if (!nextVal) {
+              triggerSceneEntrance();
+            }
+          }}
+          className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border backdrop-blur-md flex items-center gap-2 cursor-pointer ${
+            settings.alwaysShowLoader
+              ? "bg-purple-950/80 border-purple-500 text-purple-200 shadow-lg shadow-purple-900/30"
+              : "bg-slate-900/80 border-white/10 text-slate-300 hover:text-white"
+          }`}
+        >
+          <span className={`w-2 h-2 rounded-full ${settings.alwaysShowLoader ? "bg-purple-400 animate-pulse" : "bg-slate-500"}`} />
+          <span>LOADER: {settings.alwaysShowLoader ? "ALWAYS ON" : "REAL"}</span>
+        </button>
+      </div>
 
       {/* Burger Menu Button in Top Right Corner */}
       <div className="fixed top-6 right-6 z-40 pointer-events-auto">
@@ -64,6 +85,21 @@ export const Dashboard: React.FC = () => {
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mb-1">
                 <Sliders className="w-3.5 h-3.5" />
                 <span>Particle & Noise Params</span>
+              </div>
+
+              {/* Toggle: Always Show Loader */}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500 font-mono text-[10px]">ALWAYS SHOW LOADER</span>
+                <button
+                  onClick={() => updateSetting("alwaysShowLoader", !settings.alwaysShowLoader)}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.alwaysShowLoader ? "bg-purple-600" : "bg-slate-800"
+                    }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.alwaysShowLoader ? "translate-x-4" : "translate-x-0"
+                      }`}
+                  />
+                </button>
               </div>
 
               {/* Grid Density Selector */}
@@ -181,6 +217,54 @@ export const Dashboard: React.FC = () => {
                   onChange={(e) => updateSetting("pointSize", parseFloat(e.target.value))}
                   className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
+              </div>
+
+              {/* Slider: Loader Model Scale */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">LOADER MODEL SCALE</span>
+                  <span className="text-slate-300">{(settings.loaderModelScale ?? 0.12).toFixed(3)}x</span>
+                </div>
+                <input
+                  type="range" min="0.02" max="0.5" step="0.01"
+                  value={settings.loaderModelScale ?? 0.12}
+                  onChange={(e) => updateSetting("loaderModelScale", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Loader Burn Sensitivity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">LOADER BURN SENSITIVITY</span>
+                  <span className="text-slate-300">{(settings.loaderBurnSensitivity ?? 2.0).toFixed(2)}x</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="10.0" step="0.1"
+                  value={settings.loaderBurnSensitivity ?? 2.0}
+                  onChange={(e) => updateSetting("loaderBurnSensitivity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Controls how sensitive the burn color is to particle speed during model transitions. Higher = more intense burn glow.
+                </p>
+              </div>
+
+              {/* Slider: Loader Morph Speed */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">LOADER MORPH SPEED</span>
+                  <span className="text-slate-300">{(settings.loaderMorphSpeed ?? 0.02).toFixed(3)}x</span>
+                </div>
+                <input
+                  type="range" min="0.005" max="0.1" step="0.005"
+                  value={settings.loaderMorphSpeed ?? 0.02}
+                  onChange={(e) => updateSetting("loaderMorphSpeed", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Controls how fast particles travel to form the next model. Lower values make the morph slower and smoother.
+                </p>
               </div>
 
               {/* Color: Particle Color */}

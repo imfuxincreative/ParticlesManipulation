@@ -4,7 +4,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useFrame, useThree } from "@react-three/fiber";
 import { useScroll, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
-import { ModelParticleSystem } from "./ModelParticleSystem";
 import { GridFloor } from "./GridFloor";
 import { SkyDome } from "./SkyDome";
 import { useSimulation } from "@/context/SimulationContext";
@@ -165,10 +164,6 @@ export const SceneModel: React.FC = () => {
     new Array(NUM_SCENES).fill(null)
   );
 
-  // Target meshes from Scene 1 (for ModelParticleSystem)
-  const targetMeshesRef = useRef<THREE.Mesh[]>([]);
-  const [targetMeshes, setTargetMeshes] = React.useState<THREE.Mesh[]>([]);
-
   // State-driven active scene to synchronize dashboard settings
   const [activeSceneIndex, setActiveSceneIndex] = useState(0);
   const transitionTimeRef = useRef(-1.0);
@@ -193,12 +188,6 @@ export const SceneModel: React.FC = () => {
       });
     }
   }
-
-  // Target meshes callback (Scene 1 only)
-  const onTargetMeshes = useCallback((meshes: THREE.Mesh[]) => {
-    targetMeshesRef.current = meshes;
-    setTargetMeshes(meshes);
-  }, []);
 
   // Synchronize dashboard settings to active scene visuals when scene changes.
   // We trigger this immediately when activeSceneIndex changes to prepare the settings
@@ -409,7 +398,6 @@ export const SceneModel: React.FC = () => {
           sceneIndex={i}
           projectionBounds={cityProjectionBounds}
           onCameraReady={cameraCallbacksRef.current[i]}
-          onTargetMeshes={config.hasParticleTarget ? onTargetMeshes : undefined}
         />
       ))}
 
@@ -418,15 +406,6 @@ export const SceneModel: React.FC = () => {
 
       {/* Grid Floor */}
       {settings.showGridFloor && <GridFloor projectionBounds={cityProjectionBounds} />}
-
-      {/* Target rendered with interactive particle system (Scene 1 only) */}
-      {targetMeshes.length > 0 && (
-        <ModelParticleSystem
-          meshes={targetMeshes}
-          targetNode={targetMeshes[0]}
-          projectionBounds={cityProjectionBounds}
-        />
-      )}
     </>
   );
 };

@@ -2,11 +2,27 @@
 
 import React, { Suspense, useRef, useState, useEffect, Component, ErrorInfo, ReactNode } from "react";
 import { Canvas } from "@react-three/fiber";
-import { ScrollControls } from "@react-three/drei";
+import { ScrollControls, useProgress } from "@react-three/drei";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
 import { SceneModel } from "./SceneModel";
 import { LenisScrollAdapter } from "./LenisScrollAdapter";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
+
+// --- Real-time R3F Asset Loading Tracker ---
+const SceneProgressTracker: React.FC = () => {
+  const { active, progress, loaded, total } = useProgress();
+  const { updateSetting } = useSimulation();
+
+  useEffect(() => {
+    updateSetting("sceneLoadProgress", progress);
+    if ((!active && progress >= 100) || (total > 0 && loaded >= total)) {
+      updateSetting("isSceneLoaded", true);
+    }
+  }, [active, progress, loaded, total, updateSetting]);
+
+  return null;
+};
 
 // --- WebGL Error Boundary ---
 interface ErrorBoundaryProps {
@@ -91,6 +107,7 @@ export const SceneContainer: React.FC = () => {
   const { settings } = useSimulation();
   const [webglAvailable, setWebglAvailable] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [shouldRenderCanvas, setShouldRenderCanvas] = useState(false);
 
   useEffect(() => {
     setWebglAvailable(isWebGLAvailable());
@@ -98,10 +115,22 @@ export const SceneContainer: React.FC = () => {
     const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
     const isSmallScreen = window.innerWidth <= 768;
     setIsMobile(isMobileUA || isSmallScreen);
+
+    // Defer heavy main 3D scene canvas startup by 250ms
+    // so ParticleLoadingScreen initializes at 60 FPS first without thread lockups
+    const timer = setTimeout(() => {
+      setShouldRenderCanvas(true);
+    }, 250);
+
+    return () => clearTimeout(timer);
   }, []);
 
   if (!webglAvailable) {
     return <WebGLFallback />;
+  }
+
+  if (!shouldRenderCanvas) {
+    return <div className="w-full h-full absolute inset-0 z-0 bg-slate-950" />;
   }
 
   return (
@@ -131,6 +160,7 @@ export const SceneContainer: React.FC = () => {
             });
           }}
         >
+          <SceneProgressTracker />
           <color attach="background" args={[settings.hazeColor]} />
 
           <ambientLight intensity={1.5} />
@@ -147,6 +177,11 @@ export const SceneContainer: React.FC = () => {
               <SceneModel />
             </ScrollControls>
           </Suspense>
+
+          {/* Restore vibrant glow and bright colors via Postprocessing Bloom */}
+          <EffectComposer enableNormalPass={false} multisampling={0}>
+            <Bloom mipmapBlur intensity={settings.simonBloomIntensity} luminanceThreshold={1.1} luminanceSmoothing={0.1} />
+          </EffectComposer>
         </Canvas>
 
         {/* Floating Frame Overlay HUD */}

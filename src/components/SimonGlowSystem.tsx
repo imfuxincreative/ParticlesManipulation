@@ -59,40 +59,43 @@ export const SimonGlowSystem: React.FC<SimonGlowSystemProps> = ({ meshes, sceneI
     });
   }, [settings.simonGlowIntensity, settings.simonGlowOpacity, settings.simonGlowColor, settings.showFog, settings.fogColor, settings.fogNear, settings.fogFar, settings.fogAmount, material, skinnedMaterial, meshes]);
 
-  // Replace meshes' materials and restore on unmount
+  // Replace meshes' materials and restore on unmount (deferred by 1 frame to prevent loader freeze)
   useEffect(() => {
     const originalMaterials = new Map<THREE.Mesh, THREE.Material | THREE.Material[]>();
     const clonedMaterials: THREE.ShaderMaterial[] = [];
 
-    meshes.forEach((mesh) => {
-      if (!mesh) return;
-      originalMaterials.set(mesh, mesh.material);
+    const rafId = requestAnimationFrame(() => {
+      meshes.forEach((mesh) => {
+        if (!mesh) return;
+        originalMaterials.set(mesh, mesh.material);
 
-      const isSkinned = (mesh as THREE.SkinnedMesh).isSkinnedMesh;
-      const baseMat = isSkinned ? skinnedMaterial : material;
-      const clonedMat = baseMat.clone();
+        const isSkinned = (mesh as THREE.SkinnedMesh).isSkinnedMesh;
+        const baseMat = isSkinned ? skinnedMaterial : material;
+        const clonedMat = baseMat.clone();
 
-      // Compute bounding box for edge gradients
-      mesh.geometry.computeBoundingBox();
-      const bbox = mesh.geometry.boundingBox;
-      if (bbox) {
-        clonedMat.uniforms.uLocalMin = { value: bbox.min.clone() };
-        clonedMat.uniforms.uLocalMax = { value: bbox.max.clone() };
-      }
+        // Compute bounding box for edge gradients
+        mesh.geometry.computeBoundingBox();
+        const bbox = mesh.geometry.boundingBox;
+        if (bbox) {
+          clonedMat.uniforms.uLocalMin = { value: bbox.min.clone() };
+          clonedMat.uniforms.uLocalMax = { value: bbox.max.clone() };
+        }
 
-      const isHair = mesh.name.toLowerCase().includes("hair");
-      clonedMat.uniforms.uIsHair = { value: isHair ? 1.0 : 0.0 };
+        const isHair = mesh.name.toLowerCase().includes("hair");
+        clonedMat.uniforms.uIsHair = { value: isHair ? 1.0 : 0.0 };
 
-      mesh.material = clonedMat;
-      mesh.visible = true;
-      mesh.frustumCulled = false;
+        mesh.material = clonedMat;
+        mesh.visible = true;
+        mesh.frustumCulled = false;
 
-      clonedMaterials.push(clonedMat);
+        clonedMaterials.push(clonedMat);
+      });
+
+      activeMaterialsRef.current = clonedMaterials;
     });
 
-    activeMaterialsRef.current = clonedMaterials;
-
     return () => {
+      cancelAnimationFrame(rafId);
       meshes.forEach((mesh) => {
         if (!mesh) return;
         if (originalMaterials.has(mesh)) {

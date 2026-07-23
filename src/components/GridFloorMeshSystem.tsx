@@ -225,6 +225,10 @@ export const GridFloorMeshSystem: React.FC<GridFloorMeshSystemProps> = ({
 
   // Find the primary falling mesh
   const fallingMesh = useMemo(() => {
+    const exactFloor = fallingMeshes.find(
+      (m) => m.name.toLowerCase() === "floor" || m.name.toLowerCase().startsWith("floor.")
+    );
+    if (exactFloor) return exactFloor;
     return fallingMeshes.find((m) => m !== undefined) || null;
   }, [fallingMeshes]);
 

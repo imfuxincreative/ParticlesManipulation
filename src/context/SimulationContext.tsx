@@ -84,12 +84,20 @@ export interface SimulationSettings {
   enableScrollSnap: boolean;
   scrollSnapDuration: number;
   scrollSnapThreshold: number;
+  loaderModelScale: number;
+  loaderBurnSensitivity: number;
+  loaderMorphSpeed: number;
+  alwaysShowLoader: boolean;
+  isLoading: boolean;
+  isSceneLoaded: boolean;
+  sceneLoadProgress: number;
 }
 
 interface SimulationContextProps {
   settings: SimulationSettings;
   updateSetting: <K extends keyof SimulationSettings>(key: K, value: SimulationSettings[K]) => void;
   updateSettings: (newSettings: Partial<SimulationSettings>) => void;
+  triggerSceneEntrance: () => void;
 }
 
 const defaultSettings: SimulationSettings = {
@@ -105,7 +113,7 @@ const defaultSettings: SimulationSettings = {
   scatterStrength: 3.0,
   noiseStrength: 0.1, // Reduced so the footage is clearer and less warped
   noiseSpeed: 0.4,
-  pointSize: 16.0, // Increased to 2.5px to make particles thicker and improve clarity
+  pointSize: 2.5, // Increased to 2.5px to make particles thicker and improve clarity
   focusDepth: 14.0,
   focusRange: 2.0,
   bokehScale: 4.0,
@@ -127,7 +135,7 @@ const defaultSettings: SimulationSettings = {
   xrayBorderOpacity: 0.5,
   xrayBorderThreshold: 15.0,
   xrayBorderDepthLimit: 20.0,
-  xrayBorderRevealDepth: 80.0,
+  xrayBorderRevealDepth: 1000.0,
   xraySolidRevealDepth: 14.0,
   xrayHoverRadius: 10.0,
   xrayLineGlowIntensity: 2.5,
@@ -162,18 +170,25 @@ const defaultSettings: SimulationSettings = {
   fogNear: 100.0,
   fogFar: 400.0,
   fogAmount: 1.0,
-  modelFlowSpeed: 0.40,
-  modelFlowStrength: 10.0,
-  modelFlowFrequency: 0.090,
-  modelFlowNormalLimit: 15.0,
+  modelFlowSpeed: 0.15,
+  modelFlowStrength: 0.40,
+  modelFlowFrequency: 0.720,
+  modelFlowNormalLimit: 0.000,
   modelScatterColorScale: 0.040,
-  modelFlowClumping: 0.35,
-  cityHologramOpacity: 1.0,
+  modelFlowClumping: 0.00,
+  cityHologramOpacity: 0.10,
   scrollSpeed: 0.5,
   scrollDamping: 0.05,
   enableScrollSnap: true,
   scrollSnapDuration: 2.2,
   scrollSnapThreshold: 0.20,
+  loaderModelScale: 0.270,
+  loaderBurnSensitivity: 2.00,
+  loaderMorphSpeed: 0.060,
+  alwaysShowLoader: false,
+  isLoading: true,
+  isSceneLoaded: false,
+  sceneLoadProgress: 0,
 };
 
 const SimulationContext = createContext<SimulationContextProps | undefined>(undefined);
@@ -183,6 +198,35 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const updateSetting = useCallback(<K extends keyof SimulationSettings>(key: K, value: SimulationSettings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const triggerSceneEntrance = useCallback(() => {
+    setSettings((prev) => ({
+      ...prev,
+      cityHologramOpacity: 0.0,
+      xrayBorderRevealDepth: 0.0,
+    }));
+
+    const startTime = performance.now();
+    const duration = 1800;
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1.0, elapsed / duration);
+      const ease = 1 - Math.pow(1 - progress, 3);
+
+      setSettings((prev) => ({
+        ...prev,
+        cityHologramOpacity: 0.10 * ease,
+        xrayBorderRevealDepth: 1000.0 * ease,
+      }));
+
+      if (progress < 1.0) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
   }, []);
 
   useEffect(() => {
@@ -204,6 +248,7 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         settings,
         updateSetting,
         updateSettings,
+        triggerSceneEntrance,
       }}
     >
       {children}

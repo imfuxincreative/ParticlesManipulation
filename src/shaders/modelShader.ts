@@ -183,11 +183,8 @@ export const ModelParticleShader = {
       float distFromFocus = abs(cameraDist - uFocusDepth);
       vBlur = clamp((distFromFocus - uFocusRange) / max(uFocusRange, 0.1), 0.0, 1.0);
 
-      // Point size
-      float baseSize = clamp(uPointSize * (20.0 / max(cameraDist, 1.0)), 1.0, 12.0);
-      // Increase point size as we burn to look solid
-      float sizeMultiplier = 1.0 + uBurnProgress * 2.5;
-      gl_PointSize = clamp(baseSize * sizeMultiplier, 1.0, 24.0);
+      // Point size (uniform to avoid uneven sizes)
+      gl_PointSize = uPointSize;
 
       // Pass scatter to fragment
       vScatter = aScatter;

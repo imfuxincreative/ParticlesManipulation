@@ -11,6 +11,11 @@ const SceneContainer = dynamic(
   { ssr: false }
 );
 
+const ParticleLoadingScreen = dynamic(
+  () => import("@/components/ParticleLoadingScreen").then((mod) => mod.ParticleLoadingScreen),
+  { ssr: false }
+);
+
 export default function Home() {
   return (
     <SimulationProvider>
@@ -23,6 +28,9 @@ export default function Home() {
 
         {/* Dashboard HUD Controls & Text Overlay */}
         <Dashboard />
+
+        {/* Particle Loading Screen Overlay — always visible during development */}
+        <ParticleLoadingScreen />
         
       </main>
     </SimulationProvider>

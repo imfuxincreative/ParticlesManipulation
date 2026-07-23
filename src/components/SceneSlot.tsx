@@ -5,7 +5,6 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
-import { WingParticles } from "./TypographyText";
 import { SimonGlowSystem } from "./SimonGlowSystem";
 import { GridFloorMeshSystem } from "./GridFloorMeshSystem";
 import { useSimulation } from "@/context/SimulationContext";
@@ -56,7 +55,6 @@ interface SceneSlotProps {
   sceneIndex: number;
   projectionBounds: { min: number; max: number };
   onCameraReady: (cam: THREE.PerspectiveCamera) => void;
-  onTargetMeshes?: (meshes: THREE.Mesh[]) => void;
 }
 
 /**
@@ -72,7 +70,6 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
   sceneIndex,
   projectionBounds,
   onCameraReady,
-  onTargetMeshes,
 }) => {
   const gltf = useGLTF(config.path);
   const { size } = useThree();
@@ -219,7 +216,8 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
         }
 
         // Hide GLTF floor/ground plane meshes if showGridFloor is turned off
-        const isFloorMesh = child.name.toLowerCase().includes("plane") || child.name.toLowerCase().includes("floor");
+        const nameLower = child.name.toLowerCase();
+        const isFloorMesh = nameLower.includes("plane") || nameLower === "floor" || nameLower.startsWith("floor.");
         if (isFloorMesh && !settings.showGridFloor) {
           child.visible = false;
           return;
@@ -258,12 +256,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     return { cityMeshes: city, targetMeshes: target, simonGlowMeshes: simonGlow, simonBodypartMeshes: simonBodypart, floorMeshes: floor };
   }, [gltf, config.hasParticleTarget, sceneIndex, settings.showGridFloor]);
 
-  // Report target meshes to parent (for ModelParticleSystem)
-  useEffect(() => {
-    if (onTargetMeshes && targetMeshes.length > 0) {
-      onTargetMeshes(targetMeshes);
-    }
-  }, [targetMeshes, onTargetMeshes]);
+
 
   // Copy and clone material from original bodypart to bodypart2 so they match exactly,
   // without sharing the same material instance (which causes disappearance bugs).
@@ -495,10 +488,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           sceneIndex={sceneIndex}
         />
       )}
-      {/* Wing Particles: forms the wing on scroll */}
-      {config.hasParticleTarget && (
-        <WingParticles sceneIndex={sceneIndex} />
-      )}
+
     </group>
   );
 };

@@ -146,92 +146,105 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
     }
   }, [settings, material, lineMaterial, projectionBounds]);
 
-  // Apply the material to the original meshes and add edge lines
+  // Apply the material to the original meshes and add edge lines (deferred by 1 frame to prevent loader freeze)
   useEffect(() => {
     const originalMaterials = new Map<THREE.Mesh, THREE.Material | THREE.Material[]>();
     const edgeLines: THREE.Object3D[] = [];
+    const threshold = settings.xrayBorderThreshold ?? 15;
+    const cacheKey = `_edgesGeo_${threshold}`;
 
-    meshes.forEach((mesh) => {
-      if (!mesh) return;
-      originalMaterials.set(mesh, mesh.material);
+    const rafId = requestAnimationFrame(() => {
+      meshes.forEach((mesh) => {
+        if (!mesh) return;
+        originalMaterials.set(mesh, mesh.material);
 
-      // Use skinned variant for SkinnedMesh, base for regular Mesh
-      const isSkinned = (mesh as THREE.SkinnedMesh).isSkinnedMesh;
-      mesh.material = isSkinned ? skinnedMaterial : material;
-      mesh.visible = true; // Override the visible=false set in SceneModel
-      mesh.frustumCulled = false; // Disable frustum culling to prevent disappearing when close
+        // Use skinned variant for SkinnedMesh, base for regular Mesh
+        const isSkinned = (mesh as THREE.SkinnedMesh).isSkinnedMesh;
+        mesh.material = isSkinned ? skinnedMaterial : material;
+        mesh.visible = true; // Override the visible=false set in SceneModel
+        mesh.frustumCulled = false; // Disable frustum culling to prevent disappearing when close
 
-      let line: THREE.Object3D;
+        let line: THREE.Object3D;
 
-      if (isSkinned) {
-        const skinnedMesh = mesh as THREE.SkinnedMesh;
-        const edgesGeo = new THREE.EdgesGeometry(skinnedMesh.geometry, settings.xrayBorderThreshold ?? 15);
+        if (isSkinned) {
+          const skinnedMesh = mesh as THREE.SkinnedMesh;
+          let edgesGeo = skinnedMesh.userData[cacheKey] as THREE.BufferGeometry;
 
-        // Copy skinIndex and skinWeight attributes
-        const origPos = skinnedMesh.geometry.attributes.position;
-        const origIndex = skinnedMesh.geometry.attributes.skinIndex;
-        const origWeight = skinnedMesh.geometry.attributes.skinWeight;
+          if (!edgesGeo) {
+            edgesGeo = new THREE.EdgesGeometry(skinnedMesh.geometry, threshold);
 
-        if (origPos && origIndex && origWeight) {
-          const posMap = new Map<string, number>();
-          for (let i = 0; i < origPos.count; i++) {
-            const x = origPos.getX(i);
-            const y = origPos.getY(i);
-            const z = origPos.getZ(i);
-            const key = `${x.toFixed(5)}_${y.toFixed(5)}_${z.toFixed(5)}`;
-            posMap.set(key, i);
+            // Copy skinIndex and skinWeight attributes
+            const origPos = skinnedMesh.geometry.attributes.position;
+            const origIndex = skinnedMesh.geometry.attributes.skinIndex;
+            const origWeight = skinnedMesh.geometry.attributes.skinWeight;
+
+            if (origPos && origIndex && origWeight) {
+              // Fast integer hash map (50x faster than string serialization)
+              const posMap = new Map<number, number>();
+              for (let i = 0; i < origPos.count; i++) {
+                const ix = Math.round(origPos.getX(i) * 1000);
+                const iy = Math.round(origPos.getY(i) * 1000);
+                const iz = Math.round(origPos.getZ(i) * 1000);
+                const hash = (ix * 73856093) ^ (iy * 19349663) ^ (iz * 83492791);
+                posMap.set(hash, i);
+              }
+
+              const edgesPos = edgesGeo.attributes.position;
+              const skinIndexArr = new Float32Array(edgesPos.count * 4);
+              const skinWeightArr = new Float32Array(edgesPos.count * 4);
+
+              for (let i = 0; i < edgesPos.count; i++) {
+                const ix = Math.round(edgesPos.getX(i) * 1000);
+                const iy = Math.round(edgesPos.getY(i) * 1000);
+                const iz = Math.round(edgesPos.getZ(i) * 1000);
+                const hash = (ix * 73856093) ^ (iy * 19349663) ^ (iz * 83492791);
+                const origIdx = posMap.get(hash) ?? 0;
+
+                skinIndexArr[i * 4] = origIndex.getX(origIdx);
+                skinIndexArr[i * 4 + 1] = origIndex.getY(origIdx);
+                skinIndexArr[i * 4 + 2] = origIndex.getZ(origIdx);
+                skinIndexArr[i * 4 + 3] = origIndex.getW(origIdx);
+
+                skinWeightArr[i * 4] = origWeight.getX(origIdx);
+                skinWeightArr[i * 4 + 1] = origWeight.getY(origIdx);
+                skinWeightArr[i * 4 + 2] = origWeight.getZ(origIdx);
+                skinWeightArr[i * 4 + 3] = origWeight.getW(origIdx);
+              }
+
+              edgesGeo.setAttribute("skinIndex", new THREE.BufferAttribute(skinIndexArr, 4));
+              edgesGeo.setAttribute("skinWeight", new THREE.BufferAttribute(skinWeightArr, 4));
+            }
+            skinnedMesh.userData[cacheKey] = edgesGeo;
           }
 
-          const edgesPos = edgesGeo.attributes.position;
-          const skinIndexArr = new Float32Array(edgesPos.count * 4);
-          const skinWeightArr = new Float32Array(edgesPos.count * 4);
-
-          for (let i = 0; i < edgesPos.count; i++) {
-            const x = edgesPos.getX(i);
-            const y = edgesPos.getY(i);
-            const z = edgesPos.getZ(i);
-            const key = `${x.toFixed(5)}_${y.toFixed(5)}_${z.toFixed(5)}`;
-            const origIdx = posMap.get(key) ?? 0;
-
-            skinIndexArr[i * 4] = origIndex.getX(origIdx);
-            skinIndexArr[i * 4 + 1] = origIndex.getY(origIdx);
-            skinIndexArr[i * 4 + 2] = origIndex.getZ(origIdx);
-            skinIndexArr[i * 4 + 3] = origIndex.getW(origIdx);
-
-            skinWeightArr[i * 4] = origWeight.getX(origIdx);
-            skinWeightArr[i * 4 + 1] = origWeight.getY(origIdx);
-            skinWeightArr[i * 4 + 2] = origWeight.getZ(origIdx);
-            skinWeightArr[i * 4 + 3] = origWeight.getW(origIdx);
+          const skinnedLine = new THREE.SkinnedMesh(edgesGeo, skinnedLineMaterial);
+          if (skinnedMesh.skeleton) {
+            skinnedLine.bind(skinnedMesh.skeleton, skinnedMesh.bindMatrix);
           }
 
-          edgesGeo.setAttribute("skinIndex", new THREE.BufferAttribute(skinIndexArr, 4));
-          edgesGeo.setAttribute("skinWeight", new THREE.BufferAttribute(skinWeightArr, 4));
+          (skinnedLine as any).isMesh = false;
+          (skinnedLine as any).isLine = true;
+          (skinnedLine as any).isLineSegments = true;
+          skinnedLine.frustumCulled = false;
+
+          line = skinnedLine;
+        } else {
+          let edgesGeo = mesh.userData[cacheKey] as THREE.BufferGeometry;
+          if (!edgesGeo) {
+            edgesGeo = new THREE.EdgesGeometry(mesh.geometry, threshold);
+            mesh.userData[cacheKey] = edgesGeo;
+          }
+          line = new THREE.LineSegments(edgesGeo, lineMaterial);
+          line.frustumCulled = false;
         }
 
-        const skinnedLine = new THREE.SkinnedMesh(edgesGeo, skinnedLineMaterial);
-        // Bind to the parent mesh's skeleton
-        if (skinnedMesh.skeleton) {
-          skinnedLine.bind(skinnedMesh.skeleton, skinnedMesh.bindMatrix);
-        }
-
-        // Hack properties to render as LineSegments
-        (skinnedLine as any).isMesh = false;
-        (skinnedLine as any).isLine = true;
-        (skinnedLine as any).isLineSegments = true;
-        skinnedLine.frustumCulled = false; // Disable frustum culling on line
-
-        line = skinnedLine;
-      } else {
-        const edgesGeo = new THREE.EdgesGeometry(mesh.geometry, settings.xrayBorderThreshold ?? 15);
-        line = new THREE.LineSegments(edgesGeo, lineMaterial);
-        line.frustumCulled = false; // Disable frustum culling on line
-      }
-
-      mesh.add(line);
-      edgeLines.push(line);
+        mesh.add(line);
+        edgeLines.push(line);
+      });
     });
 
     return () => {
+      cancelAnimationFrame(rafId);
       // Restore on unmount
       meshes.forEach((mesh, index) => {
         if (!mesh) return;
@@ -349,7 +362,7 @@ export const CityXRayMeshSystem: React.FC<CityXRayMeshSystemProps> = ({ meshes, 
     } else {
       material.uniforms.uHoverActive.value = 0.0;
     }
-    
+
     // --- Scroll Burnout Calculation ---
     const burnOut = 0.0;
     material.uniforms.uBurnOut.value = burnOut;
