@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Volumetric Particle Engine",
-  description: "Interactive 3D depth-mapped particle landscape powered by MiDaS depth estimation",
+  title: "imfucxincreative",
+  description: "3d portfolio of Cretive developer",
 };
 
 export default function RootLayout({
