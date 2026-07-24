@@ -12,7 +12,7 @@ import {
 
 export const Dashboard: React.FC = () => {
   const { settings, updateSetting, triggerSceneEntrance } = useSimulation();
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<"rendering" | "focus">("rendering");
 
   useEffect(() => {
