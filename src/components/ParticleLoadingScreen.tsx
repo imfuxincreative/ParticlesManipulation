@@ -722,7 +722,7 @@ export const ParticleLoadingScreen: React.FC = () => {
           <Canvas
             camera={{ position: [0, 0, 6], fov: 50, near: 0.1, far: 2000 }}
             dpr={[1, 1.5]}
-            gl={{ antialias: true, powerPreference: "high-performance" }}
+            gl={{ antialias: true, failIfMajorPerformanceCaveat: false }}
             onCreated={({ gl }) => {
               gl.toneMapping = THREE.NoToneMapping;
               gl.outputColorSpace = THREE.SRGBColorSpace;

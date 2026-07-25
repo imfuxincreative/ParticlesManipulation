@@ -8,7 +8,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-satoshi);
+  --font-heading: var(--font-dirtyline);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -24,19 +25,57 @@ body {
 }
 
 button {
-
-  font-size: 14;
-  padding: 4px 8px 4px 8px;
+  text-transform: uppercase;
+  font-size: 13;
+  padding: 4px 12px 4px 12px;
   letter-spacing: 0.1px;
   font-weight: 400;
 }
 
-h1 {
+a {
 
-  font-size: 24;
-  padding: 4px 8px 4px 8px;
+  font-size: 12;
+  text-transform: uppercase;
   letter-spacing: 0.1px;
-  font-weight: 200;
+  font-weight: 300;
+}
+
+p {
+
+  font-size: 13;
+  line-height: 17px;
+  letter-spacing: 0.1px;
+  font-weight: 300;
+}
+
+span {
+  text-transform: uppercase;
+  font-size: 13;
+  line-height: 17px;
+  letter-spacing: 0.1px;
+  font-weight: 300;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
+
+h1 {
+  font-size: 30;
+  letter-spacing: 0.1px;
+  font-weight: normal;
+}
+
+h4 {
+  font-size: 24;
+
+
+  font-weight: normal;
 }
 
 /* Lenis smooth scrolling rules */
@@ -93,4 +132,21 @@ body,
 .canvas-container * {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
+}
+
+@media (max-width: 768px) {
+
+  h1 {
+    font-size: 20;
+    letter-spacing: 0.1px;
+    font-weight: normal;
+  }
+
+  h4 {
+    font-size: 18;
+
+
+    font-weight: normal;
+  }
+
 }

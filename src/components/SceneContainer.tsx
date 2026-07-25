@@ -8,6 +8,7 @@ import { useSimulation } from "@/context/SimulationContext";
 import { SceneModel } from "./SceneModel";
 import { LenisScrollAdapter } from "./LenisScrollAdapter";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import Image from "next/image";
 
 // --- Real-time R3F Asset Loading Tracker ---
 const SceneProgressTracker: React.FC = () => {
@@ -185,20 +186,23 @@ export const SceneContainer: React.FC = () => {
           </EffectComposer>
         </Canvas>
 
-        {/* Floating Frame Overlay HUD */}
-        <div
-          id="scroll-frame-overlay"
-          className="fixed top-6 left-6 z-50 bg-slate-950/80 backdrop-blur-md border border-white/10 px-4 py-2.5 rounded-xl font-mono text-xs text-slate-100 flex flex-col gap-1 pointer-events-none select-none shadow-xl shadow-black/40"
-        >
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">Timeline Frame</span>
-            <span id="overlay-frame-val" className="font-bold text-purple-400 text-sm">0</span>
+        <nav className="fixed top-0 lg:p-4 p-2 pt-3 left-0 z-[999]">
+          <div className="">
+            <h4>imfucxincreative</h4>
+
+
           </div>
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-slate-500 font-semibold uppercase tracking-wider text-[10px]">Scroll Offset</span>
-            <span id="overlay-offset-val" className="text-slate-300">0.0000</span>
-          </div>
+        </nav>
+        {/* <div className="Live cam fixed flex items-center gap-2 flex-col z-[99999] bottom-6 left-10 ">
+          <Image src="/livecam.png" className="h-20 w-20 rounded-full" alt="Live Cam" width={100} height={100} />
+          <p>Live cam</p>
+        </div> */}
+
+        {/* Floating Frame Overlay HUD */} <div className="flex fixed top-0 items-center justify-between gap-4">
+
+          {/* <span id="overlay-frame-val" className="text-[13px]">0</span> */}
         </div>
+
       </div>
     </WebGLErrorBoundary>
   );

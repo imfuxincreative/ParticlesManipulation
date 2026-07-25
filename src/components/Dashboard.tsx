@@ -12,14 +12,8 @@ import {
 
 export const Dashboard: React.FC = () => {
   const { settings, updateSetting, triggerSceneEntrance } = useSimulation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [activeTab, setActiveTab] = useState<"rendering" | "focus">("rendering");
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.innerWidth >= 768) {
-      setIsCollapsed(false);
-    }
-  }, []);
 
   return (
     <div className="fixed inset-0 w-full h-full pointer-events-none select-none z-20 font-sans text-slate-100 flex flex-col justify-between p-6">

@@ -39,7 +39,7 @@ export const GridFloor: React.FC<GridFloorProps> = ({ projectionBounds }) => {
     u.uGlowIntensity.value = settings.xrayLineGlowIntensity ?? 2.5;
     u.uOpacity.value = settings.gridFloorOpacity ?? 0.35;
     u.uTileSize.value = settings.gridTileSize ?? 4.0;
-    u.uLineWidth.value = settings.gridLineWidth ?? 1.5; // screen-space pixels width
+    u.uLineWidth.value = 0.0; // Border lines disabled
     
     u.uBaseColor.value.set(settings.xrayBaseColor || "#888888");
     u.uFillOpacity.value = settings.gridFloorFillOpacity ?? 0.15;
