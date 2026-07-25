@@ -16,6 +16,11 @@ const ParticleLoadingScreen = dynamic(
   { ssr: false }
 );
 
+const OverlayManager = dynamic(
+  () => import("@/components/OverlayManager").then((mod) => mod.OverlayManager),
+  { ssr: false }
+);
+
 export default function Home() {
   return (
     <SimulationProvider>
@@ -25,6 +30,9 @@ export default function Home() {
         <div className="fixed inset-0 w-full h-full z-0">
           <SceneContainer />
         </div>
+
+        {/* Dynamic Timeline Frame-Based Overlays */}
+        <OverlayManager />
 
         {/* Dashboard HUD Controls & Text Overlay */}
         <Dashboard />

@@ -226,6 +226,15 @@ export const LenisScrollAdapter: React.FC = () => {
     if (frameValEl) frameValEl.innerText = rawFrame.toFixed(0);
     if (offsetValEl) offsetValEl.innerText = rawOffset.toFixed(4);
 
+    // Dispatch custom event for frame changes so overlays can update efficiently
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("scroll-frame-change", {
+          detail: { frame: rawFrame, offset: rawOffset },
+        })
+      );
+    }
+
     if (lenisRef.current) {
       const lenis = lenisRef.current;
 

@@ -258,44 +258,22 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
 
 
 
-  // Copy and clone material from original bodypart to bodypart2 so they match exactly,
-  // without sharing the same material instance (which causes disappearance bugs).
+  // Assign a default white material to bodypart meshes since they may have been
+  // exported without materials (which causes them to render black).
+  // We clone the material for each mesh to prevent shared instance opacity bugs.
   useEffect(() => {
-    let originalMat: THREE.Material | null = null;
-    simonBodypartMeshes.forEach((mesh) => {
-      let isOriginal = false;
-      let node: THREE.Object3D | null = mesh;
-      while (node) {
-        const name = node.name ? node.name.toLowerCase() : "";
-        if (name === "bodypart" || name === "simon.001") {
-          isOriginal = true;
-          break;
-        }
-        node = node.parent;
-      }
-      if (isOriginal && mesh.material) {
-        originalMat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-      }
+    const defaultSkinMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.3,
+      metalness: 0.1,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 1,
     });
 
-    if (originalMat) {
-      simonBodypartMeshes.forEach((mesh) => {
-        let isBodypart2 = false;
-        let node: THREE.Object3D | null = mesh;
-        while (node) {
-          const name = node.name ? node.name.toLowerCase() : "";
-          if (name === "bodypart2") {
-            isBodypart2 = true;
-            break;
-          }
-          node = node.parent;
-        }
-        if (isBodypart2) {
-          // Clone the material to prevent shared instance opacity bugs
-          mesh.material = originalMat!.clone();
-        }
-      });
-    }
+    simonBodypartMeshes.forEach((mesh) => {
+      mesh.material = defaultSkinMat.clone();
+    });
   }, [simonBodypartMeshes]);
 
   // Enable transparency on Simon's bodypart meshes on mount, restore on unmount

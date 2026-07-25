@@ -23,6 +23,22 @@ body {
   overflow: hidden;
 }
 
+button {
+
+  font-size: 14;
+  padding: 4px 8px 4px 8px;
+  letter-spacing: 0.1px;
+  font-weight: 400;
+}
+
+h1 {
+
+  font-size: 24;
+  padding: 4px 8px 4px 8px;
+  letter-spacing: 0.1px;
+  font-weight: 200;
+}
+
 /* Lenis smooth scrolling rules */
 html.lenis,
 html.lenis body {
@@ -55,7 +71,8 @@ html.lenis body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.2); /* Soft purple transparent thumb */
+  background: rgba(139, 92, 246, 0.2);
+  /* Soft purple transparent thumb */
   border-radius: 9999px;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -70,6 +87,7 @@ body::-webkit-scrollbar,
 .canvas-container ::-webkit-scrollbar {
   display: none !important;
 }
+
 html,
 body,
 .canvas-container * {
