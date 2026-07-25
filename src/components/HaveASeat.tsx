@@ -9,11 +9,11 @@ export default function HaveASeat() {
             <div className="fixed top-26 left-1/2 flex flex-col  -translate-x-1/2 -translate-y-1/2">
 
                 <span>Got a project on mind ?</span>
-                <h1 className="">Have a Seat, Let's talk</h1>
+                <h1 className="whitespace-nowrap" style={{ fontSize: "clamp(1.2rem, 5vw, 3rem)" }}>Have a Seat, Let's talk</h1>
 
             </div>
         </div>
-        <div className="footer w-full fixed  px-2 lg:px-6 bottom-16 z-[999]">
+        <div className="footer w-full fixed  px-2  bottom-16 z-[999]">
             <div className="actions w-full items-center justify-center flex  gap-3">
                 <button className="border flex items-center gap-1.5  " style={{ borderColor: settings.xrayBorderColor, color: settings.xrayBorderColor, backgroundColor: `${settings.xrayBorderColor}10`, }}>Follow </button>
                 <button className="border flex items-center gap-1.5  " style={{ backgroundColor: `${settings.xrayBorderColor}10`, borderColor: settings.xrayBorderColor, color: settings.xrayBorderColor, }}>Challenge </button>
