@@ -4,6 +4,7 @@ import { GoArrowUpRight } from "react-icons/go"
 
 export default function HaveASeat() {
     const { settings } = useSimulation()
+    console.log('dont kknow')
     return <div className="h-screen w-screen bg-black/10 fixed top-0 left-0">
         <div>
             <div className="fixed top-26 left-1/2 flex flex-col  -translate-x-1/2 -translate-y-1/2">
