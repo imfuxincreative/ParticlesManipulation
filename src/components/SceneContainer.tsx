@@ -188,7 +188,7 @@ export const SceneContainer: React.FC = () => {
 
         <nav className="fixed top-0 lg:p-4 p-2 pt-3 left-0 z-[999]">
           <div className="">
-            <h4>imfucxincreative</h4>
+            <h4>imfuCxinCreative</h4>
 
 
           </div>
