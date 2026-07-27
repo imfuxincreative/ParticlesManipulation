@@ -58,14 +58,13 @@ span {
 
 h1,
 h2,
-h3,
 h4,
-h5,
 h6 {
-  font-family: var(--font-heading);
+  font-family: var(--font-dirtyline);
 }
 
 h1 {
+
   font-size: 30;
   letter-spacing: 0.1px;
   font-weight: normal;
@@ -76,6 +75,11 @@ h4 {
 
 
   font-weight: normal;
+}
+
+h3,
+h5 {
+  font-family: var(--font-satoshi);
 }
 
 /* Lenis smooth scrolling rules */
@@ -149,4 +153,23 @@ body,
     font-weight: normal;
   }
 
+  /* Scale down callout labels on mobile */
+  .callout-label {
+    transform: scale(0.8) !important;
+  }
+}
+
+/* ── Callout Overlay System ──────────────────────────────── */
+
+.callout-overlay-system {
+  contain: layout style;
+}
+
+.callout-label {
+  cursor: default;
+  transition: opacity 0.5s ease;
+}
+
+.callout-label:hover {
+  opacity: 1 !important;
 }

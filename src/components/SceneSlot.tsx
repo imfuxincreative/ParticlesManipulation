@@ -7,6 +7,8 @@ import * as THREE from "three";
 import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
 import { SimonGlowSystem } from "./SimonGlowSystem";
 import { GridFloorMeshSystem } from "./GridFloorMeshSystem";
+import { TargetOverlayBridge } from "./callouts/TargetOverlayBridge";
+import { CALLOUT_TARGETS } from "@/config/targetConfig";
 import { useSimulation } from "@/context/SimulationContext";
 
 const CAMERA_NAME = "Camera";
@@ -145,6 +147,15 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       }
 
       if (child instanceof THREE.Mesh) {
+        // Callout target meshes: hide or show based on the per-target meshVisible flag.
+        // Build a lookup from id → meshVisible on first access (pattern: /^target\d+/).
+        if (/^target\d+/.test(child.name)) {
+          const targetCfg = CALLOUT_TARGETS.find((t) => t.id === child.name);
+          const shouldShow = targetCfg?.meshVisible === true;
+          child.visible = shouldShow;
+          if (!shouldShow) return; // skip further categorization for hidden helpers
+          // If meshVisible=true, fall through so it's treated as a regular city mesh.
+        }
         // Exclude meshes under the "wing" node or matching the new wing mesh names from general rendering
         let isWing = false;
         let pNode: THREE.Object3D | null = child;
@@ -467,6 +478,8 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
         />
       )}
 
+      {/* 3D → Screen-space bridge for callout overlays */}
+      <TargetOverlayBridge scene={gltf.scene} />
     </group>
   );
 };

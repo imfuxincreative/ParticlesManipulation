@@ -21,6 +21,11 @@ const OverlayManager = dynamic(
   { ssr: false }
 );
 
+const CalloutOverlaySystem = dynamic(
+  () => import("@/components/callouts/CalloutOverlaySystem").then((mod) => mod.CalloutOverlaySystem),
+  { ssr: false }
+);
+
 export default function Home() {
   return (
     <SimulationProvider>
@@ -33,6 +38,9 @@ export default function Home() {
 
         {/* Dynamic Timeline Frame-Based Overlays */}
         <OverlayManager />
+
+        {/* 3D-anchored SVG Callout Overlay System */}
+        <CalloutOverlaySystem />
 
         {/* Dashboard HUD Controls & Text Overlay */}
         <Dashboard />

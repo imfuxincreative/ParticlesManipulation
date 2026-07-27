@@ -200,7 +200,7 @@ export const SceneContainer: React.FC = () => {
 
         {/* Floating Frame Overlay HUD */} <div className="flex fixed top-0 items-center justify-between gap-4">
 
-          {/* <span id="overlay-frame-val" className="text-[13px]">0</span> */}
+          <span id="overlay-frame-val" className="text-[13px]">0</span>
         </div>
 
       </div>
