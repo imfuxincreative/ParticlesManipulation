@@ -96,6 +96,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
   }, [mixer]);
 
   const cameraReadyRef = useRef(false);
+  const baseFovRef = useRef<number>(0); // Original FOV from Blender camera, for responsive scaling
 
   // Track original properties of Simon's bodypart materials to restore on unmount
   const originalBodypartPropsRef = useRef<Map<THREE.Material, { transparent: boolean; opacity: number }>>(new Map());
@@ -356,10 +357,12 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       cam.near = 0.1;
       cam.far = 1000.0;
       cam.aspect = size.width / size.height;
+      // Store the original Blender camera FOV for responsive scaling
+      baseFovRef.current = cam.fov;
       cam.updateProjectionMatrix();
       cameraReadyRef.current = true;
       onCameraReady(cam);
-      console.log(`[SceneSlot ${sceneIndex}] Camera registered`);
+      console.log(`[SceneSlot ${sceneIndex}] Camera registered (baseFOV: ${cam.fov.toFixed(1)}°)`);
     }
   }, [gltf, size, sceneIndex, onCameraReady]);
 
@@ -443,12 +446,32 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       });
     });
 
-    // Keep camera aspect ratio up to date
+    // Keep camera aspect ratio + responsive zoom up to date.
+    // When the viewport is narrower than the design aspect (16:9),
+    // zoom out uniformly so the scene scales down instead of cropping.
+    // Unlike FOV changes, zoom preserves perspective distortion exactly.
     if (cameraReadyRef.current) {
+      const DESIGN_ASPECT = 16 / 9;
+      const currentAspect = size.width / size.height;
+
       gltf.scene.traverse((child) => {
         if ((child as any).isPerspectiveCamera) {
-          (child as THREE.PerspectiveCamera).aspect = size.width / size.height;
-          (child as THREE.PerspectiveCamera).updateProjectionMatrix();
+          const cam = child as THREE.PerspectiveCamera;
+          cam.aspect = currentAspect;
+
+          // Restore original FOV (undo any previous FOV hacks)
+          if (baseFovRef.current > 0) {
+            cam.fov = baseFovRef.current;
+          }
+
+          // Uniform zoom: 1.0 on desktop, scales down on narrow viewports
+          if (currentAspect < DESIGN_ASPECT) {
+            cam.zoom = Math.max(0.5, currentAspect / DESIGN_ASPECT);
+          } else {
+            cam.zoom = 1;
+          }
+
+          cam.updateProjectionMatrix();
         }
       });
     }

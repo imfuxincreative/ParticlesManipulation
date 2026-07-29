@@ -85,6 +85,7 @@ export const CALLOUT_TARGETS: CalloutTargetConfig[] = [
     diagonalAngle: 35,
     meshVisible: true,  // ← this mesh renders visibly in the scene
   },
+
   {
     id: "target2",
     label: "    AVAILABLE TO HIRE",

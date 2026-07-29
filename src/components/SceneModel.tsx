@@ -163,6 +163,7 @@ export const SceneModel: React.FC = () => {
   const camerasRef = useRef<(THREE.PerspectiveCamera | null)[]>(
     new Array(NUM_SCENES).fill(null)
   );
+  const baseFovRef = useRef<number>(0); // Original FOV for responsive scaling
 
   // State-driven active scene to synchronize dashboard settings
   const [activeSceneIndex, setActiveSceneIndex] = useState(0);
@@ -181,6 +182,10 @@ export const SceneModel: React.FC = () => {
       const idx = i;
       cameraCallbacksRef.current.push((cam: THREE.PerspectiveCamera) => {
         camerasRef.current[idx] = cam;
+        // Store the original Blender camera FOV for responsive scaling
+        if (idx === 0 && baseFovRef.current === 0) {
+          baseFovRef.current = cam.fov;
+        }
         if (idx === 0) {
           set({ camera: cam });
           console.log(`[SceneModel] Scene ${idx} camera set as initial active camera`);
@@ -365,11 +370,27 @@ export const SceneModel: React.FC = () => {
       console.log(`[SceneModel] Camera switched to scene ${activeCamIndex}`);
     }
 
-    // Keep all cameras' aspect ratios up to date
+    // Keep all cameras' aspect ratios + responsive zoom up to date.
+    // Zoom out uniformly on narrow viewports — preserves perspective exactly.
+    const DESIGN_ASPECT = 16 / 9;
+    const currentAspect = size.width / size.height;
     for (let i = 0; i < NUM_SCENES; i++) {
       const cam = camerasRef.current[i];
       if (cam) {
-        cam.aspect = size.width / size.height;
+        cam.aspect = currentAspect;
+
+        // Restore original FOV
+        if (baseFovRef.current > 0) {
+          cam.fov = baseFovRef.current;
+        }
+
+        // Uniform zoom: 1.0 on desktop, scales down on narrow viewports
+        if (currentAspect < DESIGN_ASPECT) {
+          cam.zoom = Math.max(0.5, currentAspect / DESIGN_ASPECT);
+        } else {
+          cam.zoom = 1;
+        }
+
         cam.updateMatrixWorld(true);
         cam.updateProjectionMatrix();
       }

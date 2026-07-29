@@ -21,6 +21,8 @@ interface SVGCalloutLineProps {
   config: CalloutTargetConfig;
   /** Whether the line should be drawn (true) or hidden (false) */
   visible: boolean;
+  /** Responsive multiplier for line lengths (1 = full size, 0.5 = half). @default 1 */
+  scale?: number;
 }
 
 export const SVGCalloutLine: React.FC<SVGCalloutLineProps> = ({
@@ -28,9 +30,10 @@ export const SVGCalloutLine: React.FC<SVGCalloutLineProps> = ({
   anchorY,
   config,
   visible,
+  scale = 1,
 }) => {
-  const diagonalLength = config.diagonalLength ?? 80;
-  const horizontalLength = config.horizontalLength ?? 120;
+  const diagonalLength = (config.diagonalLength ?? 80) * scale;
+  const horizontalLength = (config.horizontalLength ?? 120) * scale;
   const diagonalAngle = config.diagonalAngle ?? 35;
   const direction = config.direction;
   const color = config.accentColor ?? "rgba(255, 255, 255, 0.85)";
@@ -108,10 +111,11 @@ export const SVGCalloutLine: React.FC<SVGCalloutLineProps> = ({
 export function getLabelPosition(
   anchorX: number,
   anchorY: number,
-  config: CalloutTargetConfig
+  config: CalloutTargetConfig,
+  scale: number = 1
 ): { x: number; y: number } {
-  const diagonalLength = config.diagonalLength ?? 80;
-  const horizontalLength = config.horizontalLength ?? 120;
+  const diagonalLength = (config.diagonalLength ?? 80) * scale;
+  const horizontalLength = (config.horizontalLength ?? 120) * scale;
   const diagonalAngle = config.diagonalAngle ?? 35;
   const dirX = config.direction === "left" ? -1 : 1;
   const angleRad = (diagonalAngle * Math.PI) / 180;

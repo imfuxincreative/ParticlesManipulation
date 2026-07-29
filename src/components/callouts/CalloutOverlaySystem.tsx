@@ -23,10 +23,27 @@ interface TargetScreenPositions {
 export const CalloutOverlaySystem: React.FC = () => {
   const [positions, setPositions] = useState<TargetScreenPositions>({});
   const [currentFrame, setCurrentFrame] = useState<number>(0);
+  const [svgScale, setSvgScale] = useState<number>(1);
   const positionsRef = useRef<TargetScreenPositions>({});
   const frameRef = useRef<number>(0);
   const rafIdRef = useRef<number>(0);
   const dirtyRef = useRef(false);
+
+  // Responsive SVG scale: full size on desktop, shrink on mobile
+  useEffect(() => {
+    const computeScale = () => {
+      const w = window.innerWidth;
+      if (w >= 768) return 1.0;
+      // Linear scale: 768px → 1.0, 320px → 0.45
+      return Math.max(0.45, 0.45 + (w - 320) * (0.55 / (768 - 320)));
+    };
+
+    setSvgScale(computeScale());
+
+    const handleResize = () => setSvgScale(computeScale());
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Batch updates via rAF to avoid re-rendering on every R3F frame (60fps+)
   const scheduleUpdate = useCallback(() => {
@@ -102,6 +119,7 @@ export const CalloutOverlaySystem: React.FC = () => {
               anchorY={pos.y}
               config={config}
               visible={getVisibility(config)}
+              scale={svgScale}
             />
           );
         })}
@@ -112,7 +130,7 @@ export const CalloutOverlaySystem: React.FC = () => {
         const pos = positions[config.id];
         if (!pos) return null;
 
-        const labelPos = getLabelPosition(pos.x, pos.y, config);
+        const labelPos = getLabelPosition(pos.x, pos.y, config, svgScale);
         const visible = getVisibility(config);
 
         return (
