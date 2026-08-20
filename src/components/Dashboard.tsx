@@ -46,7 +46,7 @@ export const Dashboard: React.FC = () => {
           className="  flex items-center justify-center"
           aria-label="Toggle Menu"
         >
-          {isCollapsed ? <Menu className="w-5 h-5 text-black" /> : <X className="w-5 h-5 text-black" />}
+          {isCollapsed ? <Menu className="w-5 h-5 opacity-0 text-black" /> : <X className="w-5 h-5 text-black" />}
         </button>
       </div>
 

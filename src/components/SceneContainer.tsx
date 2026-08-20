@@ -186,13 +186,13 @@ export const SceneContainer: React.FC = () => {
           </EffectComposer>
         </Canvas>
 
-        <nav className="fixed top-0 lg:p-4 p-2 pt-3 left-0 z-[999]">
+        {/* <nav className="fixed top-0 lg:p-4 p-2 pt-3 left-0 z-[999]">
           <div className="">
             <h4>imfuCxinCreative</h4>
 
 
           </div>
-        </nav>
+        </nav> */}
         {/* <div className="Live cam fixed flex items-center gap-2 flex-col z-[99999] bottom-6 left-10 ">
           <Image src="/livecam.png" className="h-20 w-20 rounded-full" alt="Live Cam" width={100} height={100} />
           <p>Live cam</p>

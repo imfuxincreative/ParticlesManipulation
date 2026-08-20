@@ -69,9 +69,9 @@ export const OverlayManager: React.FC = () => {
   return (
     <div className="absolute inset-0 w-full h-full pointer-events-none select-none z-30">
       {/* Talk / Hire Overlay (Frame 3613 to 3783) */}
-      <FrameOverlay startFrame={3613} endFrame={3783}>
+      {/* <FrameOverlay startFrame={3613} endFrame={3783}>
         <HaveASeat />
-      </FrameOverlay>
+      </FrameOverlay> */}
 
       {/* You can easily add more frame-based overlays here in the future:
       <FrameOverlay startFrame={1000} endFrame={1500}>
