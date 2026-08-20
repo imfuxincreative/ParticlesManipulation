@@ -108,11 +108,14 @@ export const GridFloorShader = {
       float alphaFactor = smoothstep(wipeProgress, wipeProgress + transitionWidth, progress);
 
       // 1. Calculate Grid Lines (Hybrid World/Screen Space)
-      vec2 localCoord = abs(fract(vWorldPosition.xz / uTileSize - 0.5) - 0.5) * uTileSize;
-      vec2 gridDeriv = fwidth(vWorldPosition.xz);
-      vec2 thickness = max(vec2(0.04), uLineWidth * gridDeriv);
-      vec2 lineVal = 1.0 - smoothstep(vec2(0.0), thickness, localCoord);
-      float lineStrength = max(lineVal.x, lineVal.y);
+      float lineStrength = 0.0;
+      if (uLineWidth > 0.001) {
+        vec2 localCoord = abs(fract(vWorldPosition.xz / uTileSize - 0.5) - 0.5) * uTileSize;
+        vec2 gridDeriv = fwidth(vWorldPosition.xz);
+        vec2 thickness = max(vec2(0.04), uLineWidth * gridDeriv);
+        vec2 lineVal = 1.0 - smoothstep(vec2(0.0), thickness, localCoord);
+        lineStrength = max(lineVal.x, lineVal.y);
+      }
       
       // 2. Add a soft grid cell/tiled fill pattern (chessboard)
       vec2 tileIndex = floor(vWorldPosition.xz / uTileSize);

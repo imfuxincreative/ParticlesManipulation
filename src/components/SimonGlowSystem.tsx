@@ -17,7 +17,7 @@ export const SimonGlowSystem: React.FC<SimonGlowSystemProps> = ({ meshes, sceneI
   // Track cloned materials active on meshes to update them in the frame loop
   const activeMaterialsRef = useRef<THREE.ShaderMaterial[]>([]);
 
-  // Base shader material (FrontSide rendering eliminates double-layered transparent overlap)
+  // Base shader material
   const material = useMemo(() => {
     return new THREE.ShaderMaterial({
       vertexShader: SimonGlowShader.vertexShader,
@@ -25,6 +25,7 @@ export const SimonGlowSystem: React.FC<SimonGlowSystemProps> = ({ meshes, sceneI
       uniforms: THREE.UniformsUtils.clone(SimonGlowShader.uniforms),
       transparent: true,
       depthWrite: true, // Need depth writing for proper occlusion
+      side: THREE.DoubleSide,
     });
   }, []);
 
@@ -37,6 +38,7 @@ export const SimonGlowSystem: React.FC<SimonGlowSystemProps> = ({ meshes, sceneI
       defines: { USE_SKINNING: '' },
       transparent: true,
       depthWrite: true,
+      side: THREE.DoubleSide,
     });
   }, [material]);
 
@@ -102,6 +104,7 @@ export const SimonGlowSystem: React.FC<SimonGlowSystemProps> = ({ meshes, sceneI
           mesh.material = originalMaterials.get(mesh)!;
         }
       });
+      clonedMaterials.forEach((mat) => mat.dispose());
       activeMaterialsRef.current = [];
     };
   }, [meshes, material, skinnedMaterial]);

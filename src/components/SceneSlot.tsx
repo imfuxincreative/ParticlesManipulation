@@ -275,7 +275,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
   // We clone the material for each mesh to prevent shared instance opacity bugs.
   useEffect(() => {
     const defaultSkinMat = new THREE.MeshStandardMaterial({
-      color: 0x888888,
+      color: 0xdadada,
       roughness: 1.0,
       metalness: 0.0,
       side: THREE.DoubleSide,
