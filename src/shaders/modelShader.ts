@@ -68,6 +68,7 @@ export const ModelParticleShader = {
     uniform float uFlowNormalLimit;
     uniform float uFlowClumping;
     uniform float uScrollProgress;
+    uniform float uSpiralSuppression;
 
     // Focus settings
     uniform float uFocusDepth;
@@ -134,15 +135,19 @@ export const ModelParticleShader = {
       float flowMask = smoothstep(-0.3, 0.5, snoise(maskInput));
       float clumpingMask = mix(1.0, flowMask, uFlowClumping);
 
+      // Suppress background spiral noise when particle is actively dragged
+      float dragFactor = smoothstep(0.01, 0.35, aScatter);
+      float activeFlowStrength = mix(uFlowStrength, uFlowStrength * (1.0 - uSpiralSuppression), dragFactor);
+
       vec3 N = aNormal;
       float len = length(N);
       if (len > 0.01) {
         N = N / len;
         vec3 tangentFlow = flow - dot(flow, N) * N;
         vec3 normalFlow = dot(flow, N) * N;
-        pos += (tangentFlow * uFlowStrength + normalFlow * uFlowNormalLimit) * clumpingMask;
+        pos += (tangentFlow * activeFlowStrength + normalFlow * uFlowNormalLimit) * clumpingMask;
       } else {
-        pos += flow * uFlowStrength * clumpingMask;
+        pos += flow * activeFlowStrength * clumpingMask;
       }
 
       vec4 worldPos = modelMatrix * vec4(pos, 1.0);
@@ -272,6 +277,14 @@ export const ModelParticleShader = {
     uniform float uFogFar;
     uniform float uFogAmount;
 
+    uniform vec3 uBurnColorPrimary;
+    uniform vec3 uBurnColorSecondary;
+    uniform float uBurnSensitivity;
+    uniform float uBurnThreshold;
+    uniform float uBurnExponent;
+    uniform float uBurnMidThreshold;
+    uniform float uBurnMaxThreshold;
+
     // Simple hash for sparkle noise
     float hash(vec2 p) {
       return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -312,18 +325,31 @@ export const ModelParticleShader = {
       // Apply atmospheric haze based on blur (distance from focus)
       color = mix(color, uHazeColor, vBlur * uHazeDensity);
 
-      // --- Scatter Burn Glow ---
-      // Particles displaced from rest glow using the primary color
-      float s = clamp(max(max(vScatter, vGpuScatter) * uScatterColorScale, uBurnProgress), 0.0, 1.0);
-      if (s > 0.01) {
-        // Direct transition from base color (white) to primary color to avoid grayish intermediate values.
-        vec3 emberColor = mix(color, uPrimaryColor, s);
-        
-        color = emberColor;
-        // Additive bloom using primary color
-        color += uPrimaryColor * s * 1.5;
-        // Boost alpha so scattered particles really pop
-        alpha = min(1.0, alpha + s * 0.8);
+      // --- Thermal Scatter Burn Glow (Driven strictly by Drag Distance from Rest) ---
+      // 3-Stage Distance Color Transformation:
+      // 1. Low Distance  (0.00 -> mid): Stays Default Particle Color (NO early primary color catching)
+      // 2. Middle Distance (mid -> max): Transforms to Primary Burn Color (uBurnColorPrimary)
+      // 3. Far Distance   (max -> 1.0): Transforms to Core Glow Color (uBurnColorSecondary) & Fully Burned White
+      float dragDistance = vScatter; // CPU distance displaced from model rest position
+      float normDistance = clamp((dragDistance - uBurnThreshold) * uBurnSensitivity, 0.0, 1.0);
+      float s = max(pow(normDistance, max(uBurnExponent, 0.1)), uBurnProgress);
+
+      float midStart = max(uBurnMidThreshold, 0.05);
+      float maxStart = max(uBurnMaxThreshold, midStart + 0.1);
+
+      if (s > midStart * 0.5) {
+        float midRamp = smoothstep(midStart * 0.5, maxStart, s);
+        float maxRamp = smoothstep(maxStart, 1.0, s);
+
+        // Stage 1: Default Base Color -> Primary Burn Color (at middle distance)
+        vec3 burnStage1 = mix(color, uBurnColorPrimary, midRamp);
+
+        // Stage 2: Primary Burn Color -> Core Glow Color -> Fully Burned Hot White (at max distance)
+        vec3 burnStage2 = mix(burnStage1, uBurnColorSecondary, maxRamp * 0.7);
+        vec3 fullyBurnedWhite = mix(burnStage2, vec3(1.6, 1.6, 1.7), maxRamp);
+
+        color = fullyBurnedWhite + uBurnColorPrimary * midRamp * 0.4 + vec3(0.4) * maxRamp * 1.2;
+        alpha = min(1.0, alpha + s * 0.5);
       }
 
 

@@ -230,25 +230,12 @@ export const SceneModel: React.FC = () => {
 
 
 
-    // Handle instant wrap-around loop scroll
-    const scrollDataAny = scrollData as any;
-    const el = scrollData.el;
-    const maxScroll = el.scrollHeight - el.clientHeight;
-
-    if (maxScroll > 0) {
-      if (el.scrollTop >= maxScroll) {
-        el.scrollTop = 1;
-        if (scrollDataAny.scroll) scrollDataAny.scroll.current = 0.0;
-        scrollDataAny.offset = 0.0;
-      } else if (el.scrollTop <= 0) {
-        el.scrollTop = maxScroll - 1;
-        if (scrollDataAny.scroll) scrollDataAny.scroll.current = 1.0;
-        scrollDataAny.offset = 1.0;
-      }
-    }
+    // Read non-dampened Lenis scroll ratio directly from window to avoid useScroll dampening lag during instant loop wraps
+    const particlesRatio = typeof window !== "undefined" ? (window as any).particlesScrollRatio : undefined;
+    const rawT = (typeof particlesRatio === "number" && !isNaN(particlesRatio)) ? particlesRatio : (scrollData ? scrollData.offset : 0);
 
     // Clamp the raw scroll offset safely to [0, 1] range to prevent any index errors
-    const t = THREE.MathUtils.clamp(scrollData.offset, 0.0, 1.0);
+    const t = THREE.MathUtils.clamp(rawT, 0.0, 1.0);
 
     // Compute which scene index the scroll is in
     const segmentSize = 1.0 / NUM_SCENES;
@@ -394,13 +381,6 @@ export const SceneModel: React.FC = () => {
         cam.updateMatrixWorld(true);
         cam.updateProjectionMatrix();
       }
-    }
-
-
-
-    // Maintain model index 0 during active play
-    if (settingsRef.current.currentModelIndex !== 0) {
-      updateSetting('currentModelIndex', 0);
     }
   }, -1);
 

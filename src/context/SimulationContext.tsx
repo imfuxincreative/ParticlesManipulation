@@ -78,6 +78,23 @@ export interface SimulationSettings {
   modelFlowNormalLimit: number;
   modelScatterColorScale: number;
   modelFlowClumping: number;
+  fluidDragRadius: number;
+  fluidDragStrength: number;
+  fluidDamping: number;
+  fluidSpiralSuppression: number;
+  fluidRadialExpansion: number;
+  fluidTurbulenceSwirl: number;
+  fluidDirectionalBias: number;
+  burnSensitivity: number;
+  burnThreshold: number;
+  burnExponent: number;
+  burnMidThreshold: number;
+  burnMaxThreshold: number;
+  burnColorPrimary: string;
+  burnColorSecondary: string;
+  interactiveModelScale: number;
+  interactiveModelRotationSpeed: number;
+  enableInteractiveModelRotation: boolean;
   cityHologramOpacity: number;
   scrollSpeed: number;
   scrollDamping: number;
@@ -123,7 +140,7 @@ const defaultSettings: SimulationSettings = {
   tintMix: 0.0,
   opacity: 1.0, // Full opacity for clear footage
   densityControl: 0.0, // Turned off particle dropping so the entire video renders cleanly
-  models: ["/heart.glb", "/robot.glb", "/bird.glb", "/figure.glb"],
+  models: ["/heart.glb", "/bird.glb"],
   currentModelIndex: 0,
   isPlaying: false,
   xrayFillOpacity: 0.15,
@@ -176,6 +193,23 @@ const defaultSettings: SimulationSettings = {
   modelFlowNormalLimit: 0.000,
   modelScatterColorScale: 0.040,
   modelFlowClumping: 0.00,
+  fluidDragRadius: 4.0,
+  fluidDragStrength: 1.2,
+  fluidDamping: 0.88,
+  fluidSpiralSuppression: 1.0,
+  fluidRadialExpansion: 0.45,
+  fluidTurbulenceSwirl: 0.35,
+  fluidDirectionalBias: 0.40,
+  burnSensitivity: 2.5,
+  burnThreshold: 0.05,
+  burnExponent: 1.5,
+  burnMidThreshold: 0.25,
+  burnMaxThreshold: 0.70,
+  burnColorPrimary: "#e91e63",
+  burnColorSecondary: "#00ffff",
+  interactiveModelScale: 1.0,
+  interactiveModelRotationSpeed: 0.15,
+  enableInteractiveModelRotation: true,
   cityHologramOpacity: 0.10,
   scrollSpeed: 0.5,
   scrollDamping: 0.05,

@@ -7,13 +7,35 @@ import {
   Sparkles,
   Camera,
   Menu,
-  X
+  X,
+  Copy,
+  Check
 } from "lucide-react";
 
 export const Dashboard: React.FC = () => {
   const { settings, updateSetting, triggerSceneEntrance } = useSimulation();
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [activeTab, setActiveTab] = useState<"rendering" | "focus">("rendering");
+  const [copied, setCopied] = useState(false);
+
+  const handleCopySettings = () => {
+    const jsonString = JSON.stringify(settings, null, 2);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(jsonString).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = jsonString;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <div className="fixed inset-0 w-full h-full pointer-events-none select-none z-20 font-sans text-slate-100 flex flex-col justify-between p-6">
@@ -72,6 +94,24 @@ export const Dashboard: React.FC = () => {
               Camera
             </button>
           </div>
+
+          {/* Copy All Settings Button */}
+          <button
+            onClick={handleCopySettings}
+            className="w-full py-2 px-3 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 hover:border-purple-500/70 rounded-lg text-purple-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-green-400" />
+                <span className="text-green-300">Copied to Clipboard!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5 text-purple-300" />
+                <span>Copy All Settings (JSON)</span>
+              </>
+            )}
+          </button>
 
           {/* TAB 2: RENDERING CONFIG */}
           {activeTab === "rendering" && (
@@ -403,6 +443,283 @@ export const Dashboard: React.FC = () => {
                 <p className="text-[9px] text-slate-500 leading-normal">
                   Controls how quickly particles turn pink/glow based on displacement distance. High values cause more pink coloring.
                 </p>
+              </div>
+
+              {/* FLUID DRAG & THERMAL BURN CONFIG */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Particle Model & Liquid Drag</span>
+              </div>
+
+              {/* Slider: Interactive Model Scale / Size */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">PARTICLE MODEL SIZE (SCALE)</span>
+                  <span className="text-slate-300">{(settings.interactiveModelScale ?? 1.0).toFixed(2)}x</span>
+                </div>
+                <input
+                  type="range" min="0.2" max="3.0" step="0.05"
+                  value={settings.interactiveModelScale ?? 1.0}
+                  onChange={(e) => updateSetting("interactiveModelScale", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Toggle: Enable Auto Rotation */}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500 font-mono text-[10px]">GRADUAL AUTO-ROTATION</span>
+                <button
+                  onClick={() => updateSetting("enableInteractiveModelRotation", !(settings.enableInteractiveModelRotation ?? true))}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${(settings.enableInteractiveModelRotation ?? true) ? "bg-purple-600" : "bg-slate-800"
+                    }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${(settings.enableInteractiveModelRotation ?? true) ? "translate-x-4" : "translate-x-0"
+                      }`}
+                  />
+                </button>
+              </div>
+
+              {/* Slider: Model Rotation Speed */}
+              {(settings.enableInteractiveModelRotation ?? true) && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-500">ROTATION SPEED</span>
+                    <span className="text-slate-300">{(settings.interactiveModelRotationSpeed ?? 0.15).toFixed(2)}rad/s</span>
+                  </div>
+                  <input
+                    type="range" min="-1.5" max="1.5" step="0.05"
+                    value={settings.interactiveModelRotationSpeed ?? 0.15}
+                    onChange={(e) => updateSetting("interactiveModelRotationSpeed", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Slider: Fluid Drag Radius */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">FLUID DRAG RADIUS</span>
+                  <span className="text-slate-300">{(settings.fluidDragRadius ?? 4.0).toFixed(1)}u</span>
+                </div>
+                <input
+                  type="range" min="1.0" max="10.0" step="0.5"
+                  value={settings.fluidDragRadius ?? 4.0}
+                  onChange={(e) => updateSetting("fluidDragRadius", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Fluid Drag Strength */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">FLUID IMPULSE FORCE</span>
+                  <span className="text-slate-300">{(settings.fluidDragStrength ?? 1.2).toFixed(2)}x</span>
+                </div>
+                <input
+                  type="range" min="0.1" max="3.0" step="0.1"
+                  value={settings.fluidDragStrength ?? 1.2}
+                  onChange={(e) => updateSetting("fluidDragStrength", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Viscous Damping */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">VISCOUS DAMPING (RETENTION)</span>
+                  <span className="text-slate-300">{(settings.fluidDamping ?? 0.88).toFixed(2)}</span>
+                </div>
+                <input
+                  type="range" min="0.70" max="0.98" step="0.01"
+                  value={settings.fluidDamping ?? 0.88}
+                  onChange={(e) => updateSetting("fluidDamping", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Radial Splash Expansion */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">RADIAL SPLASH EXPANSION</span>
+                  <span className="text-slate-300">{((settings.fluidRadialExpansion ?? 0.45) * 100).toFixed(0)}%</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="1.5" step="0.05"
+                  value={settings.fluidRadialExpansion ?? 0.45}
+                  onChange={(e) => updateSetting("fluidRadialExpansion", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Higher = particles billow and expand outward radially from the drag line (liquid splash effect).
+                </p>
+              </div>
+
+              {/* Slider: Lateral Swirl Turbulence */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">LATERAL SWIRL TURBULENCE</span>
+                  <span className="text-slate-300">{((settings.fluidTurbulenceSwirl ?? 0.35) * 100).toFixed(0)}%</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="1.5" step="0.05"
+                  value={settings.fluidTurbulenceSwirl ?? 0.35}
+                  onChange={(e) => updateSetting("fluidTurbulenceSwirl", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Higher = creates liquid vortex swirls and eddies along drag trail edges.
+                </p>
+              </div>
+
+              {/* Slider: Directional Drag Bias */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">DIRECTIONAL DRAG BIAS</span>
+                  <span className="text-slate-300">{((settings.fluidDirectionalBias ?? 0.40) * 100).toFixed(0)}%</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="1.5" step="0.05"
+                  value={settings.fluidDirectionalBias ?? 0.40}
+                  onChange={(e) => updateSetting("fluidDirectionalBias", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Higher = particles strictly follow mouse drag direction. Lower = particles move more freely like splash water.
+                </p>
+              </div>
+
+              {/* Slider: Spiral Suppression */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">SPIRAL OVERRIDE %</span>
+                  <span className="text-slate-300">{((settings.fluidSpiralSuppression ?? 1.0) * 100).toFixed(0)}%</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="1.0" step="0.05"
+                  value={settings.fluidSpiralSuppression ?? 1.0}
+                  onChange={(e) => updateSetting("fluidSpiralSuppression", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Suppresses background spiral/curl rotation on dragged particles, allowing clean directional liquid movement.
+                </p>
+              </div>
+
+              {/* Slider: Burn Heat Sensitivity */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">BURN HEAT SENSITIVITY</span>
+                  <span className="text-slate-300">{(settings.burnSensitivity ?? 2.5).toFixed(1)}x</span>
+                </div>
+                <input
+                  type="range" min="0.1" max="10.0" step="0.1"
+                  value={settings.burnSensitivity ?? 2.5}
+                  onChange={(e) => updateSetting("burnSensitivity", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Burn Distance Threshold */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">DRAG BURN START THRESHOLD</span>
+                  <span className="text-slate-300">{(settings.burnThreshold ?? 0.05).toFixed(2)}u</span>
+                </div>
+                <input
+                  type="range" min="0.0" max="2.0" step="0.02"
+                  value={settings.burnThreshold ?? 0.05}
+                  onChange={(e) => updateSetting("burnThreshold", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Minimum drag displacement distance required before heat burn starts glowing. Prevents background resting particles from burning.
+                </p>
+              </div>
+
+              {/* Slider: Burn Distance Exponent */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">BURN DISTANCE CURVE POWER</span>
+                  <span className="text-slate-300">{(settings.burnExponent ?? 1.5).toFixed(1)}x</span>
+                </div>
+                <input
+                  type="range" min="0.5" max="4.0" step="0.1"
+                  value={settings.burnExponent ?? 1.5}
+                  onChange={(e) => updateSetting("burnExponent", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Higher = sharper heat burn falloff (only far displaced particles glow hot white). Lower = softer gradual glow.
+                </p>
+              </div>
+
+              {/* Slider: Mid Distance Primary Burn Start */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">MID DISTANCE BURN START</span>
+                  <span className="text-slate-300">{(settings.burnMidThreshold ?? 0.25).toFixed(2)}</span>
+                </div>
+                <input
+                  type="range" min="0.05" max="0.80" step="0.05"
+                  value={settings.burnMidThreshold ?? 0.25}
+                  onChange={(e) => updateSetting("burnMidThreshold", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Distance threshold where particles transform from default color to primary burn color.
+                </p>
+              </div>
+
+              {/* Slider: Far Distance Hot White Start */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">FAR DISTANCE HOT WHITE START</span>
+                  <span className="text-slate-300">{(settings.burnMaxThreshold ?? 0.70).toFixed(2)}</span>
+                </div>
+                <input
+                  type="range" min="0.30" max="1.00" step="0.05"
+                  value={settings.burnMaxThreshold ?? 0.70}
+                  onChange={(e) => updateSetting("burnMaxThreshold", parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  Distance threshold where primary burn transforms into fully burned glowing hot white.
+                </p>
+              </div>
+
+              {/* Color: Primary Burn Color */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">PRIMARY BURN COLOR</span>
+                  <span className="text-slate-300">{settings.burnColorPrimary || "#e91e63"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={settings.burnColorPrimary || "#e91e63"}
+                    onChange={(e) => updateSetting("burnColorPrimary", e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                  />
+                  <span className="text-[10px] text-slate-500">Select color</span>
+                </div>
+              </div>
+
+              {/* Color: Core Glow Color */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-500">CORE GLOW COLOR</span>
+                  <span className="text-slate-300">{settings.burnColorSecondary || "#00ffff"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={settings.burnColorSecondary || "#00ffff"}
+                    onChange={(e) => updateSetting("burnColorSecondary", e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                  />
+                  <span className="text-[10px] text-slate-500">Select color</span>
+                </div>
               </div>
 
               {/* HOLOGRAPHIC ARCHITECTURE */}

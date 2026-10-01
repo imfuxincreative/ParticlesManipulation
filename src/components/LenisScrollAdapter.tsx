@@ -3,8 +3,10 @@
 import React, { useEffect, useRef, useMemo } from "react";
 import { useScroll, useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 import Lenis from "lenis";
 import { useSimulation } from "@/context/SimulationContext";
+import { getFocalLengthAtFrame, focalLengthToFov } from "@/config/navigationConfig";
 
 interface SnapRange {
   start: number;
@@ -20,8 +22,9 @@ const SNAP_RANGES: SnapRange[] = [
   { start: 720, end: 1212 },
   { start: 1857, end: 2493 },
   { start: 3116, end: 3613 },
+  { start: 3613, end: 3846 },
+  { start: 3846, end: 4057 },
   { start: 4057, end: 4561 },
-
 ];
 
 export const LenisScrollAdapter: React.FC = () => {
@@ -86,22 +89,23 @@ export const LenisScrollAdapter: React.FC = () => {
     });
 
     lenisRef.current = lenis;
+    if (typeof window !== "undefined") {
+      (window as any).lenis = lenis;
+    }
 
-    // Set initial scroll position to frame 0 on first time load
+    // Set initial scroll position to frame -493 (offset 0) on first time load
     let initialized = false;
-    const initScrollToFrameZero = () => {
+    const initScrollToStartFrame = () => {
       if (initialized) return;
       if (lenis.limit > 0) {
-        const targetOffset = (0 - BLENDER_FRAME_OFFSET) / (sceneMaxDuration * 30);
-        const targetScroll = targetOffset * lenis.limit;
-        lenis.scrollTo(targetScroll, { immediate: true });
+        lenis.scrollTo(0, { immediate: true });
         initialized = true;
-        console.log(`[LenisScrollAdapter] Initialized scroll to frame 0 (Offset: ${targetOffset.toFixed(4)}, Scroll: ${targetScroll.toFixed(1)})`);
+        console.log(`[LenisScrollAdapter] Initialized scroll to start frame -493 (Offset: 0.0000, Scroll: 0)`);
       } else {
-        requestAnimationFrame(initScrollToFrameZero);
+        requestAnimationFrame(initScrollToStartFrame);
       }
     };
-    requestAnimationFrame(initScrollToFrameZero);
+    requestAnimationFrame(initScrollToStartFrame);
 
     // Expose window functions for manual developer console diagnosis
     (window as any).snapToFrame = (frame: number) => {
@@ -170,14 +174,55 @@ export const LenisScrollAdapter: React.FC = () => {
       }
     };
 
-    const handleWheelInput = () => {
+    const handleWheelInput = (e: WheelEvent) => {
       isSnappingRef.current = false;
       lastInputTimeRef.current = Date.now();
+
+      if (!lenisRef.current || sceneMaxDuration <= 0) return;
+      const lenis = lenisRef.current;
+
+      const totalFrames = sceneMaxDuration * 30;
+      const currentOffset = scroll ? scroll.offset : (lenis.limit > 0 ? lenis.scroll / lenis.limit : 0);
+      const currentFrame = currentOffset * totalFrames + BLENDER_FRAME_OFFSET;
+
+      if (e.deltaY > 0 && currentFrame >= 4540) {
+        lenis.scrollTo(0, { immediate: true });
+      } else if (e.deltaY < 0 && currentFrame <= -470) {
+        lenis.scrollTo(lenis.limit, { immediate: true });
+      }
+    };
+
+    let touchStartY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      handlePointerDown();
+      if (e.touches && e.touches.length > 0) {
+        touchStartY = e.touches[0].clientY;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      handlePointerMove();
+      if (!lenisRef.current || !e.touches || e.touches.length === 0 || sceneMaxDuration <= 0) return;
+      const lenis = lenisRef.current;
+      const touchCurrentY = e.touches[0].clientY;
+      const diffY = touchCurrentY - touchStartY;
+
+      const totalFrames = sceneMaxDuration * 30;
+      const currentOffset = scroll ? scroll.offset : (lenis.limit > 0 ? lenis.scroll / lenis.limit : 0);
+      const currentFrame = currentOffset * totalFrames + BLENDER_FRAME_OFFSET;
+
+      if (diffY < -15 && currentFrame >= 4540) {
+        lenis.scrollTo(0, { immediate: true });
+        touchStartY = touchCurrentY;
+      } else if (diffY > 15 && currentFrame <= -470) {
+        lenis.scrollTo(lenis.limit, { immediate: true });
+        touchStartY = touchCurrentY;
+      }
     };
 
     wrapper.addEventListener("wheel", handleWheelInput, { passive: true });
-    wrapper.addEventListener("touchstart", handlePointerDown, { passive: true });
-    wrapper.addEventListener("touchmove", handlePointerMove, { passive: true });
+    wrapper.addEventListener("touchstart", handleTouchStart, { passive: true });
+    wrapper.addEventListener("touchmove", handleTouchMove, { passive: true });
     wrapper.addEventListener("touchend", handlePointerUp, { passive: true });
     wrapper.addEventListener("touchcancel", handlePointerUp, { passive: true });
     wrapper.addEventListener("pointerdown", handlePointerDown, { passive: true });
@@ -201,8 +246,8 @@ export const LenisScrollAdapter: React.FC = () => {
       resizeObserver.disconnect();
       lenis.off("scroll", handleScroll);
       wrapper.removeEventListener("wheel", handleWheelInput);
-      wrapper.removeEventListener("touchstart", handlePointerDown);
-      wrapper.removeEventListener("touchmove", handlePointerMove);
+      wrapper.removeEventListener("touchstart", handleTouchStart);
+      wrapper.removeEventListener("touchmove", handleTouchMove);
       wrapper.removeEventListener("touchend", handlePointerUp);
       wrapper.removeEventListener("touchcancel", handlePointerUp);
       wrapper.removeEventListener("pointerdown", handlePointerDown);
@@ -218,25 +263,57 @@ export const LenisScrollAdapter: React.FC = () => {
   useFrame((state) => {
     // Calculate and update the DOM overlay values smoothly from the raw scroll state immediately.
     // This runs independent of Lenis, ensuring the overlay frame count is always active as you scroll.
-    const rawOffset = scroll ? scroll.offset : 0;
-    const rawFrame = rawOffset * sceneMaxDuration * 30 + BLENDER_FRAME_OFFSET;
+    const lenis = lenisRef.current;
+    const currentOffset = (lenis && lenis.limit > 0) ? (lenis.scroll / lenis.limit) : (scroll ? scroll.offset : 0);
+    const rawFrame = currentOffset * sceneMaxDuration * 30 + BLENDER_FRAME_OFFSET;
+
+    if (typeof window !== "undefined") {
+      (window as any).particlesScrollRatio = currentOffset;
+      (window as any).particlesCurrentFrame = rawFrame;
+    }
 
     const frameValEl = document.getElementById("overlay-frame-val");
     const offsetValEl = document.getElementById("overlay-offset-val");
     if (frameValEl) frameValEl.innerText = rawFrame.toFixed(0);
-    if (offsetValEl) offsetValEl.innerText = rawOffset.toFixed(4);
+    if (offsetValEl) offsetValEl.innerText = currentOffset.toFixed(4);
 
-    // Dispatch custom event for frame changes so overlays can update efficiently
+    // Dynamically update camera focal length (in mm) and adapt FOV responsively
+    if (state.camera && (state.camera as any).isPerspectiveCamera) {
+      const camera = state.camera as THREE.PerspectiveCamera;
+      const currentFocalLength = getFocalLengthAtFrame(rawFrame);
+      const targetBaseFov = focalLengthToFov(currentFocalLength);
+      const aspect = state.size.width / state.size.height;
+      const baseAspect = 1.7778; // 16:9 design aspect ratio
+
+      if (aspect < baseAspect) {
+        const aspectExpansion = Math.pow(baseAspect / aspect, 0.35);
+        const adjustedFov = targetBaseFov * aspectExpansion;
+        camera.fov = Math.min(108, Math.max(targetBaseFov, adjustedFov));
+      } else {
+        camera.fov = targetBaseFov;
+      }
+      camera.updateProjectionMatrix();
+    }
+
     if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent("scroll-frame-change", {
-          detail: { frame: rawFrame, offset: rawOffset },
+          detail: { frame: rawFrame, offset: currentOffset },
         })
       );
     }
 
     if (lenisRef.current) {
       const lenis = lenisRef.current;
+
+      // Instant wrap-around loop scroll at frame boundaries (0ms delay)
+      if (lenis.limit > 0 && !isSnappingRef.current && sceneMaxDuration > 0) {
+        if (rawFrame >= 4560 && lenis.velocity > 0) {
+          lenis.scrollTo(0, { immediate: true });
+        } else if (rawFrame <= -490 && lenis.velocity < 0) {
+          lenis.scrollTo(lenis.limit, { immediate: true });
+        }
+      }
 
       // Prevent scroll target from running too far ahead of the current position (only during user manual scroll, NOT during snapping).
       if (!isSnappingRef.current) {

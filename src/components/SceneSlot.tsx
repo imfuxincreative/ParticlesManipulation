@@ -8,6 +8,7 @@ import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
 import { SimonGlowSystem } from "./SimonGlowSystem";
 import { GridFloorMeshSystem } from "./GridFloorMeshSystem";
 import { TargetOverlayBridge } from "./callouts/TargetOverlayBridge";
+import { InteractiveSceneParticleSystem } from "./InteractiveSceneParticleSystem";
 import { CALLOUT_TARGETS } from "@/config/targetConfig";
 import { useSimulation } from "@/context/SimulationContext";
 
@@ -503,6 +504,9 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
 
       {/* 3D → Screen-space bridge for callout overlays */}
       <TargetOverlayBridge scene={gltf.scene} />
+
+      {/* Interactive Liquid Particle System anchored at Cube005 */}
+      <InteractiveSceneParticleSystem position={[1047.551, 398.157, 2.997]} />
     </group>
   );
 };
