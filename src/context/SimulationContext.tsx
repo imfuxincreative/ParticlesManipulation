@@ -92,19 +92,42 @@ export interface SimulationSettings {
   burnMaxThreshold: number;
   burnColorPrimary: string;
   burnColorSecondary: string;
-  interactiveModelScale: number;
-  interactiveModelRotationSpeed: number;
-  enableInteractiveModelRotation: boolean;
   cityHologramOpacity: number;
   scrollSpeed: number;
   scrollDamping: number;
   enableScrollSnap: boolean;
   scrollSnapDuration: number;
   scrollSnapThreshold: number;
+  modelOffsetX: number;
+  modelOffsetY: number;
+  modelOffsetZ: number;
+  modelScale: number;
+  modelAutoRotateSpeedX: number;
+  modelBaseRotationX: number;
+  modelBaseRotationY: number;
+  modelBaseRotationZ: number;
   loaderModelScale: number;
   loaderBurnSensitivity: number;
   loaderMorphSpeed: number;
   alwaysShowLoader: boolean;
+  showGhibliGrass: boolean;
+  useRealisticGrass: boolean;
+  ghibliGrassCount: number;
+  ghibliGrassHeight: number;
+  ghibliGrassWidth: number;
+  ghibliGrassRadius: number;
+  ghibliGrassWindSpeed: number;
+  ghibliGrassWindStrength: number;
+  ghibliGrassRevealDistance: number;
+  ghibliGrassRevealSoftness: number;
+  ghibliGrassRevealOffset: number;
+  showGhibliFlowers: boolean;
+  ghibliFlowerCount: number;
+  ghibliFlowerScale: number;
+  showGhibliTrees: boolean;
+  ghibliPaletteKey: string;
+  groundColor: string;
+  groundOpacity: number;
   isLoading: boolean;
   isSceneLoaded: boolean;
   sceneLoadProgress: number;
@@ -118,108 +141,131 @@ interface SimulationContextProps {
 }
 
 const defaultSettings: SimulationSettings = {
-  gridSize: 512, // Massive density (4 million+ particles) for a completely solid, clear image
+  gridSize: 512,
   particleDefaultColor: "#ffffff",
-  glitchIntensity: 0.0, // Base glitch burst strength
-  glitchInterval: 0.0, // Calm period base (seconds)
-  glitchDuration: 0.0, // Active burst base (seconds)
-  bgGlitchIntensity: 0.0,
-  bgGlitchInterval: 0.0,
-  bgGlitchDuration: 0.0,
-  scatterRadius: 2.0,
-  scatterStrength: 3.0,
-  noiseStrength: 0.1, // Reduced so the footage is clearer and less warped
+  glitchIntensity: 0,
+  glitchInterval: 0,
+  glitchDuration: 0,
+  bgGlitchIntensity: 0,
+  bgGlitchInterval: 0,
+  bgGlitchDuration: 0,
+  scatterRadius: 2,
+  scatterStrength: 3,
+  noiseStrength: 0.1,
   noiseSpeed: 0.4,
-  pointSize: 2.5, // Increased to 2.5px to make particles thicker and improve clarity
-  focusDepth: 14.0,
-  focusRange: 2.0,
-  bokehScale: 4.0,
+  pointSize: 2.5,
+  focusDepth: 14,
+  focusRange: 2,
+  bokehScale: 4,
   hazeColor: "#ffffff",
   hazeDensity: 0.1,
   tintColor: "#a855f7",
-  tintMix: 0.0,
-  opacity: 1.0, // Full opacity for clear footage
-  densityControl: 0.0, // Turned off particle dropping so the entire video renders cleanly
+  tintMix: 0,
+  opacity: 1,
+  densityControl: 0,
   models: ["/heart.glb", "/bird.glb"],
   currentModelIndex: 0,
   isPlaying: false,
-  xrayFillOpacity: 0.15,
+  xrayFillOpacity: 0.38,
   xrayOutlineColor: "#ffffff",
-  xrayBaseColor: "#888888",
+  xrayBaseColor: "#ffffff",
   xrayOutlinePower: 2.5,
-  xrayScanlineIntensity: 0.0,
-  xrayBorderColor: "#e91e63",
+  xrayScanlineIntensity: 0.45,
+  xrayBorderColor: "#000000",
   xrayBorderOpacity: 0.5,
-  xrayBorderThreshold: 15.0,
-  xrayBorderDepthLimit: 20.0,
-  xrayBorderRevealDepth: 1000.0,
-  xraySolidRevealDepth: 14.0,
-  xrayHoverRadius: 10.0,
+  xrayBorderThreshold: 15,
+  xrayBorderDepthLimit: 20,
+  xrayBorderRevealDepth: 1000,
+  xraySolidRevealDepth: 110,
+  xrayHoverRadius: 10,
   xrayLineGlowIntensity: 2.5,
   showGridFloor: true,
   gridFloorOpacity: 0.35,
   gridFloorFillOpacity: 0.15,
-  gridTileSize: 4.0,
+  gridTileSize: 4,
   gridLineWidth: 1.5,
   gridFloorY: -4.5,
-  gridFloorFallRadius: 68.0,
-  gridFloorFallRadiusRange: 11.0,
-  gridFloorFallMaxDistance: 5.0,
-  gridFloorFallRandomness: 50.0,
+  gridFloorFallRadius: 68,
+  gridFloorFallRadiusRange: 11,
+  gridFloorFallMaxDistance: 5,
+  gridFloorFallRandomness: 50,
   showSky: true,
-  skyColor: "#ff007f",
-  skyExposure: 1.55,
-  skyHorizonRange: -1.05,
+  skyColor: "#3b82f6",
+  skyExposure: 1.0,
+  skyHorizonRange: -0.8,
   wingStartMode: "spine",
   showWingAnchor: false,
-  wingFlowFrequency: 1.0,
-  wingFlowStrength: 0.200,
+  wingFlowFrequency: 1,
+  wingFlowStrength: 0.2,
   wingGlowIntensity: 1.5,
   simonGlowIntensity: 1.2,
   simonBloomIntensity: 0.4,
   simonGlowColor: "#ffffff",
   simonGlowOpacity: 0.4,
-  titleSize: 8.0,
+  titleSize: 8,
   titleYOffset: -0.5,
   showWings: false,
   showFog: true,
-  fogColor: "#ffffff",
-  fogNear: 100.0,
-  fogFar: 400.0,
-  fogAmount: 1.0,
+  fogColor: "#3b82f6",
+  fogNear: 150,
+  fogFar: 800,
+  fogAmount: 1,
   modelFlowSpeed: 0.15,
-  modelFlowStrength: 0.40,
-  modelFlowFrequency: 0.720,
-  modelFlowNormalLimit: 0.000,
-  modelScatterColorScale: 0.040,
-  modelFlowClumping: 0.00,
-  fluidDragRadius: 4.0,
+  modelFlowStrength: 0.4,
+  modelFlowFrequency: 0.72,
+  modelFlowNormalLimit: 0,
+  modelScatterColorScale: 0.04,
+  modelFlowClumping: 0,
+  fluidDragRadius: 4,
   fluidDragStrength: 1.2,
   fluidDamping: 0.88,
-  fluidSpiralSuppression: 1.0,
+  fluidSpiralSuppression: 1,
   fluidRadialExpansion: 0.45,
   fluidTurbulenceSwirl: 0.35,
-  fluidDirectionalBias: 0.40,
+  fluidDirectionalBias: 0.4,
   burnSensitivity: 2.5,
   burnThreshold: 0.05,
   burnExponent: 1.5,
   burnMidThreshold: 0.25,
-  burnMaxThreshold: 0.70,
+  burnMaxThreshold: 0.7,
   burnColorPrimary: "#e91e63",
   burnColorSecondary: "#00ffff",
-  interactiveModelScale: 1.0,
-  interactiveModelRotationSpeed: 0.15,
-  enableInteractiveModelRotation: true,
-  cityHologramOpacity: 0.10,
+  cityHologramOpacity: 0.84,
   scrollSpeed: 0.5,
   scrollDamping: 0.05,
   enableScrollSnap: true,
   scrollSnapDuration: 2.2,
-  scrollSnapThreshold: 0.20,
-  loaderModelScale: 0.270,
-  loaderBurnSensitivity: 2.00,
-  loaderMorphSpeed: 0.060,
+  scrollSnapThreshold: 0.2,
+  modelOffsetX: 0,
+  modelOffsetY: 0,
+  modelOffsetZ: 0,
+  modelScale: 1,
+  modelAutoRotateSpeedX: 0.3,
+  modelBaseRotationX: -1.5707963267948966,
+  modelBaseRotationY: 0,
+  modelBaseRotationZ: 1.5,
+  loaderModelScale: 0.27,
+  loaderBurnSensitivity: 2,
+  loaderMorphSpeed: 0.06,
   alwaysShowLoader: false,
+  showGhibliGrass: true,
+  useRealisticGrass: true,
+  ghibliGrassCount: 500000,
+  ghibliGrassHeight: 1.7,
+  ghibliGrassWidth: 0.3,
+  ghibliGrassRadius: 90,
+  ghibliGrassWindSpeed: 1.2,
+  ghibliGrassWindStrength: 0.3,
+  ghibliGrassRevealDistance: 710,
+  ghibliGrassRevealSoftness: 100,
+  ghibliGrassRevealOffset: 0,
+  showGhibliFlowers: true,
+  ghibliFlowerCount: 12000,
+  ghibliFlowerScale: 1.2,
+  showGhibliTrees: true,
+  ghibliPaletteKey: "realistic",
+  groundColor: "#1c3d18",
+  groundOpacity: 1.0,
   isLoading: true,
   isSceneLoaded: false,
   sceneLoadProgress: 0,
@@ -231,7 +277,12 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [settings, setSettings] = useState<SimulationSettings>(defaultSettings);
 
   const updateSetting = useCallback(<K extends keyof SimulationSettings>(key: K, value: SimulationSettings[K]) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+    setSettings((prev) => {
+      if (key === "skyColor" && typeof value === "string") {
+        return { ...prev, skyColor: value, fogColor: value };
+      }
+      return { ...prev, [key]: value };
+    });
   }, []);
 
   const triggerSceneEntrance = useCallback(() => {

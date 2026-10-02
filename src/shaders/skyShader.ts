@@ -69,13 +69,17 @@ export const SkyShader = {
       // Vertical view direction (-1.0 at bottom of screen, 0.0 at center, 1.0 at top of screen)
       float y = viewDir.y;
       
-      // Pure solid gradient from white (bottom and below) to pink (top)
+      // Sky color gradient derived entirely from uHorizonColor (the active sky color)
       vec3 zenithColor = uHorizonColor;
-      vec3 horizonColor = vec3(1.0); // Clean white
       
-      // Interpolate with a customizable lower limit uHorizonMin
+      // Soft atmospheric horizon tone derived directly from uHorizonColor (soft tint, NOT hardcoded solid white)
+      vec3 horizonColor = mix(uHorizonColor, vec3(1.0), 0.35);
+      
+      // Interpolate with customizable lower limit uHorizonMin
       float factor = clamp((y - uHorizonMin) / max(1.0 - uHorizonMin, 0.0001), 0.0, 1.0);
-      vec3 baseColor = mix(horizonColor, zenithColor, factor);
+      float smoothFactor = smoothstep(0.0, 1.0, factor);
+      
+      vec3 baseColor = mix(horizonColor, zenithColor, smoothFactor);
       vec3 baseSkyColor = baseColor * uExposure;
       
       gl_FragColor = vec4(baseSkyColor, 1.0);

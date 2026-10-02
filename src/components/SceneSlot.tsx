@@ -149,6 +149,12 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       }
 
       if (child instanceof THREE.Mesh) {
+        // Hide Cube005 positioning target mesh
+        if (child.name === "Cube005" || child.name === "Cube.005") {
+          child.visible = false;
+          return;
+        }
+
         // Callout target meshes: hide or show based on the per-target meshVisible flag.
         // Build a lookup from id → meshVisible on first access (pattern: /^target\d+/).
         if (/^target\d+/.test(child.name)) {

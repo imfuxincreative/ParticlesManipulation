@@ -1,136 +1,129 @@
 "use client";
 
-import React, { useMemo, useEffect, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import React, { useMemo } from "react";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
-import { GridFloorShader } from "@/shaders/gridFloorShader";
-import { useScroll } from "@react-three/drei";
+import { GhibliGrassField } from "./ghibli/GhibliGrassField";
+import { GhibliFlowers } from "./ghibli/GhibliFlowers";
+import { GhibliTrees } from "./ghibli/GhibliTrees";
+import { GHIBLI_PALETTES } from "@/shaders/ghibliShader";
 
 interface GridFloorProps {
   projectionBounds?: { min: number; max: number };
 }
 
-export const GridFloor: React.FC<GridFloorProps> = ({ projectionBounds }) => {
+export const GridFloor: React.FC<GridFloorProps> = () => {
   const { settings } = useSimulation();
-  const scrollData = useScroll();
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-  // Initialize shader uniforms once
-  const uniforms = useMemo(() => {
-    return THREE.UniformsUtils.clone(GridFloorShader.uniforms);
-  }, []);
+  // Active Ghibli palette & light vector
+  const palette = useMemo(() => {
+    return GHIBLI_PALETTES[settings.ghibliPaletteKey as keyof typeof GHIBLI_PALETTES] || GHIBLI_PALETTES.realistic;
+  }, [settings.ghibliPaletteKey]);
 
-  // Track current animated reveal depth
-  const animState = useMemo(
-    () => ({
-      currentDepth: settings.xrayBorderRevealDepth ?? 40.0,
-      currentSolidDepth: settings.xraySolidRevealDepth ?? 200.0,
-    }),
-    []
-  );
-
-  // Sync settings reactively to uniforms
-  useEffect(() => {
-    if (!materialRef.current) return;
-    const u = materialRef.current.uniforms;
-
-    u.uColor.value.set(settings.xrayBorderColor || "#e91e63");
-    u.uGlowIntensity.value = settings.xrayLineGlowIntensity ?? 2.5;
-    u.uOpacity.value = settings.gridFloorOpacity ?? 0.35;
-    u.uTileSize.value = settings.gridTileSize ?? 4.0;
-    u.uLineWidth.value = 0.0; // Border lines disabled
-    
-    u.uBaseColor.value.set(settings.xrayBaseColor || "#888888");
-    u.uFillOpacity.value = settings.gridFloorFillOpacity ?? 0.15;
-
-    // Sync fog settings
-    if (u.uShowFog) u.uShowFog.value = settings.showFog ? 1.0 : 0.0;
-    if (u.uFogColor) u.uFogColor.value.set(settings.fogColor);
-    if (u.uFogNear) u.uFogNear.value = settings.fogNear;
-    if (u.uFogFar) u.uFogFar.value = settings.fogFar;
-    if (u.uFogAmount) u.uFogAmount.value = settings.fogAmount;
-
-    // Sync sweep boundaries
-    if (projectionBounds) {
-      u.uMinProj.value = projectionBounds.min;
-      u.uMaxProj.value = projectionBounds.max;
-    }
-  }, [
-    settings.xrayBorderColor,
-    settings.gridFloorOpacity,
-    settings.gridTileSize,
-    settings.gridLineWidth,
-    settings.xrayBaseColor,
-    settings.gridFloorFillOpacity,
-    projectionBounds,
-  ]);
-
-  // Frame loop for time and depth animations
-  useFrame((state, delta) => {
-    if (!materialRef.current) return;
-    const u = materialRef.current.uniforms;
-
-    // Time uniform for scanlines
-    u.uTime.value = state.clock.elapsedTime;
-
-    // Target depths reveal from settings
-    const targetDepth = settings.xrayBorderRevealDepth ?? 40.0;
-    const targetSolidDepth = settings.xraySolidRevealDepth ?? 200.0;
-
-    // Smooth lerp reveal depths (matching the 0.2s delay of borders)
-    const lerpSpeed = 1.0 - Math.exp(-delta / 0.2);
-    animState.currentDepth += (targetDepth - animState.currentDepth) * lerpSpeed;
-    animState.currentSolidDepth += (targetSolidDepth - animState.currentSolidDepth) * lerpSpeed;
-    
-    if (u.uDepthLimit) u.uDepthLimit.value = animState.currentDepth;
-    if (u.uSolidDepthLimit) u.uSolidDepthLimit.value = animState.currentSolidDepth;
-    
-    // --- Scroll Burnout Calculation ---
-    // Disabled so grid floor doesn't disappear on scroll
-    const burnOut = 0.0;
-    if (u.uBurnOut) u.uBurnOut.value = burnOut;
-
-    // Apply scroll overrides and fog overrides in the frame loop
-    const glUserData = (state.gl as any).userData || {};
-    const vis = glUserData.sceneVisuals || {};
-
-    const borderGlowColor = vis.xrayBorderColor ?? settings.xrayBorderColor;
-    const baseFillColor = vis.xrayBaseColor ?? settings.xrayBaseColor;
-    const lineOpacity = vis.gridFloorOpacity ?? settings.gridFloorOpacity ?? 0.35;
-
-    u.uColor.value.set(borderGlowColor || "#e91e63");
-    u.uBaseColor.value.set(baseFillColor || "#888888");
-    u.uOpacity.value = lineOpacity;
-
-    const showFogVal = vis.showFog !== undefined ? vis.showFog : settings.showFog;
-    const fogColorVal = vis.fogColor ?? settings.fogColor;
-    const fogNearVal = vis.fogNear !== undefined ? vis.fogNear : settings.fogNear;
-    const fogFarVal = vis.fogFar !== undefined ? vis.fogFar : settings.fogFar;
-    const fogAmountVal = vis.fogAmount !== undefined ? vis.fogAmount : settings.fogAmount;
-
-    if (u.uShowFog) u.uShowFog.value = showFogVal ? 1.0 : 0.0;
-    if (u.uFogColor) u.uFogColor.value.set(fogColorVal);
-    if (u.uFogNear) u.uFogNear.value = fogNearVal;
-    if (u.uFogFar) u.uFogFar.value = fogFarVal;
-    if (u.uFogAmount) u.uFogAmount.value = fogAmountVal;
-  });
+  const lightVec = useMemo(() => new THREE.Vector3(15, 20, 15), []);
 
   return (
-    <mesh
-      position={[0, settings.gridFloorY, 0]}
-      rotation={[-Math.PI / 2, 0, 0]}
-    >
-      <planeGeometry args={[2000, 2000]} />
-      <shaderMaterial
-        ref={materialRef}
-        vertexShader={GridFloorShader.vertexShader}
-        fragmentShader={GridFloorShader.fragmentShader}
-        uniforms={uniforms}
-        transparent={true}
-        depthWrite={false}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
+    <group>
+      {/* Visual Base Ground Plane Mesh covering the full city ground */}
+      {(settings.groundOpacity ?? 1.0) > 0.001 && (
+        <mesh
+          position={[0, settings.gridFloorY - 0.02, 0]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          receiveShadow
+        >
+          <planeGeometry args={[2000, 2000]} />
+          <meshStandardMaterial
+            color={settings.groundColor || palette.ground}
+            transparent={(settings.groundOpacity ?? 1.0) < 0.99}
+            opacity={settings.groundOpacity ?? 1.0}
+            roughness={0.85}
+            metalness={0.15}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      )}
+
+      {/* Ghibli Instanced Grass Field on the Grid Floor */}
+      {(settings.showGhibliGrass ?? true) && (
+        <GhibliGrassField
+          count={settings.ghibliGrassCount ?? 500000}
+          radius={settings.ghibliGrassRadius ?? 120}
+          colors={palette.colors}
+          thresholds={palette.thresholds}
+          lightPosition={lightVec}
+          windSpeed={settings.ghibliGrassWindSpeed ?? 1.2}
+          windStrength={settings.ghibliGrassWindStrength ?? 0.3}
+          position={[0, settings.gridFloorY, 0]}
+          autoScrollGrowth={true}
+          grassRevealDistance={settings.ghibliGrassRevealDistance ?? 710}
+          grassRevealSoftness={settings.ghibliGrassRevealSoftness ?? 100}
+          grassRevealOffset={settings.ghibliGrassRevealOffset ?? 0}
+          grassHeight={settings.ghibliGrassHeight ?? 1.7}
+          grassWidth={settings.ghibliGrassWidth ?? 0.3}
+          realisticMode={settings.useRealisticGrass ?? true}
+        />
+      )}
+
+      {/* Ghibli Instanced Meadow Flowers amongst the Grass */}
+      {(settings.showGhibliFlowers ?? true) && (
+        <GhibliFlowers
+          count={settings.ghibliFlowerCount ?? 12000}
+          scale={settings.ghibliFlowerScale ?? 1.2}
+          windSpeed={settings.ghibliGrassWindSpeed ?? 1.2}
+          windStrength={settings.ghibliGrassWindStrength ?? 0.3}
+          position={[0, settings.gridFloorY, 0]}
+          autoScrollGrowth={true}
+          grassRevealDistance={settings.ghibliGrassRevealDistance ?? 710}
+          grassRevealSoftness={settings.ghibliGrassRevealSoftness ?? 100}
+          grassRevealOffset={settings.ghibliGrassRevealOffset ?? 0}
+        />
+      )}
+
+      {/* Ghibli Trees Cluster on the Grid Floor */}
+      {(settings.showGhibliTrees ?? true) && (
+        <group position={[0, settings.gridFloorY, 0]}>
+          <GhibliTrees
+            position={[18, 0, -15]}
+            scale={1.5}
+            colors={palette.colors}
+            thresholds={palette.thresholds}
+            lightPosition={lightVec}
+            windSpeed={settings.ghibliGrassWindSpeed ?? 1.2}
+            windStrength={settings.ghibliGrassWindStrength ?? 0.3}
+          />
+          <GhibliTrees
+            position={[-22, 0, 20]}
+            rotation={[0, Math.PI * 0.4, 0]}
+            scale={1.3}
+            colors={palette.colors}
+            thresholds={palette.thresholds}
+            lightPosition={lightVec}
+            windSpeed={settings.ghibliGrassWindSpeed ?? 1.2}
+            windStrength={settings.ghibliGrassWindStrength ?? 0.3}
+          />
+          <GhibliTrees
+            position={[25, 0, 18]}
+            rotation={[0, -Math.PI * 0.3, 0]}
+            scale={1.4}
+            colors={palette.colors}
+            thresholds={palette.thresholds}
+            lightPosition={lightVec}
+            windSpeed={settings.ghibliGrassWindSpeed ?? 1.2}
+            windStrength={settings.ghibliGrassWindStrength ?? 0.3}
+          />
+          <GhibliTrees
+            position={[-18, 0, -25]}
+            rotation={[0, Math.PI * 0.7, 0]}
+            scale={1.6}
+            colors={palette.colors}
+            thresholds={palette.thresholds}
+            lightPosition={lightVec}
+            windSpeed={settings.ghibliGrassWindSpeed ?? 1.2}
+            windStrength={settings.ghibliGrassWindStrength ?? 0.3}
+          />
+        </group>
+      )}
+    </group>
   );
 };
+

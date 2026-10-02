@@ -185,10 +185,12 @@ function extractAndPrepare(
 
 export interface InteractiveSceneParticleSystemProps {
   position?: [number, number, number];
+  rotation?: [number, number, number];
 }
 
 export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSystemProps> = ({
-  position = [1047.551, 398.157, 2.997]
+  position = [1047.551, 398.157, 2.997],
+  rotation = [-Math.PI / 2, 0, 1.5]
 }) => {
   const { settings, updateSetting } = useSimulation();
   const modelIndex = (settings.currentModelIndex ?? 0) % INTERACTIVE_MODELS.length;
@@ -359,17 +361,30 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     uBurnMaxThreshold: { value: settings.burnMaxThreshold ?? 0.70 },
   }), []);
 
-  // Update uniforms reactively
+  // Update uniforms reactively when settings change
   useEffect(() => {
     if (!materialRef.current) return;
     const u = materialRef.current.uniforms;
     u.uNoiseStrength.value = settings.noiseStrength;
     u.uNoiseSpeed.value = settings.noiseSpeed;
     u.uPointSize.value = settings.pointSize * 1.5;
-    u.uPrimaryColor.value.set(settings.xrayBorderColor || "#e91e63");
-    u.uParticleDefaultColor.value.set(settings.particleDefaultColor || "#8d8d8d");
-    u.uFlowStrength.value = settings.modelFlowStrength * 1.5;
-    u.uFlowSpeed.value = settings.modelFlowSpeed;
+    u.uFocusDepth.value = settings.focusDepth;
+    u.uFocusRange.value = settings.focusRange;
+    u.uBokehScale.value = settings.bokehScale;
+    u.uHazeColor.value.set(settings.hazeColor);
+    u.uHazeDensity.value = settings.hazeDensity;
+    u.uTint.value.set(settings.tintColor);
+    u.uTintMix.value = settings.tintMix;
+    u.uOpacity.value = settings.opacity;
+    u.uDensityControl.value = settings.densityControl;
+    if (u.uPrimaryColor) u.uPrimaryColor.value.set(settings.xrayBorderColor || "#e91e63");
+    if (u.uParticleDefaultColor) u.uParticleDefaultColor.value.set(settings.particleDefaultColor || "#8d8d8d");
+    if (u.uFlowStrength) u.uFlowStrength.value = settings.modelFlowStrength * 1.5;
+    if (u.uFlowSpeed) u.uFlowSpeed.value = settings.modelFlowSpeed;
+    if (u.uFlowFrequency) u.uFlowFrequency.value = settings.modelFlowFrequency;
+    if (u.uFlowNormalLimit) u.uFlowNormalLimit.value = settings.modelFlowNormalLimit;
+    if (u.uFlowClumping) u.uFlowClumping.value = settings.modelFlowClumping;
+    if (u.uScatterColorScale) u.uScatterColorScale.value = settings.modelScatterColorScale;
     if (u.uSpiralSuppression) u.uSpiralSuppression.value = settings.fluidSpiralSuppression ?? 1.0;
     if (u.uBurnColorPrimary) u.uBurnColorPrimary.value.set(settings.burnColorPrimary || "#e91e63");
     if (u.uBurnColorSecondary) u.uBurnColorSecondary.value.set(settings.burnColorSecondary || "#00ffff");
@@ -378,13 +393,58 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     if (u.uBurnExponent) u.uBurnExponent.value = settings.burnExponent ?? 1.5;
     if (u.uBurnMidThreshold) u.uBurnMidThreshold.value = settings.burnMidThreshold ?? 0.25;
     if (u.uBurnMaxThreshold) u.uBurnMaxThreshold.value = settings.burnMaxThreshold ?? 0.70;
+    if (u.uShowFog) u.uShowFog.value = settings.showFog ? 1.0 : 0.0;
+    if (u.uFogColor) u.uFogColor.value.set(settings.fogColor);
+    if (u.uFogNear) u.uFogNear.value = settings.fogNear;
+    if (u.uFogFar) u.uFogFar.value = settings.fogFar;
+    if (u.uFogAmount) u.uFogAmount.value = settings.fogAmount;
   }, [settings]);
+
+  const targetMeshRef = useRef<THREE.Object3D | null>(null);
+  const tempWorldPosRef = useRef<THREE.Vector3>(new THREE.Vector3());
 
   // Main Liquid Flow Physics Loop
   useFrame((state, delta) => {
+    const elapsed = state.clock.elapsedTime;
+
+    // Dynamically lock position to target mesh 'Cube.005' / 'Cube005' with offset & continuous X-rotation
+    if (groupRef.current) {
+      if (!targetMeshRef.current) {
+        const found = state.scene.getObjectByName("Cube005") || state.scene.getObjectByName("Cube.005");
+        if (found) {
+          found.visible = false;
+          targetMeshRef.current = found;
+        }
+      }
+
+      if (targetMeshRef.current) {
+        targetMeshRef.current.visible = false;
+        targetMeshRef.current.getWorldPosition(tempWorldPosRef.current);
+      } else {
+        tempWorldPosRef.current.set(position[0], position[1], position[2]);
+      }
+
+      groupRef.current.position.set(
+        tempWorldPosRef.current.x + (settings.modelOffsetX ?? 0),
+        tempWorldPosRef.current.y + (settings.modelOffsetY ?? 0),
+        tempWorldPosRef.current.z + (settings.modelOffsetZ ?? 0)
+      );
+
+      const scaleVal = settings.modelScale ?? 1.0;
+      groupRef.current.scale.set(scaleVal, scaleVal, scaleVal);
+
+      const baseRotX = rotation ? rotation[0] : (settings.modelBaseRotationX ?? -Math.PI / 2);
+      const baseRotY = rotation ? rotation[1] : (settings.modelBaseRotationY ?? 0);
+      const baseRotZ = rotation ? rotation[2] : (settings.modelBaseRotationZ ?? 1.5);
+      const autoSpeedX = settings.modelAutoRotateSpeedX ?? 0.3;
+
+      groupRef.current.rotation.x = baseRotX + elapsed * autoSpeedX;
+      groupRef.current.rotation.y = baseRotY;
+      groupRef.current.rotation.z = baseRotZ;
+    }
+
     if (!physicsReady.current || !pointsRef.current) return;
 
-    const elapsed = state.clock.elapsedTime;
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value = elapsed;
       materialRef.current.uniforms.uAspect.value = state.viewport.aspect;
@@ -487,15 +547,6 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     // Decay pointer velocity smoothly
     pVel.multiplyScalar(0.8);
 
-    // Gradual Y-axis auto-rotation for the 3D particle model
-    if (groupRef.current) {
-      const isAutoRotate = settings.enableInteractiveModelRotation ?? true;
-      const rotSpeed = settings.interactiveModelRotationSpeed ?? 0.15;
-      if (isAutoRotate) {
-        groupRef.current.rotation.y += delta * rotSpeed;
-      }
-    }
-
     const posAttr = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute;
     if (posAttr) posAttr.needsUpdate = true;
 
@@ -506,10 +557,8 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     if (scatterAttr) scatterAttr.needsUpdate = true;
   });
 
-  const modelScale = settings.interactiveModelScale ?? 1.0;
-
   return (
-    <group ref={groupRef} position={position} scale={[modelScale, modelScale, modelScale]}>
+    <group ref={groupRef} position={position} rotation={rotation}>
       {/* Invisible Interactive Drag Hit Mesh */}
       <mesh
         onPointerDown={handlePointerDown}
@@ -563,7 +612,7 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          
+
           <div className="flex flex-col items-center min-w-[95px] px-1">
             <div className="flex items-center gap-1 text-[9px] font-mono text-purple-400 uppercase tracking-widest">
               <Sparkles className="w-2.5 h-2.5" />

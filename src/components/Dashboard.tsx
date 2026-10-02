@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSimulation } from "@/context/SimulationContext";
 import {
   Sliders,
@@ -9,14 +9,21 @@ import {
   Menu,
   X,
   Copy,
-  Check
+  Check,
+  Upload,
+  Trees
 } from "lucide-react";
+import Link from "next/link";
+import { GHIBLI_PALETTES } from "@/shaders/ghibliShader";
 
 export const Dashboard: React.FC = () => {
-  const { settings, updateSetting, triggerSceneEntrance } = useSimulation();
+  const { settings, updateSetting, updateSettings } = useSimulation();
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [activeTab, setActiveTab] = useState<"rendering" | "focus">("rendering");
+  const [activeTab, setActiveTab] = useState<"visuals" | "camera">("visuals");
   const [copied, setCopied] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importText, setImportText] = useState("");
+  const [importStatus, setImportStatus] = useState<string | null>(null);
 
   const handleCopySettings = () => {
     const jsonString = JSON.stringify(settings, null, 2);
@@ -37,1273 +44,518 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const handleImportSettings = () => {
+    try {
+      const parsed = JSON.parse(importText);
+      if (typeof parsed !== "object" || parsed === null) {
+        setImportStatus("Invalid JSON structure.");
+        return;
+      }
+      updateSettings(parsed);
+      setImportStatus("Settings applied successfully!");
+      setTimeout(() => {
+        setImportStatus(null);
+        setShowImportModal(false);
+        setImportText("");
+      }, 1200);
+    } catch {
+      setImportStatus("Failed to parse JSON. Please check formatting.");
+    }
+  };
+
   return (
     <div className="fixed inset-0 w-full h-full pointer-events-none select-none z-20 font-sans text-slate-100 flex flex-col justify-between p-6">
 
-      {/* Quick Access Top Bar: Always Show Loader Toggle */}
-      {/* <div className="fixed top-6 right-16 z-40 pointer-events-auto flex items-center">
-        <button
-          onClick={() => {
-            const nextVal = !settings.alwaysShowLoader;
-            updateSetting("alwaysShowLoader", nextVal);
-            if (!nextVal) {
-              triggerSceneEntrance();
-            }
-          }}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border backdrop-blur-md flex items-center gap-2 cursor-pointer ${
-            settings.alwaysShowLoader
-              ? "bg-purple-950/80 border-purple-500 text-purple-200 shadow-lg shadow-purple-900/30"
-              : "bg-slate-900/80 border-white/10 text-slate-300 hover:text-white"
-          }`}
+      {/* Quick Access Top Bar */}
+      <div className="fixed top-6 left-6 z-40 pointer-events-auto flex items-center gap-3">
+        <Link
+          href="/ghibli-grass"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-950/80 hover:bg-emerald-900/90 border border-emerald-500/50 backdrop-blur-md text-emerald-200 hover:text-white text-xs font-semibold tracking-wide transition-all shadow-lg hover:shadow-emerald-900/40"
         >
-          <span className={`w-2 h-2 rounded-full ${settings.alwaysShowLoader ? "bg-purple-400 animate-pulse" : "bg-slate-500"}`} />
-          <span>LOADER: {settings.alwaysShowLoader ? "ALWAYS ON" : "REAL"}</span>
-        </button>
-      </div> */}
+          <Trees className="w-4 h-4 text-emerald-400" />
+          <span>Ghibli Grass Studio</span>
+        </Link>
+      </div>
 
-      {/* Burger Menu Button in Top Right Corner */}
+      {/* Burger Menu Toggle */}
       <div className="fixed top-6 right-6 z-40 pointer-events-auto">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="  flex items-center justify-center"
+          className="w-10 h-10 rounded-xl bg-slate-900/80 border border-white/15 backdrop-blur-md flex items-center justify-center text-slate-200 hover:text-white hover:bg-slate-800 transition-all shadow-lg cursor-pointer"
           aria-label="Toggle Menu"
         >
-          {isCollapsed ? <Menu className="w-5 h-5 opacity-0 text-black" /> : <X className="w-5 h-5 text-black" />}
+          {isCollapsed ? <Menu className="w-5 h-5 text-slate-200" /> : <X className="w-5 h-5 text-slate-200" />}
         </button>
       </div>
 
-      {/* Main Interactive HUD Controls (Right-aligned Sidebar) */}
-      <main className="absolute right-4 md:right-6 top-20 md:top-28 bottom-20 md:bottom-28 flex items-stretch pointer-events-none z-30">
-        {/* Sidebar Container */}
+      {/* Main HUD Controls Sidebar */}
+      <main className="absolute right-4 md:right-6 top-20 md:top-24 bottom-20 md:bottom-24 flex items-stretch pointer-events-none z-30">
         <div
-          className={`bg-slate-950/70 backdrop-blur-lg border border-white/10 rounded-xl w-72 md:w-80 p-5 flex flex-col gap-5 transition-all duration-300 overflow-y-auto ${isCollapsed ? "opacity-0 w-0 pointer-events-none translate-x-8" : "opacity-100 pointer-events-auto"
+          className={`bg-slate-950/85 backdrop-blur-xl border border-white/10 rounded-2xl w-72 md:w-80 p-5 flex flex-col gap-4 transition-all duration-300 overflow-y-auto ${isCollapsed ? "opacity-0 w-0 pointer-events-none translate-x-8" : "opacity-100 pointer-events-auto"
             }`}
         >
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <span className="text-xs font-bold tracking-wider uppercase text-emerald-400 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-emerald-400" /> Anime Scene Controls
+            </span>
+          </div>
+
           {/* Tab Navigation */}
-          <div className="grid grid-cols-2 gap-1 bg-slate-900/80 p-1 rounded-lg border border-white/5 text-xs font-medium text-slate-400">
+          <div className="grid grid-cols-2 gap-1 bg-slate-900/80 p-1 rounded-xl border border-white/5 text-xs font-medium text-slate-400">
             <button
-              onClick={() => setActiveTab("rendering")}
-              className={`py-1.5 rounded cursor-pointer transition-all ${activeTab === "rendering" ? "bg-purple-600 text-white font-semibold" : "hover:text-slate-200"}`}
+              onClick={() => setActiveTab("visuals")}
+              className={`py-1.5 rounded-lg cursor-pointer transition-all ${activeTab === "visuals" ? "bg-emerald-600 text-white font-semibold shadow" : "hover:text-slate-200"
+                }`}
             >
-              Sim
+              Visuals & Grass
             </button>
             <button
-              onClick={() => setActiveTab("focus")}
-              className={`py-1.5 rounded cursor-pointer transition-all ${activeTab === "focus" ? "bg-purple-600 text-white font-semibold" : "hover:text-slate-200"}`}
+              onClick={() => setActiveTab("camera")}
+              className={`py-1.5 rounded-lg cursor-pointer transition-all ${activeTab === "camera" ? "bg-emerald-600 text-white font-semibold shadow" : "hover:text-slate-200"
+                }`}
             >
-              Camera
+              Camera & Fog
             </button>
           </div>
 
-          {/* Copy All Settings Button */}
-          <button
-            onClick={handleCopySettings}
-            className="w-full py-2 px-3 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 hover:border-purple-500/70 rounded-lg text-purple-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-green-400" />
-                <span className="text-green-300">Copied to Clipboard!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5 text-purple-300" />
-                <span>Copy All Settings (JSON)</span>
-              </>
-            )}
-          </button>
+          {/* Copy & Import Settings */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={handleCopySettings}
+              className="py-1.5 px-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 rounded-lg text-emerald-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-green-400" />
+                  <span className="text-green-300 text-[11px]">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-emerald-300" />
+                  <span className="text-[11px]">Copy JSON</span>
+                </>
+              )}
+            </button>
 
-          {/* TAB 2: RENDERING CONFIG */}
-          {activeTab === "rendering" && (
+            <button
+              onClick={() => {
+                setShowImportModal(true);
+                setImportStatus(null);
+              }}
+              className="py-1.5 px-2 bg-slate-900 hover:bg-slate-800 border border-white/10 rounded-lg text-slate-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Upload className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-[11px]">Import JSON</span>
+            </button>
+          </div>
+
+          {/* Import JSON Modal */}
+          {showImportModal && (
+            <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 pointer-events-auto">
+              <div className="bg-slate-900 border border-emerald-500/40 rounded-xl w-full max-w-lg p-5 flex flex-col gap-4 shadow-2xl">
+                <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                  <div className="flex items-center gap-2 text-emerald-300 text-sm font-semibold">
+                    <Upload className="w-4 h-4" />
+                    <span>Import Settings (JSON)</span>
+                  </div>
+                  <button
+                    onClick={() => setShowImportModal(false)}
+                    className="text-slate-400 hover:text-white p-1 rounded cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <textarea
+                  value={importText}
+                  onChange={(e) => setImportText(e.target.value)}
+                  placeholder="Paste JSON settings string here..."
+                  className="w-full h-48 bg-slate-950 border border-white/10 rounded-lg p-3 font-mono text-xs text-emerald-200 focus:outline-none focus:border-emerald-500 resize-none"
+                />
+
+                {importStatus && (
+                  <div
+                    className={`text-xs p-2 rounded border font-mono ${importStatus.includes("successfully")
+                        ? "bg-green-950/50 border-green-500/50 text-green-300"
+                        : "bg-red-950/50 border-red-500/50 text-red-300"
+                      }`}
+                  >
+                    {importStatus}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    onClick={() => setShowImportModal(false)}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleImportSettings}
+                    disabled={!importText.trim()}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg cursor-pointer transition-all shadow-md"
+                  >
+                    Apply Settings
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 1: VISUALS & GHIBLI GRASS */}
+          {activeTab === "visuals" && (
             <div className="flex flex-col gap-4 text-xs">
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mb-1">
-                <Sliders className="w-3.5 h-3.5" />
-                <span>Particle & Noise Params</span>
+              {/* GHIBLI GRASS & FOLIAGE */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-emerald-400 tracking-wider mb-1">
+                <Trees className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Ghibli Grass & Foliage</span>
               </div>
 
-              {/* Toggle: Always Show Loader */}
+              {/* Toggle: Show Ghibli Grass */}
               <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 font-mono text-[10px]">ALWAYS SHOW LOADER</span>
+                <span className="text-slate-400 font-mono text-[10px]">SHOW GHIBLI GRASS</span>
                 <button
-                  onClick={() => updateSetting("alwaysShowLoader", !settings.alwaysShowLoader)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.alwaysShowLoader ? "bg-purple-600" : "bg-slate-800"
+                  onClick={() => updateSetting("showGhibliGrass", !settings.showGhibliGrass)}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showGhibliGrass ? "bg-emerald-600" : "bg-slate-800"
                     }`}
                 >
                   <div
-                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.alwaysShowLoader ? "translate-x-4" : "translate-x-0"
+                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showGhibliGrass ? "translate-x-4" : "translate-x-0"
                       }`}
                   />
                 </button>
               </div>
 
-              {/* Grid Density Selector */}
+              {/* Toggle: Realistic vs Ghibli Shading */}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-400 font-mono text-[10px]">REALISTIC MEADOW SHADING</span>
+                <button
+                  onClick={() => updateSetting("useRealisticGrass", !settings.useRealisticGrass)}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.useRealisticGrass ? "bg-emerald-600" : "bg-slate-800"
+                    }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.useRealisticGrass ? "translate-x-4" : "translate-x-0"
+                      }`}
+                  />
+                </button>
+              </div>
+
+              {/* Toggle: Show Meadow Flowers */}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-400 font-mono text-[10px]">SHOW MEADOW FLOWERS</span>
+                <button
+                  onClick={() => updateSetting("showGhibliFlowers", !settings.showGhibliFlowers)}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showGhibliFlowers ? "bg-emerald-600" : "bg-slate-800"
+                    }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showGhibliFlowers ? "translate-x-4" : "translate-x-0"
+                      }`}
+                  />
+                </button>
+              </div>
+
+              {/* Toggle: Show Ghibli Trees */}
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-400 font-mono text-[10px]">SHOW GHIBLI TREES</span>
+                <button
+                  onClick={() => updateSetting("showGhibliTrees", !settings.showGhibliTrees)}
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showGhibliTrees ? "bg-emerald-600" : "bg-slate-800"
+                    }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showGhibliTrees ? "translate-x-4" : "translate-x-0"
+                      }`}
+                  />
+                </button>
+              </div>
+
+              {/* Slider: Meadow Flower Density */}
+              {settings.showGhibliFlowers && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">MEADOW FLOWER DENSITY</span>
+                    <span className="text-pink-300">{(settings.ghibliFlowerCount ?? 12000).toLocaleString()}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1000"
+                    max="50000"
+                    step="1000"
+                    value={settings.ghibliFlowerCount ?? 12000}
+                    onChange={(e) => updateSetting("ghibliFlowerCount", parseInt(e.target.value))}
+                    className="w-full accent-pink-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Slider: Meadow Flower Scale */}
+              {settings.showGhibliFlowers && (
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">MEADOW FLOWER SCALE</span>
+                    <span className="text-pink-300">{(settings.ghibliFlowerScale ?? 1.2).toFixed(1)}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.4"
+                    max="3.5"
+                    step="0.1"
+                    value={settings.ghibliFlowerScale ?? 1.2}
+                    onChange={(e) => updateSetting("ghibliFlowerScale", parseFloat(e.target.value))}
+                    className="w-full accent-pink-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Slider: Grass Blade Count */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-400">GRASS BLADE DENSITY</span>
+                  <span className="text-emerald-300">{(settings.ghibliGrassCount ?? 500000).toLocaleString()}</span>
+                </div>
+                <input
+                  type="range"
+                  min="500000"
+                  max="2000000"
+                  step="25000"
+                  value={settings.ghibliGrassCount ?? 500000}
+                  onChange={(e) => updateSetting("ghibliGrassCount", parseInt(e.target.value))}
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Grass Blade Height (Length) */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-400">GRASS HEIGHT (LENGTH)</span>
+                  <span className="text-emerald-300">{(settings.ghibliGrassHeight ?? 1.7).toFixed(1)}x</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="6.0"
+                  step="0.1"
+                  value={settings.ghibliGrassHeight ?? 1.7}
+                  onChange={(e) => updateSetting("ghibliGrassHeight", parseFloat(e.target.value))}
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Grass Blade Thickness (Width) */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-400">GRASS THICKNESS (WIDTH)</span>
+                  <span className="text-emerald-300">{(settings.ghibliGrassWidth ?? 0.3).toFixed(1)}x</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.2"
+                  max="6.0"
+                  step="0.1"
+                  value={settings.ghibliGrassWidth ?? 0.3}
+                  onChange={(e) => updateSetting("ghibliGrassWidth", parseFloat(e.target.value))}
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Grass Wind Speed */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-400">GRASS WIND SPEED</span>
+                  <span className="text-emerald-300">{(settings.ghibliGrassWindSpeed ?? 1.2).toFixed(1)}x</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.0"
+                  max="3.0"
+                  step="0.1"
+                  value={settings.ghibliGrassWindSpeed ?? 1.2}
+                  onChange={(e) => updateSetting("ghibliGrassWindSpeed", parseFloat(e.target.value))}
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Grass Reveal Distance */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-400">REVEAL WAVE DISTANCE</span>
+                  <span className="text-emerald-300">{(settings.ghibliGrassRevealDistance ?? 710).toFixed(0)}u</span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="1200"
+                  step="20"
+                  value={settings.ghibliGrassRevealDistance ?? 710}
+                  onChange={(e) => updateSetting("ghibliGrassRevealDistance", parseFloat(e.target.value))}
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Grass Reveal Softness */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-400">REVEAL WAVE SOFTNESS</span>
+                  <span className="text-slate-300">{(settings.ghibliGrassRevealSoftness ?? 100).toFixed(0)}u</span>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="200"
+                  step="5"
+                  value={settings.ghibliGrassRevealSoftness ?? 100}
+                  onChange={(e) => updateSetting("ghibliGrassRevealSoftness", parseFloat(e.target.value))}
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Slider: Grass Reveal Offset */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between font-mono text-[10px]">
+                  <span className="text-slate-400">REVEAL START OFFSET</span>
+                  <span className="text-slate-300">{(settings.ghibliGrassRevealOffset ?? 0).toFixed(0)}u</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="600"
+                  step="10"
+                  value={settings.ghibliGrassRevealOffset ?? 0}
+                  onChange={(e) => updateSetting("ghibliGrassRevealOffset", parseFloat(e.target.value))}
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Palette Selector */}
               <div className="flex flex-col gap-1.5">
-                <span className="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">Particle Grid Size</span>
+                <span className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Color Palette</span>
                 <div className="grid grid-cols-3 gap-1">
-                  {([128, 256, 512, 768, 1024, 1536, 2048] as const).map((size) => (
+                  {(["realistic", "summer", "sunset", "sakura", "autumn", "night"] as const).map((key) => (
                     <button
-                      key={size}
-                      onClick={() => updateSetting("gridSize", size)}
-                      className={`py-1 rounded border text-center font-mono cursor-pointer transition-all ${settings.gridSize === size
-                        ? "bg-purple-950/40 border-purple-500 text-purple-300 font-bold"
-                        : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
+                      key={key}
+                      onClick={() => {
+                        updateSetting("ghibliPaletteKey", key);
+                        const pal = GHIBLI_PALETTES[key as keyof typeof GHIBLI_PALETTES];
+                        if (pal && pal.ground) {
+                          updateSetting("groundColor", pal.ground);
+                        }
+                      }}
+                      className={`py-1 rounded border text-center font-mono capitalize cursor-pointer transition-all text-[10px] ${settings.ghibliPaletteKey === key
+                          ? "bg-emerald-950/60 border-emerald-500 text-emerald-300 font-bold"
+                          : "bg-slate-900/50 border-white/5 text-slate-400 hover:text-slate-200"
                         }`}
                     >
-                      {size}
+                      {key}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Slider: Glitch Intensity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">GLITCH BURST INTENSITY</span>
-                  <span className="text-slate-300">{settings.glitchIntensity.toFixed(2)}x</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="3.0" step="0.1"
-                  value={settings.glitchIntensity}
-                  onChange={(e) => updateSetting("glitchIntensity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Glitch Interval */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">GLITCH INTERVAL (CALM)</span>
-                  <span className="text-slate-300">{settings.glitchInterval.toFixed(1)}s</span>
-                </div>
-                <input
-                  type="range" min="0.5" max="8.0" step="0.5"
-                  value={settings.glitchInterval}
-                  onChange={(e) => updateSetting("glitchInterval", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Glitch Duration */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">GLITCH BURST DURATION</span>
-                  <span className="text-slate-300">{settings.glitchDuration.toFixed(2)}s</span>
-                </div>
-                <input
-                  type="range" min="0.1" max="1.5" step="0.1"
-                  value={settings.glitchDuration}
-                  onChange={(e) => updateSetting("glitchDuration", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: BG Glitch Intensity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">BG GLITCH INTENSITY</span>
-                  <span className="text-slate-300">{settings.bgGlitchIntensity.toFixed(2)}x</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="5.0" step="0.1"
-                  value={settings.bgGlitchIntensity}
-                  onChange={(e) => updateSetting("bgGlitchIntensity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: BG Glitch Interval */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">BG GLITCH INTERVAL (CALM)</span>
-                  <span className="text-slate-300">{settings.bgGlitchInterval.toFixed(1)}s</span>
-                </div>
-                <input
-                  type="range" min="0.5" max="8.0" step="0.5"
-                  value={settings.bgGlitchInterval}
-                  onChange={(e) => updateSetting("bgGlitchInterval", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: BG Glitch Duration */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">BG GLITCH BURST DURATION</span>
-                  <span className="text-slate-300">{settings.bgGlitchDuration.toFixed(2)}s</span>
-                </div>
-                <input
-                  type="range" min="0.1" max="1.5" step="0.1"
-                  value={settings.bgGlitchDuration}
-                  onChange={(e) => updateSetting("bgGlitchDuration", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Particle Size */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">PARTICLE BASE SIZE</span>
-                  <span className="text-slate-300">{settings.pointSize.toFixed(1)}px</span>
-                </div>
-                <input
-                  type="range" min="1.0" max="120.0" step="0.5"
-                  value={settings.pointSize}
-                  onChange={(e) => updateSetting("pointSize", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Loader Model Scale */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">LOADER MODEL SCALE</span>
-                  <span className="text-slate-300">{(settings.loaderModelScale ?? 0.12).toFixed(3)}x</span>
-                </div>
-                <input
-                  type="range" min="0.02" max="0.5" step="0.01"
-                  value={settings.loaderModelScale ?? 0.12}
-                  onChange={(e) => updateSetting("loaderModelScale", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Loader Burn Sensitivity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">LOADER BURN SENSITIVITY</span>
-                  <span className="text-slate-300">{(settings.loaderBurnSensitivity ?? 2.0).toFixed(2)}x</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="10.0" step="0.1"
-                  value={settings.loaderBurnSensitivity ?? 2.0}
-                  onChange={(e) => updateSetting("loaderBurnSensitivity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Controls how sensitive the burn color is to particle speed during model transitions. Higher = more intense burn glow.
-                </p>
-              </div>
-
-              {/* Slider: Loader Morph Speed */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">LOADER MORPH SPEED</span>
-                  <span className="text-slate-300">{(settings.loaderMorphSpeed ?? 0.02).toFixed(3)}x</span>
-                </div>
-                <input
-                  type="range" min="0.005" max="0.1" step="0.005"
-                  value={settings.loaderMorphSpeed ?? 0.02}
-                  onChange={(e) => updateSetting("loaderMorphSpeed", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Controls how fast particles travel to form the next model. Lower values make the morph slower and smoother.
-                </p>
-              </div>
-
-              {/* Color: Particle Color */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">PARTICLE DEFAULT COLOR</span>
-                  <span className="text-slate-300">{settings.particleDefaultColor || "#8d8d8d"}</span>
-                </div>
-                <div className="flex items-center gap-2">
+              {/* Ground Plane Controls */}
+              <div className="flex flex-col gap-1.5 mt-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <span className="text-[10px] uppercase text-emerald-400 font-semibold tracking-wider">Ground Plane Controls</span>
+                
+                {/* Slider: Ground Plane Opacity */}
+                <div className="flex flex-col gap-1 mt-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">GROUND PLANE OPACITY</span>
+                    <span className="text-emerald-300">{((settings.groundOpacity ?? 1.0) * 100).toFixed(0)}%</span>
+                  </div>
                   <input
-                    type="color"
-                    value={settings.particleDefaultColor || "#8d8d8d"}
-                    onChange={(e) => updateSetting("particleDefaultColor", e.target.value)}
-                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                    type="range"
+                    min="0.0"
+                    max="1.0"
+                    step="0.05"
+                    value={settings.groundOpacity ?? 1.0}
+                    onChange={(e) => updateSetting("groundOpacity", parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
-                  <span className="text-[10px] text-slate-500 font-mono">Select color</span>
+                </div>
+
+                {/* Color: Ground Plane Color */}
+                <div className="flex flex-col gap-1 mt-1">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">GROUND BASE COLOR</span>
+                    <span className="text-emerald-300">{settings.groundColor || "#1c3d18"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={settings.groundColor || "#1c3d18"}
+                      onChange={(e) => updateSetting("groundColor", e.target.value)}
+                      className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                    />
+                    <span className="text-[10px] text-slate-400 font-mono">Select ground color</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Slider: Noise Displacement */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">ATMOSPHERIC JITTER</span>
-                  <span className="text-slate-300">{settings.noiseStrength.toFixed(2)}u</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="1.5" step="0.05"
-                  value={settings.noiseStrength}
-                  onChange={(e) => updateSetting("noiseStrength", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Noise Speed */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">JITTER WIND SPEED</span>
-                  <span className="text-slate-300">{settings.noiseSpeed.toFixed(1)}x</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="2.0" step="0.1"
-                  value={settings.noiseSpeed}
-                  onChange={(e) => updateSetting("noiseSpeed", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* MODEL FLOW / RIPPLE CONFIG */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
-                <Sliders className="w-3.5 h-3.5" />
-                <span>Model Ripple Settings</span>
-              </div>
-
-              {/* Slider: Flow Speed */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">RIPPLE FLOW SPEED</span>
-                  <span className="text-slate-300">{settings.modelFlowSpeed.toFixed(2)}x</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="2.0" step="0.05"
-                  value={settings.modelFlowSpeed}
-                  onChange={(e) => updateSetting("modelFlowSpeed", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Flow Strength */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">RIPPLE STRENGTH</span>
-                  <span className="text-slate-300">{settings.modelFlowStrength.toFixed(2)}u</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="10.0" step="0.05"
-                  value={settings.modelFlowStrength}
-                  onChange={(e) => updateSetting("modelFlowStrength", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Flow Frequency */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">RIPPLE FREQUENCY (SCALE)</span>
-                  <span className="text-slate-300">{settings.modelFlowFrequency.toFixed(3)}</span>
-                </div>
-                <input
-                  type="range" min="0.01" max="1.0" step="0.01"
-                  value={settings.modelFlowFrequency}
-                  onChange={(e) => updateSetting("modelFlowFrequency", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Flow Clumping / Unevenness */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">RIPPLE CLUMPING (UNEVENNESS)</span>
-                  <span className="text-slate-300">{(settings.modelFlowClumping * 100).toFixed(0)}%</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="1.0" step="0.05"
-                  value={settings.modelFlowClumping}
-                  onChange={(e) => updateSetting("modelFlowClumping", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Modulates displacement with a low-frequency mask. Higher values create organic clumping and uneven scattering, leaving some areas solid.
-                </p>
-              </div>
-
-              {/* Slider: Flow Normal Limit */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">SHAPE DISPLACEMENT LIMIT</span>
-                  <span className="text-slate-300">{settings.modelFlowNormalLimit.toFixed(3)}u</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="20.0" step="0.01"
-                  value={settings.modelFlowNormalLimit}
-                  onChange={(e) => updateSetting("modelFlowNormalLimit", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Restricts movement perpendicular to the surface. Set to 0 to keep particles completely inside the original shape.
-                </p>
-              </div>
-
-              {/* Slider: Scatter Color Scale */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">RIPPLE GLOW COLOR SENSITIVITY</span>
-                  <span className="text-slate-300">{settings.modelScatterColorScale.toFixed(3)}x</span>
-                </div>
-                <input
-                  type="range" min="0.000" max="0.500" step="0.005"
-                  value={settings.modelScatterColorScale}
-                  onChange={(e) => updateSetting("modelScatterColorScale", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Controls how quickly particles turn pink/glow based on displacement distance. High values cause more pink coloring.
-                </p>
-              </div>
-
-              {/* FLUID DRAG & THERMAL BURN CONFIG */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
+              {/* CHARACTER GLOW & BLOOM */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-emerald-400 tracking-wider mt-4 mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Particle Model & Liquid Drag</span>
-              </div>
-
-              {/* Slider: Interactive Model Scale / Size */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">PARTICLE MODEL SIZE (SCALE)</span>
-                  <span className="text-slate-300">{(settings.interactiveModelScale ?? 1.0).toFixed(2)}x</span>
-                </div>
-                <input
-                  type="range" min="0.2" max="3.0" step="0.05"
-                  value={settings.interactiveModelScale ?? 1.0}
-                  onChange={(e) => updateSetting("interactiveModelScale", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Toggle: Enable Auto Rotation */}
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 font-mono text-[10px]">GRADUAL AUTO-ROTATION</span>
-                <button
-                  onClick={() => updateSetting("enableInteractiveModelRotation", !(settings.enableInteractiveModelRotation ?? true))}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${(settings.enableInteractiveModelRotation ?? true) ? "bg-purple-600" : "bg-slate-800"
-                    }`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${(settings.enableInteractiveModelRotation ?? true) ? "translate-x-4" : "translate-x-0"
-                      }`}
-                  />
-                </button>
-              </div>
-
-              {/* Slider: Model Rotation Speed */}
-              {(settings.enableInteractiveModelRotation ?? true) && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">ROTATION SPEED</span>
-                    <span className="text-slate-300">{(settings.interactiveModelRotationSpeed ?? 0.15).toFixed(2)}rad/s</span>
-                  </div>
-                  <input
-                    type="range" min="-1.5" max="1.5" step="0.05"
-                    value={settings.interactiveModelRotationSpeed ?? 0.15}
-                    onChange={(e) => updateSetting("interactiveModelRotationSpeed", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Slider: Fluid Drag Radius */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">FLUID DRAG RADIUS</span>
-                  <span className="text-slate-300">{(settings.fluidDragRadius ?? 4.0).toFixed(1)}u</span>
-                </div>
-                <input
-                  type="range" min="1.0" max="10.0" step="0.5"
-                  value={settings.fluidDragRadius ?? 4.0}
-                  onChange={(e) => updateSetting("fluidDragRadius", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Fluid Drag Strength */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">FLUID IMPULSE FORCE</span>
-                  <span className="text-slate-300">{(settings.fluidDragStrength ?? 1.2).toFixed(2)}x</span>
-                </div>
-                <input
-                  type="range" min="0.1" max="3.0" step="0.1"
-                  value={settings.fluidDragStrength ?? 1.2}
-                  onChange={(e) => updateSetting("fluidDragStrength", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Viscous Damping */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">VISCOUS DAMPING (RETENTION)</span>
-                  <span className="text-slate-300">{(settings.fluidDamping ?? 0.88).toFixed(2)}</span>
-                </div>
-                <input
-                  type="range" min="0.70" max="0.98" step="0.01"
-                  value={settings.fluidDamping ?? 0.88}
-                  onChange={(e) => updateSetting("fluidDamping", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Radial Splash Expansion */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">RADIAL SPLASH EXPANSION</span>
-                  <span className="text-slate-300">{((settings.fluidRadialExpansion ?? 0.45) * 100).toFixed(0)}%</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="1.5" step="0.05"
-                  value={settings.fluidRadialExpansion ?? 0.45}
-                  onChange={(e) => updateSetting("fluidRadialExpansion", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Higher = particles billow and expand outward radially from the drag line (liquid splash effect).
-                </p>
-              </div>
-
-              {/* Slider: Lateral Swirl Turbulence */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">LATERAL SWIRL TURBULENCE</span>
-                  <span className="text-slate-300">{((settings.fluidTurbulenceSwirl ?? 0.35) * 100).toFixed(0)}%</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="1.5" step="0.05"
-                  value={settings.fluidTurbulenceSwirl ?? 0.35}
-                  onChange={(e) => updateSetting("fluidTurbulenceSwirl", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Higher = creates liquid vortex swirls and eddies along drag trail edges.
-                </p>
-              </div>
-
-              {/* Slider: Directional Drag Bias */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">DIRECTIONAL DRAG BIAS</span>
-                  <span className="text-slate-300">{((settings.fluidDirectionalBias ?? 0.40) * 100).toFixed(0)}%</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="1.5" step="0.05"
-                  value={settings.fluidDirectionalBias ?? 0.40}
-                  onChange={(e) => updateSetting("fluidDirectionalBias", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Higher = particles strictly follow mouse drag direction. Lower = particles move more freely like splash water.
-                </p>
-              </div>
-
-              {/* Slider: Spiral Suppression */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">SPIRAL OVERRIDE %</span>
-                  <span className="text-slate-300">{((settings.fluidSpiralSuppression ?? 1.0) * 100).toFixed(0)}%</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="1.0" step="0.05"
-                  value={settings.fluidSpiralSuppression ?? 1.0}
-                  onChange={(e) => updateSetting("fluidSpiralSuppression", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Suppresses background spiral/curl rotation on dragged particles, allowing clean directional liquid movement.
-                </p>
-              </div>
-
-              {/* Slider: Burn Heat Sensitivity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">BURN HEAT SENSITIVITY</span>
-                  <span className="text-slate-300">{(settings.burnSensitivity ?? 2.5).toFixed(1)}x</span>
-                </div>
-                <input
-                  type="range" min="0.1" max="10.0" step="0.1"
-                  value={settings.burnSensitivity ?? 2.5}
-                  onChange={(e) => updateSetting("burnSensitivity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Burn Distance Threshold */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">DRAG BURN START THRESHOLD</span>
-                  <span className="text-slate-300">{(settings.burnThreshold ?? 0.05).toFixed(2)}u</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="2.0" step="0.02"
-                  value={settings.burnThreshold ?? 0.05}
-                  onChange={(e) => updateSetting("burnThreshold", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Minimum drag displacement distance required before heat burn starts glowing. Prevents background resting particles from burning.
-                </p>
-              </div>
-
-              {/* Slider: Burn Distance Exponent */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">BURN DISTANCE CURVE POWER</span>
-                  <span className="text-slate-300">{(settings.burnExponent ?? 1.5).toFixed(1)}x</span>
-                </div>
-                <input
-                  type="range" min="0.5" max="4.0" step="0.1"
-                  value={settings.burnExponent ?? 1.5}
-                  onChange={(e) => updateSetting("burnExponent", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Higher = sharper heat burn falloff (only far displaced particles glow hot white). Lower = softer gradual glow.
-                </p>
-              </div>
-
-              {/* Slider: Mid Distance Primary Burn Start */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">MID DISTANCE BURN START</span>
-                  <span className="text-slate-300">{(settings.burnMidThreshold ?? 0.25).toFixed(2)}</span>
-                </div>
-                <input
-                  type="range" min="0.05" max="0.80" step="0.05"
-                  value={settings.burnMidThreshold ?? 0.25}
-                  onChange={(e) => updateSetting("burnMidThreshold", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Distance threshold where particles transform from default color to primary burn color.
-                </p>
-              </div>
-
-              {/* Slider: Far Distance Hot White Start */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">FAR DISTANCE HOT WHITE START</span>
-                  <span className="text-slate-300">{(settings.burnMaxThreshold ?? 0.70).toFixed(2)}</span>
-                </div>
-                <input
-                  type="range" min="0.30" max="1.00" step="0.05"
-                  value={settings.burnMaxThreshold ?? 0.70}
-                  onChange={(e) => updateSetting("burnMaxThreshold", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Distance threshold where primary burn transforms into fully burned glowing hot white.
-                </p>
-              </div>
-
-              {/* Color: Primary Burn Color */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">PRIMARY BURN COLOR</span>
-                  <span className="text-slate-300">{settings.burnColorPrimary || "#e91e63"}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={settings.burnColorPrimary || "#e91e63"}
-                    onChange={(e) => updateSetting("burnColorPrimary", e.target.value)}
-                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
-                  />
-                  <span className="text-[10px] text-slate-500">Select color</span>
-                </div>
-              </div>
-
-              {/* Color: Core Glow Color */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">CORE GLOW COLOR</span>
-                  <span className="text-slate-300">{settings.burnColorSecondary || "#00ffff"}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={settings.burnColorSecondary || "#00ffff"}
-                    onChange={(e) => updateSetting("burnColorSecondary", e.target.value)}
-                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
-                  />
-                  <span className="text-[10px] text-slate-500">Select color</span>
-                </div>
-              </div>
-
-              {/* HOLOGRAPHIC ARCHITECTURE */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
-                <Sliders className="w-3.5 h-3.5" />
-                <span>Architecture Config</span>
-              </div>
-
-              {/* Slider: Fill Opacity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">BASE FILL OPACITY</span>
-                  <span className="text-slate-300">{settings.xrayFillOpacity?.toFixed(2) || "0.15"}</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="1.0" step="0.01"
-                  value={settings.xrayFillOpacity || 0.15}
-                  onChange={(e) => updateSetting("xrayFillOpacity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: City Hologram Opacity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">CITY HOLOGRAM OPACITY</span>
-                  <span className="text-slate-300">{(settings.cityHologramOpacity ?? 1.0).toFixed(2)}</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="2.0" step="0.02"
-                  value={settings.cityHologramOpacity ?? 1.0}
-                  onChange={(e) => updateSetting("cityHologramOpacity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Outline Power */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">OUTLINE SHARPNESS</span>
-                  <span className="text-slate-300">{settings.xrayOutlinePower?.toFixed(1) || "2.5"}</span>
-                </div>
-                <input
-                  type="range" min="0.5" max="8.0" step="0.1"
-                  value={settings.xrayOutlinePower || 2.5}
-                  onChange={(e) => updateSetting("xrayOutlinePower", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Scanline Intensity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">SCANLINE INTENSITY</span>
-                  <span className="text-slate-300">{settings.xrayScanlineIntensity?.toFixed(2) || "0.00"}</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="1.0" step="0.05"
-                  value={settings.xrayScanlineIntensity || 0.0}
-                  onChange={(e) => updateSetting("xrayScanlineIntensity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Color: Outline Color */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">OUTLINE GLOW COLOR</span>
-                  <span className="text-slate-300">{settings.xrayOutlineColor || "#ffffff"}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={settings.xrayOutlineColor || "#ffffff"}
-                    onChange={(e) => updateSetting("xrayOutlineColor", e.target.value)}
-                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
-                  />
-                  <span className="text-[10px] text-slate-500">Select color</span>
-                </div>
-              </div>
-
-              {/* Color: Base Color */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">BASE FILL COLOR</span>
-                  <span className="text-slate-300">{settings.xrayBaseColor || "#888888"}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={settings.xrayBaseColor || "#888888"}
-                    onChange={(e) => updateSetting("xrayBaseColor", e.target.value)}
-                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
-                  />
-                  <span className="text-[10px] text-slate-500">Select color</span>
-                </div>
-              </div>
-
-              {/* Slider: Border Opacity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">BORDER OPACITY (THIN LINES)</span>
-                  <span className="text-slate-300">{settings.xrayBorderOpacity?.toFixed(2) || "0.50"}</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="1.0" step="0.01"
-                  value={settings.xrayBorderOpacity || 0.5}
-                  onChange={(e) => updateSetting("xrayBorderOpacity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Border Glow Intensity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">BORDER GLOW INTENSITY</span>
-                  <span className="text-slate-300">{settings.xrayLineGlowIntensity?.toFixed(1) || "2.5"}x</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="5.0" step="0.1"
-                  value={settings.xrayLineGlowIntensity ?? 2.5}
-                  onChange={(e) => updateSetting("xrayLineGlowIntensity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Border Spread / Complexity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">EDGE DETAIL (COMPLEXITY)</span>
-                  <span className="text-slate-300">{(89 - (settings.xrayBorderThreshold ?? 15)).toFixed(0)}</span>
-                </div>
-                <input
-                  type="range" min="0" max="89" step="1"
-                  value={89 - (settings.xrayBorderThreshold ?? 15)}
-                  onChange={(e) => updateSetting("xrayBorderThreshold", 89 - parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Border Reveal Depth */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">LINE REVEAL DEPTH</span>
-                  <span className="text-slate-300">{settings.xrayBorderRevealDepth?.toFixed(0) || "400"}u</span>
-                </div>
-                <input
-                  type="range" min="5" max="1000" step="5"
-                  value={settings.xrayBorderRevealDepth || 400}
-                  onChange={(e) => updateSetting("xrayBorderRevealDepth", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal mt-1">
-                  Low = only closest faces show lines. High = lines spread deep inside. Animates with 0.2s delay.
-                </p>
-              </div>
-
-              {/* Slider: Solid & Ground Fade Depth */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">SOLID & GROUND FADE DEPTH</span>
-                  <span className="text-slate-300">{settings.xraySolidRevealDepth?.toFixed(0) || "300"}u</span>
-                </div>
-                <input
-                  type="range" min="5" max="1000" step="5"
-                  value={settings.xraySolidRevealDepth || 300}
-                  onChange={(e) => updateSetting("xraySolidRevealDepth", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal mt-1">
-                  Low = only buildings and ground close to camera are visible. High = visible at greater distance. Animates with 0.2s delay.
-                </p>
-              </div>
-
-              {/* Slider: Hover Light Radius */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">HOVER LIGHT RADIUS</span>
-                  <span className="text-slate-300">{settings.xrayHoverRadius?.toFixed(1) || "10.0"}u</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="100.0" step="1.0"
-                  value={settings.xrayHoverRadius ?? 10.0}
-                  onChange={(e) => updateSetting("xrayHoverRadius", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Color: Border Color */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">BORDER COLOR</span>
-                  <span className="text-slate-300">{settings.xrayBorderColor || "#e91e63"}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={settings.xrayBorderColor || "#e91e63"}
-                    onChange={(e) => updateSetting("xrayBorderColor", e.target.value)}
-                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
-                  />
-                  <span className="text-[10px] text-slate-500">Select color</span>
-                </div>
-              </div>
-
-              {/* Toggle: Grid Floor */}
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 font-mono text-[10px]">SHOW GRID FLOOR</span>
-                <button
-                  onClick={() => updateSetting("showGridFloor", !settings.showGridFloor)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showGridFloor ? "bg-purple-600" : "bg-slate-800"
-                    }`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showGridFloor ? "translate-x-4" : "translate-x-0"
-                      }`}
-                  />
-                </button>
-              </div>
-
-              {/* Slider: Grid Floor Opacity */}
-              {settings.showGridFloor && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">GRID FLOOR OPACITY</span>
-                    <span className="text-slate-300">{(settings.gridFloorOpacity * 100).toFixed(0)}%</span>
-                  </div>
-                  <input
-                    type="range" min="0.0" max="1.0" step="0.05"
-                    value={settings.gridFloorOpacity}
-                    onChange={(e) => updateSetting("gridFloorOpacity", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Slider: Grid Tile Size */}
-              {settings.showGridFloor && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">GRID TILE SIZE</span>
-                    <span className="text-slate-300">{settings.gridTileSize.toFixed(1)}u</span>
-                  </div>
-                  <input
-                    type="range" min="1.0" max="20.0" step="0.5"
-                    value={settings.gridTileSize}
-                    onChange={(e) => updateSetting("gridTileSize", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Slider: Grid Line Width */}
-              {settings.showGridFloor && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">GRID LINE WIDTH</span>
-                    <span className="text-slate-300">{settings.gridLineWidth.toFixed(1)}px</span>
-                  </div>
-                  <input
-                    type="range" min="0.5" max="5.0" step="0.1"
-                    value={settings.gridLineWidth}
-                    onChange={(e) => updateSetting("gridLineWidth", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Slider: Grid Floor Height Y */}
-              {settings.showGridFloor && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">GRID FLOOR HEIGHT (Y)</span>
-                    <span className="text-slate-300">{settings.gridFloorY.toFixed(1)}u</span>
-                  </div>
-                  <input
-                    type="range" min="-15.0" max="5.0" step="0.1"
-                    value={settings.gridFloorY}
-                    onChange={(e) => updateSetting("gridFloorY", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Slider: Grid Floor Fall Radius */}
-              {settings.showGridFloor && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">FALL TRIGGER RADIUS</span>
-                    <span className="text-slate-300">{settings.gridFloorFallRadius.toFixed(1)}u</span>
-                  </div>
-                  <input
-                    type="range" min="5.0" max="150.0" step="1.0"
-                    value={settings.gridFloorFallRadius}
-                    onChange={(e) => updateSetting("gridFloorFallRadius", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Slider: Grid Floor Fall Range */}
-              {settings.showGridFloor && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">FALL TRANSITION RANGE</span>
-                    <span className="text-slate-300">{settings.gridFloorFallRadiusRange.toFixed(1)}u</span>
-                  </div>
-                  <input
-                    type="range" min="1.0" max="100.0" step="1.0"
-                    value={settings.gridFloorFallRadiusRange}
-                    onChange={(e) => updateSetting("gridFloorFallRadiusRange", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Slider: Grid Floor Fall Max Distance */}
-              {settings.showGridFloor && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">FALL MAX DEPTH</span>
-                    <span className="text-slate-300">{settings.gridFloorFallMaxDistance.toFixed(1)}u</span>
-                  </div>
-                  <input
-                    type="range" min="5.0" max="200.0" step="1.0"
-                    value={settings.gridFloorFallMaxDistance}
-                    onChange={(e) => updateSetting("gridFloorFallMaxDistance", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Slider: Grid Floor Fall Randomness */}
-              {settings.showGridFloor && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">FALL RADIUS JITTER</span>
-                    <span className="text-slate-300">{settings.gridFloorFallRandomness.toFixed(1)}u</span>
-                  </div>
-                  <input
-                    type="range" min="0.0" max="50.0" step="1.0"
-                    value={settings.gridFloorFallRandomness}
-                    onChange={(e) => updateSetting("gridFloorFallRandomness", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-
-              {/* Slider: Haze Density */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">ATMOSPHERE HAZE DENSITY</span>
-                  <span className="text-slate-300">{settings.hazeDensity.toFixed(2)}x</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="2.0" step="0.05"
-                  value={settings.hazeDensity}
-                  onChange={(e) => updateSetting("hazeDensity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Scatter Radius */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">SCATTER RADIUS</span>
-                  <span className="text-slate-300">{settings.scatterRadius?.toFixed(1) || "2.0"}u</span>
-                </div>
-                <input
-                  type="range" min="0.5" max="6.0" step="0.5"
-                  value={settings.scatterRadius || 2.0}
-                  onChange={(e) => updateSetting("scatterRadius", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Scatter Strength */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">SCATTER STRENGTH</span>
-                  <span className="text-slate-300">{settings.scatterStrength?.toFixed(1) || "3.0"}u</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="10.0" step="0.5"
-                  value={settings.scatterStrength || 3.0}
-                  onChange={(e) => updateSetting("scatterStrength", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Hover over the model to scatter particles away from your cursor. Particles stay within the bounding box and smoothly return.
-                </p>
-              </div>
-
-              {/* WING SYSTEM CONFIG */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
-                <Sliders className="w-3.5 h-3.5" />
-                <span>Wing Particle Settings</span>
-              </div>
-
-              {/* Selector: Wing Start Mode */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">Wing Start Mode</span>
-                <div className="grid grid-cols-3 gap-1">
-                  {(["spine", "formed", "scattered"] as const).map((mode) => {
-                    const label = mode === "spine" ? "Spine Core" : mode === "formed" ? "Formed" : "Scatter";
-                    return (
-                      <button
-                        key={mode}
-                        onClick={() => updateSetting("wingStartMode", mode)}
-                        className={`py-1 rounded border text-center text-[10px] cursor-pointer transition-all ${settings.wingStartMode === mode
-                          ? "bg-purple-950/40 border-purple-500 text-purple-300 font-bold"
-                          : "bg-slate-900/50 border-white/5 text-slate-500 hover:text-slate-300"
-                          }`}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Toggle: Show Wing Anchor */}
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 font-mono text-[10px]">SHOW WING ANCHOR</span>
-                <button
-                  onClick={() => updateSetting("showWingAnchor", !settings.showWingAnchor)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showWingAnchor ? "bg-purple-600" : "bg-slate-800"
-                    }`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showWingAnchor ? "translate-x-4" : "translate-x-0"
-                      }`}
-                  />
-                </button>
-              </div>
-
-              {/* Toggle: Show Wing System */}
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 font-mono text-[10px]">SHOW WING SYSTEM</span>
-                <button
-                  onClick={() => updateSetting("showWings", !settings.showWings)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showWings ? "bg-purple-600" : "bg-slate-800"
-                    }`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showWings ? "translate-x-4" : "translate-x-0"
-                      }`}
-                  />
-                </button>
-              </div>
-
-              {/* Slider: Wing Flow Frequency / Detail */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">WING RIPPLE DETAIL (FREQ)</span>
-                  <span className="text-slate-300">{(settings.wingFlowFrequency ?? 8.0).toFixed(1)}x</span>
-                </div>
-                <input
-                  type="range" min="1.0" max="20.0" step="0.5"
-                  value={settings.wingFlowFrequency ?? 8.0}
-                  onChange={(e) => updateSetting("wingFlowFrequency", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Wing Flow Strength / Ripple Amplitude */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">WING RIPPLE STRENGTH</span>
-                  <span className="text-slate-300">{(settings.wingFlowStrength ?? 0.045).toFixed(3)}x</span>
-                </div>
-                <input
-                  type="range" min="0.000" max="0.200" step="0.005"
-                  value={settings.wingFlowStrength ?? 0.045}
-                  onChange={(e) => updateSetting("wingFlowStrength", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Wing Glow Intensity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">WING GLOW INTENSITY</span>
-                  <span className="text-slate-300">{(settings.wingGlowIntensity ?? 1.5).toFixed(1)}x</span>
-                </div>
-                <input
-                  type="range" min="1.0" max="5.0" step="0.1"
-                  value={settings.wingGlowIntensity ?? 1.5}
-                  onChange={(e) => updateSetting("wingGlowIntensity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Title Size */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">TITLE SIZE</span>
-                  <span className="text-slate-300">{(settings.titleSize ?? 8.0).toFixed(1)}u</span>
-                </div>
-                <input
-                  type="range" min="1.0" max="40.0" step="0.5"
-                  value={settings.titleSize ?? 8.0}
-                  onChange={(e) => updateSetting("titleSize", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Title Y Offset */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">TITLE Y OFFSET</span>
-                  <span className="text-slate-300">{(settings.titleYOffset ?? -3.5).toFixed(2)}u</span>
-                </div>
-                <input
-                  type="range" min="-3.0" max="3.0" step="0.1"
-                  value={settings.titleYOffset ?? -0.5}
-                  onChange={(e) => updateSetting("titleYOffset", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* SIMON GLOW CONFIG */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Character Glow</span>
+                <span>Character Glow & Bloom</span>
               </div>
 
               {/* Slider: Simon Glow Intensity */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">GLOW INTENSITY</span>
-                  <span className="text-slate-300">{(settings.simonGlowIntensity ?? 1.2).toFixed(2)}x</span>
+                  <span className="text-slate-400">GLOW INTENSITY</span>
+                  <span className="text-emerald-300">{(settings.simonGlowIntensity ?? 1.2).toFixed(2)}x</span>
                 </div>
                 <input
-                  type="range" min="0.0" max="5.0" step="0.1"
+                  type="range"
+                  min="0.0"
+                  max="5.0"
+                  step="0.1"
                   value={settings.simonGlowIntensity ?? 1.2}
                   onChange={(e) => updateSetting("simonGlowIntensity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                <p className="text-[9px] text-slate-500 leading-normal mt-1">
-                  Controls how bright the character&apos;s clothes glow. 1.0 = pure white, higher = HDR bloom trigger.
-                </p>
               </div>
 
-              {/* Slider: Simon Glow Opacity */}
+              {/* Slider: Outfit Base Opacity */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">OUTFIT BASE OPACITY</span>
-                  <span className="text-slate-300">{((settings.simonGlowOpacity ?? 0.4) * 100).toFixed(0)}%</span>
+                  <span className="text-slate-400">OUTFIT BASE OPACITY</span>
+                  <span className="text-emerald-300">{((settings.simonGlowOpacity ?? 0.4) * 100).toFixed(0)}%</span>
                 </div>
                 <input
-                  type="range" min="0.05" max="1.0" step="0.05"
+                  type="range"
+                  min="0.05"
+                  max="1.0"
+                  step="0.05"
                   value={settings.simonGlowOpacity ?? 0.4}
                   onChange={(e) => updateSetting("simonGlowOpacity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                <p className="text-[9px] text-slate-500 leading-normal mt-1">
-                  Controls the base transparency of Simon&apos;s outfits when fully revealed.
-                </p>
               </div>
 
-              {/* Slider: Simon Bloom Intensity */}
+              {/* Slider: Bloom Strength */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">BLOOM STRENGTH</span>
-                  <span className="text-slate-300">{(settings.simonBloomIntensity ?? 0.4).toFixed(2)}x</span>
+                  <span className="text-slate-400">BLOOM STRENGTH</span>
+                  <span className="text-emerald-300">{(settings.simonBloomIntensity ?? 0.4).toFixed(2)}x</span>
                 </div>
                 <input
-                  type="range" min="0.0" max="3.0" step="0.05"
+                  type="range"
+                  min="0.0"
+                  max="3.0"
+                  step="0.05"
                   value={settings.simonBloomIntensity ?? 0.4}
                   onChange={(e) => updateSetting("simonBloomIntensity", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                <p className="text-[9px] text-slate-500 leading-normal mt-1">
-                  Controls the soft light halo around the glowing character. 0 = no bloom, higher = stronger halo.
-                </p>
               </div>
 
-              {/* Color: Simon Glow Color */}
+              {/* Color: Glow Color */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">GLOW COLOR</span>
-                  <span className="text-slate-300">{settings.simonGlowColor || "#ffffff"}</span>
+                  <span className="text-slate-400">GLOW COLOR</span>
+                  <span className="text-emerald-300">{settings.simonGlowColor || "#ffffff"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <input
@@ -1312,61 +564,61 @@ export const Dashboard: React.FC = () => {
                     onChange={(e) => updateSetting("simonGlowColor", e.target.value)}
                     className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
                   />
-                  <span className="text-[10px] text-slate-500 font-mono">Select color</span>
+                  <span className="text-[10px] text-slate-400 font-mono">Select glow color</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB 3: FOCUS & CAM CONFIG */}
-          {activeTab === "focus" && (
+          {/* TAB 2: CAMERA & FOG */}
+          {activeTab === "camera" && (
             <div className="flex flex-col gap-4 text-xs">
-              {/* SCROLL CONTROL */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mb-1">
+              {/* SCROLL CONTROLS */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-emerald-400 tracking-wider mb-1">
                 <Sliders className="w-3.5 h-3.5" />
-                <span>Scroll Control</span>
+                <span>Scroll & Glide</span>
               </div>
 
               {/* Slider: Scroll Speed */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">SCROLL SPEED</span>
-                  <span className="text-slate-300">{settings.scrollSpeed.toFixed(2)}x</span>
+                  <span className="text-slate-400">SCROLL SPEED</span>
+                  <span className="text-emerald-300">{settings.scrollSpeed.toFixed(2)}x</span>
                 </div>
                 <input
-                  type="range" min="0.1" max="2.0" step="0.05"
+                  type="range"
+                  min="0.1"
+                  max="2.0"
+                  step="0.05"
                   value={settings.scrollSpeed}
                   onChange={(e) => updateSetting("scrollSpeed", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Lower = slower scroll. Higher = faster scroll.
-                </p>
               </div>
 
               {/* Slider: Scroll Damping */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">SCROLL DAMPING</span>
-                  <span className="text-slate-300">{settings.scrollDamping.toFixed(2)}</span>
+                  <span className="text-slate-400">SCROLL DAMPING</span>
+                  <span className="text-emerald-300">{settings.scrollDamping.toFixed(2)}</span>
                 </div>
                 <input
-                  type="range" min="0.01" max="1.0" step="0.01"
+                  type="range"
+                  min="0.01"
+                  max="1.0"
+                  step="0.01"
                   value={settings.scrollDamping}
                   onChange={(e) => updateSetting("scrollDamping", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Lower = smoother & slower easing. Higher = snappier response.
-                </p>
               </div>
 
               {/* Toggle: Scroll Snapping */}
               <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 font-mono text-[10px]">ENABLE SCROLL SNAPPING</span>
+                <span className="text-slate-400 font-mono text-[10px]">ENABLE SCROLL SNAPPING</span>
                 <button
                   onClick={() => updateSetting("enableScrollSnap", !settings.enableScrollSnap)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.enableScrollSnap ? "bg-purple-600" : "bg-slate-800"
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.enableScrollSnap ? "bg-emerald-600" : "bg-slate-800"
                     }`}
                 >
                   <div
@@ -1376,120 +628,18 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
 
-              {/* Slider: Scroll Snap Duration */}
-              {settings.enableScrollSnap && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">SNAP GLIDE DURATION</span>
-                    <span className="text-slate-300">{(settings.scrollSnapDuration ?? 2.2).toFixed(1)}s</span>
-                  </div>
-                  <input
-                    type="range" min="0.5" max="4.0" step="0.1"
-                    value={settings.scrollSnapDuration ?? 2.2}
-                    onChange={(e) => updateSetting("scrollSnapDuration", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                  <p className="text-[9px] text-slate-500 leading-normal">
-                    Duration of the magnetic snap correction. Higher values make the landing feel looser and softer.
-                  </p>
-                </div>
-              )}
-
-              {/* Slider: Scroll Snap Trigger Threshold */}
-              {settings.enableScrollSnap && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">SNAP TRIGGER THRESHOLD</span>
-                    <span className="text-slate-300">{((settings.scrollSnapThreshold ?? 0.20) * 100).toFixed(0)}%</span>
-                  </div>
-                  <input
-                    type="range" min="0.05" max="0.95" step="0.05"
-                    value={settings.scrollSnapThreshold ?? 0.20}
-                    onChange={(e) => updateSetting("scrollSnapThreshold", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                  <p className="text-[9px] text-slate-500 leading-normal">
-                    How far you need to scroll from the previous checkpoint to trigger snapping to the next one. Low = snaps forward easily. High = holds back.
-                  </p>
-                </div>
-              )}
-
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mb-1">
-                <Camera className="w-3.5 h-3.5" />
-                <span>Optics & Perspective</span>
-              </div>
-
-              {/* Slider: Focus Distance */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">FOCAL DISTANCE (DEPTH)</span>
-                  <span className="text-slate-300">{settings.focusDepth.toFixed(1)}u</span>
-                </div>
-                <input
-                  type="range" min="3.0" max="25.0" step="0.5"
-                  value={settings.focusDepth}
-                  onChange={(e) => updateSetting("focusDepth", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Focus Range */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">IN-FOCUS FIELD DEPTH</span>
-                  <span className="text-slate-300">±{settings.focusRange.toFixed(1)}u</span>
-                </div>
-                <input
-                  type="range" min="0.5" max="8.0" step="0.2"
-                  value={settings.focusRange}
-                  onChange={(e) => updateSetting("focusRange", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Bokeh Scale */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">BOKEH SCALE (DEFOCUS SIZE)</span>
-                  <span className="text-slate-300">{settings.bokehScale.toFixed(1)}x</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="8.0" step="0.2"
-                  value={settings.bokehScale}
-                  onChange={(e) => updateSetting("bokehScale", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Density Culling (focused vs non-focused) */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-500">FOCAL DENSITY CULLING</span>
-                  <span className="text-slate-300">{(settings.densityControl * 100).toFixed(0)}%</span>
-                </div>
-                <input
-                  type="range" min="0.0" max="1.0" step="0.05"
-                  value={settings.densityControl}
-                  onChange={(e) => updateSetting("densityControl", parseFloat(e.target.value))}
-                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-                <p className="text-[9px] text-slate-500 leading-normal">
-                  Drops out-of-focus particles, clustering density purely in the focused region for an atmospheric, noisy grain texture.
-                </p>
-              </div>
-
-              {/* SKY DOME CONFIG */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
+              {/* SKY ATMOSPHERE */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-emerald-400 tracking-wider mt-4 mb-1">
                 <Camera className="w-3.5 h-3.5" />
                 <span>Sky Atmosphere</span>
               </div>
 
               {/* Toggle: Sky Dome */}
               <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 font-mono text-[10px]">SHOW GLOWING SKY</span>
+                <span className="text-slate-400 font-mono text-[10px]">SHOW GLOWING SKY</span>
                 <button
                   onClick={() => updateSetting("showSky", !settings.showSky)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showSky ? "bg-purple-600" : "bg-slate-800"
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showSky ? "bg-emerald-600" : "bg-slate-800"
                     }`}
                 >
                   <div
@@ -1503,30 +653,17 @@ export const Dashboard: React.FC = () => {
               {settings.showSky && (
                 <div className="flex flex-col gap-1">
                   <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">SKY EXPOSURE</span>
-                    <span className="text-slate-300">{settings.skyExposure.toFixed(2)}x</span>
+                    <span className="text-slate-400">SKY EXPOSURE</span>
+                    <span className="text-emerald-300">{settings.skyExposure.toFixed(2)}x</span>
                   </div>
                   <input
-                    type="range" min="0.0" max="4.0" step="0.05"
+                    type="range"
+                    min="0.0"
+                    max="4.0"
+                    step="0.05"
                     value={settings.skyExposure}
                     onChange={(e) => updateSetting("skyExposure", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Slider: Sky Horizon Range */}
-              {settings.showSky && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">SKY HORIZON RANGE</span>
-                    <span className="text-slate-300">{settings.skyHorizonRange.toFixed(2)}</span>
-                  </div>
-                  <input
-                    type="range" min="-2.0" max="1.0" step="0.05"
-                    value={settings.skyHorizonRange}
-                    onChange={(e) => updateSetting("skyHorizonRange", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
                 </div>
               )}
@@ -1535,8 +672,8 @@ export const Dashboard: React.FC = () => {
               {settings.showSky && (
                 <div className="flex flex-col gap-1">
                   <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">SKY HORIZON GLOW COLOR</span>
-                    <span className="text-slate-300">{settings.skyColor}</span>
+                    <span className="text-slate-400">SKY GLOW COLOR</span>
+                    <span className="text-emerald-300">{settings.skyColor}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <input
@@ -1545,23 +682,23 @@ export const Dashboard: React.FC = () => {
                       onChange={(e) => updateSetting("skyColor", e.target.value)}
                       className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
                     />
-                    <span className="text-[10px] text-slate-500">Select color</span>
+                    <span className="text-[10px] text-slate-400 font-mono">Select color</span>
                   </div>
                 </div>
               )}
 
-              {/* ENVIRONMENTAL FOG CONFIG */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-purple-400 tracking-wider mt-4 mb-1">
+              {/* ENVIRONMENTAL FOG */}
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-emerald-400 tracking-wider mt-4 mb-1">
                 <Camera className="w-3.5 h-3.5" />
                 <span>Environmental Fog</span>
               </div>
 
               {/* Toggle: Show Fog */}
               <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 font-mono text-[10px]">SHOW DISTANT FOG</span>
+                <span className="text-slate-400 font-mono text-[10px]">SHOW DISTANT FOG</span>
                 <button
                   onClick={() => updateSetting("showFog", !settings.showFog)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showFog ? "bg-purple-600" : "bg-slate-800"
+                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showFog ? "bg-emerald-600" : "bg-slate-800"
                     }`}
                 >
                   <div
@@ -1571,50 +708,40 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
 
-              {/* Slider: Fog Near (Start distance) */}
+              {/* Slider: Fog Near */}
               {settings.showFog && (
                 <div className="flex flex-col gap-1">
                   <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">FOG NEAR DISTANCE</span>
-                    <span className="text-slate-300">{settings.fogNear.toFixed(1)}u</span>
+                    <span className="text-slate-400">FOG NEAR DISTANCE</span>
+                    <span className="text-emerald-300">{settings.fogNear.toFixed(1)}u</span>
                   </div>
                   <input
-                    type="range" min="1.0" max="100.0" step="0.5"
+                    type="range"
+                    min="5.0"
+                    max="500.0"
+                    step="5.0"
                     value={settings.fogNear}
                     onChange={(e) => updateSetting("fogNear", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
                 </div>
               )}
 
-              {/* Slider: Fog Far (Full opacity distance) */}
+              {/* Slider: Fog Far */}
               {settings.showFog && (
                 <div className="flex flex-col gap-1">
                   <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">FOG FAR DISTANCE</span>
-                    <span className="text-slate-300">{settings.fogFar.toFixed(0)}u</span>
+                    <span className="text-slate-400">FOG FAR DISTANCE</span>
+                    <span className="text-emerald-300">{settings.fogFar.toFixed(0)}u</span>
                   </div>
                   <input
-                    type="range" min="10.0" max="300.0" step="1.0"
+                    type="range"
+                    min="50.0"
+                    max="1500.0"
+                    step="10.0"
                     value={settings.fogFar}
                     onChange={(e) => updateSetting("fogFar", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Slider: Fog Amount (Density/Strength) */}
-              {settings.showFog && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">FOG MAX DENSITY</span>
-                    <span className="text-slate-300">{(settings.fogAmount * 100).toFixed(0)}%</span>
-                  </div>
-                  <input
-                    type="range" min="0.0" max="1.0" step="0.05"
-                    value={settings.fogAmount}
-                    onChange={(e) => updateSetting("fogAmount", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
                 </div>
               )}
@@ -1623,8 +750,8 @@ export const Dashboard: React.FC = () => {
               {settings.showFog && (
                 <div className="flex flex-col gap-1">
                   <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-500">FOG MIST COLOR</span>
-                    <span className="text-slate-300">{settings.fogColor}</span>
+                    <span className="text-slate-400">FOG MIST COLOR</span>
+                    <span className="text-emerald-300">{settings.fogColor}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <input
@@ -1633,7 +760,7 @@ export const Dashboard: React.FC = () => {
                       onChange={(e) => updateSetting("fogColor", e.target.value)}
                       className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
                     />
-                    <span className="text-[10px] text-slate-500 font-mono">Select color</span>
+                    <span className="text-[10px] text-slate-400 font-mono">Select color</span>
                   </div>
                 </div>
               )}
@@ -1642,8 +769,42 @@ export const Dashboard: React.FC = () => {
         </div>
       </main>
 
-
-
+      {/* Fixed Position Grass Reveal Debugger HUD */}
+      <GrassDebugBadge />
     </div>
   );
 };
+
+const GrassDebugBadge: React.FC = () => {
+  const [data, setData] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    let animId: number;
+    const update = () => {
+      if (typeof window !== "undefined" && (window as any)._grassDebugData) {
+        setData({ ...(window as any)._grassDebugData });
+      }
+      animId = requestAnimationFrame(update);
+    };
+    animId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  if (!data) return null;
+
+  return (
+    <div className="fixed bottom-6 left-6 z-50 pointer-events-none bg-slate-950/90 backdrop-blur-md border border-emerald-500/40 rounded-xl p-3.5 text-[11px] font-mono text-emerald-300 shadow-2xl flex flex-col gap-1 max-w-xs">
+      <div className="font-bold text-emerald-400 border-b border-white/10 pb-1 mb-1">
+        🔍 GRASS REVEAL PIPELINE DEBUGGER
+      </div>
+      <div>Cam Pos: [{data.camPos.join(", ")}]</div>
+      <div>Cam Dir: [{data.camDir.join(", ")}]</div>
+      <div>Scroll Ratio: {((parseFloat(data.scrollRatio) || 0) * 100).toFixed(1)}% ({data.scrollRatio})</div>
+      <div>Reveal Progress: {((parseFloat(data.revealProgress) || 0) * 100).toFixed(1)}% ({data.revealProgress})</div>
+      <div>Reveal Offset: {data.revealOffset}u</div>
+      <div>Reveal Distance: {data.revealDistance}u</div>
+      <div className="text-yellow-300 font-bold">WaveFront Ahead: +{data.waveFront}u</div>
+    </div>
+  );
+};
+
