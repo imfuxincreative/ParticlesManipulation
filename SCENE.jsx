@@ -446,7 +446,7 @@ export function Model(props) {
             </group>
           </group>
         </group>
-        <PerspectiveCamera name="Camera" makeDefault={false} far={1000} near={0.1} fov={22.895} position={[-256.416, 3.797, -15.499]} rotation={[-2.57, -1.557, -2.57]} />
+        <PerspectiveCamera name="Camera" makeDefault={false} far={2000} near={0.1} fov={22.895} position={[-256.416, 3.797, -15.499]} rotation={[-2.57, -1.557, -2.57]} />
         <mesh name="Plane" geometry={nodes.Plane.geometry} material={nodes.Plane.material} position={[-104.569, -4.366, -19.859]} />
         <mesh name="Plane001" geometry={nodes.Plane001.geometry} material={nodes.Plane001.material} position={[-67.78, -4.286, 3.377]} />
         <mesh name="Plane004" geometry={nodes.Plane004.geometry} material={nodes.Plane004.material} position={[12.91, -3.858, -36.754]} scale={[2.525, 1, 1]} />

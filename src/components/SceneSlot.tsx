@@ -303,7 +303,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
             60,
             size.width / size.height,
             0.1,
-            1000
+            2000
           );
           cam.position.set(0, 0, 0);
           cam.quaternion.identity();
@@ -317,7 +317,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     if (sceneCamera) {
       const cam = sceneCamera as THREE.PerspectiveCamera;
       cam.near = 0.1;
-      cam.far = 1000.0;
+      cam.far = 2000.0;
       cam.aspect = size.width / size.height;
       baseFovRef.current = cam.fov;
       cam.updateProjectionMatrix();

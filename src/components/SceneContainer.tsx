@@ -134,7 +134,7 @@ export const SceneContainer: React.FC = () => {
             position: [0, 0, 10],
             fov: 60,
             near: 0.1,
-            far: 1000,
+            far: 2000,
           }}
           dpr={isMobile ? 1.2 : [1, 1.5]}
           gl={{

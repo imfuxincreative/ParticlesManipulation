@@ -43,7 +43,7 @@ export function Model(props) {
         <group name="BézierCurve" position={[17.361, 0, 43.727]} />
         <group name="Sketchfab_model002" position={[-135.885, 109.112, -148.273]} rotation={[-1.813, -0.832, -1.028]} scale={[10.597, 13.493, 13.493]} />
         <group name="Sketchfab_model003" position={[238.956, 108.512, -357.687]} rotation={[-1.813, -0.832, -1.028]} scale={[7.808, 9.942, 9.942]} />
-        <PerspectiveCamera name="Camera" makeDefault={false} far={1000} near={0.1} fov={90.712} position={[17.361, 7.694, -310.575]} rotation={[1.465, 0.141, -1.057]} />
+        <PerspectiveCamera name="Camera" makeDefault={false} far={2000} near={0.1} fov={90.712} position={[17.361, 7.694, -310.575]} rotation={[1.465, 0.141, -1.057]} />
         <group name="Residential_Buildings_009_Cube004" position={[-10.409, 3.933, -323.858]} rotation={[Math.PI / 2, 0, 1.796]} scale={[1.161, 1.161, 0.513]}>
           <mesh name="Residential_Buildings_009_Cube004_1" geometry={nodes.Residential_Buildings_009_Cube004_1.geometry} material={materials['ground.003']} />
           <mesh name="Residential_Buildings_009_Cube004_2" geometry={nodes.Residential_Buildings_009_Cube004_2.geometry} material={materials['hotel_glas.003']} />

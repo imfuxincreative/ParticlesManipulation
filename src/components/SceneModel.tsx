@@ -6,7 +6,6 @@ import { useScroll, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { GridFloor } from "./GridFloor";
 import { SkyDome } from "./SkyDome";
-import { DepthLayers } from "./atmosphere/DepthLayers";
 import { useSimulation } from "@/context/SimulationContext";
 import { SceneSlot, SceneConfig, SceneVisualOverrides } from "./SceneSlot";
 
@@ -301,9 +300,6 @@ export const SceneModel: React.FC = () => {
           onCameraReady={cameraCallbacksRef.current[i]}
         />
       ))}
-
-      {/* Hero and Silhouette Depth Pillars */}
-      <DepthLayers />
 
       {/* Glowing Atmosphere Sky Dome */}
       <SkyDome />
