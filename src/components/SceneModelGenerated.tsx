@@ -11,7 +11,7 @@ import { useGLTF, PerspectiveCamera, useAnimations } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { GLTF, SkeletonUtils } from 'three-stdlib'
 
-type ActionName = 'CameraAction.001' | 'skateAction' | 'Sketchfab_model.017Action' | 'root.002Action' | 'GLTF_SceneRootNode.002Action' | 'Cube.002_0Action' | 'Cube.005_2Action' | 'Cube.009_3Action' | 'Cube.014_4Action' | 'mixamo.com.003' | 'BlueRing_3_Portal_0Action' | 'Spheres_Portal_0Action' | 'BlueRing_4_Portal_0Action' | 'BlueRing_1_Portal_0Action' | 'Portal3_Portal_0Action' | 'BlueRing_2_Portal_0Action' | 'WhiteRing_Portal_0Action' | 'WhiteRing_Portal_0.001Action' | 'BlueRing_3_Portal_0.001Action' | 'Ring__0Action' | 'ballAction' | 'mixamo.com.011' | 'mixamo.com.012' | 'mixamo.com.013' | 'mixamo.com.014' | 'mixamo.com.015' | 'mixamo.com.016' | 'Object_5.008Action' | 'Object_4.006Action' | 'Object_5.009Action' | 'Ring__0.001Action'
+type ActionName = 'CameraAction.001' | 'skateAction' | 'Sketchfab_model.017Action' | 'root.002Action' | 'GLTF_SceneRootNode.002Action' | 'Cube.002_0Action' | 'Cube.005_2Action' | 'Cube.009_3Action' | 'Cube.014_4Action' | 'mixamo.com.003' | 'Spheres_Portal_0Action' | 'BlueRing_4_Portal_0Action' | 'BlueRing_1_Portal_0Action' | 'Portal3_Portal_0Action' | 'BlueRing_2_Portal_0Action' | 'WhiteRing_Portal_0Action' | 'BlueRing_3_Portal_0Action' | 'WhiteRing_Portal_0.001Action' | 'BlueRing_3_Portal_0.001Action' | 'Ring__0Action' | 'ballAction' | 'mixamo.com.011' | 'mixamo.com.012' | 'mixamo.com.013' | 'mixamo.com.014' | 'mixamo.com.015' | 'mixamo.com.016' | 'Object_5.008Action' | 'Object_4.006Action' | 'Object_5.009Action' | 'Ring__0.001Action'
 
 interface GLTFAction extends THREE.AnimationClip {
   name: ActionName
@@ -19,66 +19,15 @@ interface GLTFAction extends THREE.AnimationClip {
 
 type GLTFResult = GLTF & {
   nodes: {
-    big_concrete__0: THREE.Mesh
-    big_concrete__0001: THREE.Mesh
-    body_balcony__0: THREE.Mesh
-    body_balcony__0001: THREE.Mesh
-    body_fames__0: THREE.Mesh
-    body_fames__0001: THREE.Mesh
-    body_panels__0: THREE.Mesh
-    body_panels__0001: THREE.Mesh
-    body_slabs__0: THREE.Mesh
-    body_slabs__0001: THREE.Mesh
-    body_walls__0: THREE.Mesh
-    body_walls__0001: THREE.Mesh
-    body_windows__0: THREE.Mesh
-    body_windows__0001: THREE.Mesh
-    concrete_debris__0: THREE.Mesh
-    concrete_debris__0001: THREE.Mesh
-    simple_wood__0: THREE.Mesh
-    simple_wood__0001: THREE.Mesh
-    top__0: THREE.Mesh
-    top__0001: THREE.Mesh
-    top_frames__0: THREE.Mesh
-    top_frames__0001: THREE.Mesh
-    top_panels__0: THREE.Mesh
-    top_panels__0001: THREE.Mesh
-    Object_31: THREE.Mesh
-    top_roof__0001: THREE.Mesh
-    top_slabs__0: THREE.Mesh
-    top_slabs__0001: THREE.Mesh
-    top_vent__0: THREE.Mesh
-    top_walls__0: THREE.Mesh
-    top_walls__0001: THREE.Mesh
-    top_windows__0: THREE.Mesh
-    top_windows__0001: THREE.Mesh
-    vertical_concrete__0: THREE.Mesh
-    vertical_concrete__0001: THREE.Mesh
-    wood_doors__0: THREE.Mesh
-    wood_doors__0001: THREE.Mesh
-    wood_pant__0: THREE.Mesh
-    wood_pant__0001: THREE.Mesh
-    wooden_cabinet__0: THREE.Mesh
-    wooden_cabinet__0001: THREE.Mesh
-    ['DestroyObyect_����������������_001']: THREE.Mesh
-    ['DestroyObyect_����������������_002']: THREE.Mesh
-    traffic_cone_traffic_cone_0002: THREE.Mesh
-    baricade: THREE.Mesh
-    base_cell002_concrete_0002: THREE.Mesh
-    base_cell002_concrete_0003: THREE.Mesh
     Object_3: THREE.Mesh
     Object_5004: THREE.Mesh
     Object_6: THREE.Mesh
-    Object_5006: THREE.Mesh
-    Object_6002: THREE.Mesh
-    Cables_1_0: THREE.Mesh
-    Left_2_0001: THREE.Mesh
-    Cables_1_0001: THREE.Mesh
-    Left_2_0002: THREE.Mesh
-    Cables_1_0002: THREE.Mesh
-    Left_2_0003: THREE.Mesh
-    Cables_1_0003: THREE.Mesh
-    Left_2_0004: THREE.Mesh
+    Blossom02_jabami_mesh_Jabami_blossom_mat_0: THREE.Mesh
+    Blossom02_jabami_mesh_jabami_tronc_mat_0: THREE.Mesh
+    Blossomtree00_jabami_mesh_Jabami_blossom_mat_0: THREE.Mesh
+    Blossomtree00_jabami_mesh_jabami_tronc_mat_0: THREE.Mesh
+    Object_2: THREE.Mesh
+    Object_2004: THREE.Mesh
     glass: THREE.Mesh
     hair2: THREE.Mesh
     bodypart: THREE.SkinnedMesh
@@ -95,22 +44,10 @@ type GLTFResult = GLTF & {
     zhuozi_mutou_lambert1_0: THREE.Mesh
     yifu09_duanku02_lambert1_0: THREE.Mesh
     predio_Glittery_Glow_17_0: THREE.Mesh
-    Object_4: THREE.Mesh
-    Object_5: THREE.Mesh
-    Cables_1_0005: THREE.Mesh
-    Left_2_0006: THREE.Mesh
-    ['Object005_Material_#107_0']: THREE.Mesh
-    TrafficLight_TrafficLight001_0: THREE.Mesh
-    TrafficLight_TrafficLight001_0001: THREE.Mesh
-    trafficcone_v2_trafficconev2_blinn_0: THREE.Mesh
-    BlueRing_3_Portal_0: THREE.Mesh
-    Ring__0: THREE.Mesh
     Sphere_Material_0: THREE.Mesh
     X_Line_0001: THREE.Mesh
     Y_Line_0001: THREE.Mesh
     Z_Line_0001: THREE.Mesh
-    Object_5005: THREE.Mesh
-    Object_6001: THREE.Mesh
     Cube__0: THREE.Mesh
     Cube001__0: THREE.Mesh
     Plane001__0: THREE.Mesh
@@ -131,399 +68,6 @@ type GLTFResult = GLTF & {
     pant2: THREE.SkinnedMesh
     shirt2: THREE.SkinnedMesh
     shoe2: THREE.SkinnedMesh
-    Object_26: THREE.Mesh
-    Object_24: THREE.Mesh
-    Object_242: THREE.Mesh
-    Object_158: THREE.Mesh
-    Object_156: THREE.Mesh
-    Object_54001: THREE.Mesh
-    Object_52: THREE.Mesh
-    Object_50: THREE.Mesh
-    Object_48: THREE.Mesh
-    Object_46: THREE.Mesh
-    Object_44: THREE.Mesh
-    Object_42: THREE.Mesh
-    Object_40: THREE.Mesh
-    Object_38: THREE.Mesh
-    Object_86: THREE.Mesh
-    Object_12: THREE.Mesh
-    Object_10: THREE.Mesh
-    Object_8: THREE.Mesh
-    Object_6004: THREE.Mesh
-    Object_90: THREE.Mesh
-    Object_88: THREE.Mesh
-    Object_76: THREE.Mesh
-    Object_74: THREE.Mesh
-    Object_244: THREE.Mesh
-    Object_94: THREE.Mesh
-    Object_238: THREE.Mesh
-    Object_236: THREE.Mesh
-    Object_234: THREE.Mesh
-    Object_232: THREE.Mesh
-    Object_230: THREE.Mesh
-    Object_224: THREE.Mesh
-    Object_92: THREE.Mesh
-    Object_222: THREE.Mesh
-    Object_218: THREE.Mesh
-    Object_214: THREE.Mesh
-    Object_208: THREE.Mesh
-    Object_206: THREE.Mesh
-    Object_204: THREE.Mesh
-    Object_84: THREE.Mesh
-    Object_202: THREE.Mesh
-    Object_200: THREE.Mesh
-    Object_198: THREE.Mesh
-    Object_196: THREE.Mesh
-    Object_194: THREE.Mesh
-    Object_192: THREE.Mesh
-    Object_190: THREE.Mesh
-    Object_188: THREE.Mesh
-    Object_82: THREE.Mesh
-    Object_182: THREE.Mesh
-    Object_180: THREE.Mesh
-    Object_178: THREE.Mesh
-    Object_176: THREE.Mesh
-    Object_80: THREE.Mesh
-    Object_152: THREE.Mesh
-    Object_150: THREE.Mesh
-    Object_148: THREE.Mesh
-    Object_146: THREE.Mesh
-    Object_144: THREE.Mesh
-    Object_142: THREE.Mesh
-    Object_140: THREE.Mesh
-    Object_138: THREE.Mesh
-    Object_136: THREE.Mesh
-    Object_134: THREE.Mesh
-    Object_132: THREE.Mesh
-    Object_130: THREE.Mesh
-    Object_128: THREE.Mesh
-    Object_126: THREE.Mesh
-    Object_120: THREE.Mesh
-    Object_118: THREE.Mesh
-    Object_116: THREE.Mesh
-    Object_114001: THREE.Mesh
-    Object_64: THREE.Mesh
-    Object_62: THREE.Mesh
-    Object_60: THREE.Mesh
-    Object_58: THREE.Mesh
-    Object_56: THREE.Mesh
-    Object_36: THREE.Mesh
-    Object_216: THREE.Mesh
-    Object_212: THREE.Mesh
-    Object_186: THREE.Mesh
-    Object_184: THREE.Mesh
-    Object_174: THREE.Mesh
-    Object_78: THREE.Mesh
-    Object_124: THREE.Mesh
-    Object_122: THREE.Mesh
-    Object_112: THREE.Mesh
-    Object_34: THREE.Mesh
-    Object_162: THREE.Mesh
-    Object_160: THREE.Mesh
-    Object_32: THREE.Mesh
-    Object_30: THREE.Mesh
-    Object_28: THREE.Mesh
-    Object_70: THREE.Mesh
-    Object_228: THREE.Mesh
-    Object_220: THREE.Mesh
-    Object_172: THREE.Mesh
-    Object_170: THREE.Mesh
-    Object_168: THREE.Mesh
-    Object_72: THREE.Mesh
-    Object_110: THREE.Mesh
-    Object_108: THREE.Mesh
-    Object_106: THREE.Mesh
-    Object_102: THREE.Mesh
-    Object_100: THREE.Mesh
-    Object_98: THREE.Mesh
-    Object_96: THREE.Mesh
-    Object_66: THREE.Mesh
-    Object_16: THREE.Mesh
-    Object_14: THREE.Mesh
-    Object_68: THREE.Mesh
-    Object_210: THREE.Mesh
-    Object_166: THREE.Mesh
-    Object_164: THREE.Mesh
-    Object_154: THREE.Mesh
-    Object_104: THREE.Mesh
-    Object_22: THREE.Mesh
-    Object_20: THREE.Mesh
-    Object_18: THREE.Mesh
-    Object_240: THREE.Mesh
-    Object_226: THREE.Mesh
-    Object_246: THREE.Mesh
-    aircondition2_Mat_0: THREE.Mesh
-    aircondition_Mat_0: THREE.Mesh
-    Boole_Mat1_0: THREE.Mesh
-    Boole_2_Mat2_0: THREE.Mesh
-    Boole_2_2_Mat11_0: THREE.Mesh
-    brockenbrick_Mat_0: THREE.Mesh
-    brockenbricks_Mat_0: THREE.Mesh
-    brockenbricks2_Mat_0: THREE.Mesh
-    Cube_8_Mat_0: THREE.Mesh
-    dical1_Mat_0: THREE.Mesh
-    dical2_Mat_0: THREE.Mesh
-    dical3_Mat_0: THREE.Mesh
-    door_Mat_0: THREE.Mesh
-    door2_Mat_0: THREE.Mesh
-    door3_Mat_0: THREE.Mesh
-    doorjam_Mat_0: THREE.Mesh
-    doorplates_Mat_0: THREE.Mesh
-    firstfloor_Mat3_0: THREE.Mesh
-    floor_Mat_0: THREE.Mesh
-    floortrim_Mat_0: THREE.Mesh
-    insidewall_Mat_0: THREE.Mesh
-    insidewall2_Mat_0: THREE.Mesh
-    chair_Mat_0: THREE.Mesh
-    lamp2_Mat_0: THREE.Mesh
-    lamp_1_Mat_0: THREE.Mesh
-    later_Mat_0: THREE.Mesh
-    matress_2_Mat_0: THREE.Mesh
-    table_Mat_0: THREE.Mesh
-    metalbars2_Mat_0: THREE.Mesh
-    metalbars3_Mat_0: THREE.Mesh
-    metalbars4_Mat_0: THREE.Mesh
-    metalbars_Mat_0: THREE.Mesh
-    metalroof_Mat_0: THREE.Mesh
-    outsidewall_Mat_0: THREE.Mesh
-    outsidewall2_Mat_0: THREE.Mesh
-    powerline_Mat_0: THREE.Mesh
-    powerbox_Mat_0: THREE.Mesh
-    roof_Mat_0: THREE.Mesh
-    stairs_Mat_0: THREE.Mesh
-    stairs_Mat_0001: THREE.Mesh
-    topcel_Mat_0: THREE.Mesh
-    trimin_Mat_0: THREE.Mesh
-    Cube_Mat_0: THREE.Mesh
-    Cube_2_Mat_0: THREE.Mesh
-    Cube_3_Mat_0: THREE.Mesh
-    Cube_4_Mat_0: THREE.Mesh
-    Cube_5_Mat_0: THREE.Mesh
-    Cube_54_Mat_0: THREE.Mesh
-    Cube_54_2_Mat_0: THREE.Mesh
-    Cube_54_3_Mat_0: THREE.Mesh
-    Cube_54_4_Mat_0: THREE.Mesh
-    Cube_54_5_Mat_0: THREE.Mesh
-    Cube_54_6_Mat_0: THREE.Mesh
-    Cube_54_7_Mat_0: THREE.Mesh
-    Cube_6_Mat_0: THREE.Mesh
-    Cube_7_Mat_0: THREE.Mesh
-    frame_Mat_0: THREE.Mesh
-    piece_29_Mat_0: THREE.Mesh
-    piece_30_Mat_0: THREE.Mesh
-    woodcaps_Mat_0: THREE.Mesh
-    woodbrackets_Mat_0: THREE.Mesh
-    aircondition2_Mat_0001: THREE.Mesh
-    aircondition_Mat_0001: THREE.Mesh
-    Boole_Mat1_0001: THREE.Mesh
-    Boole_2_Mat2_0001: THREE.Mesh
-    Boole_2_2_Mat11_0001: THREE.Mesh
-    brockenbrick_Mat_0001: THREE.Mesh
-    brockenbricks_Mat_0001: THREE.Mesh
-    brockenbricks2_Mat_0001: THREE.Mesh
-    Cube_8_Mat_0001: THREE.Mesh
-    dical1_Mat_0001: THREE.Mesh
-    dical2_Mat_0001: THREE.Mesh
-    dical3_Mat_0001: THREE.Mesh
-    door_Mat_0001: THREE.Mesh
-    door2_Mat_0001: THREE.Mesh
-    door3_Mat_0001: THREE.Mesh
-    doorjam_Mat_0001: THREE.Mesh
-    doorplates_Mat_0001: THREE.Mesh
-    firstfloor_Mat3_0001: THREE.Mesh
-    floor_Mat_0001: THREE.Mesh
-    floortrim_Mat_0001: THREE.Mesh
-    insidewall_Mat_0001: THREE.Mesh
-    insidewall2_Mat_0001: THREE.Mesh
-    chair_Mat_0001: THREE.Mesh
-    lamp2_Mat_0001: THREE.Mesh
-    lamp_1_Mat_0001: THREE.Mesh
-    later_Mat_0001: THREE.Mesh
-    matress_2_Mat_0001: THREE.Mesh
-    table_Mat_0001: THREE.Mesh
-    metalbars2_Mat_0001: THREE.Mesh
-    metalbars3_Mat_0001: THREE.Mesh
-    metalbars4_Mat_0001: THREE.Mesh
-    metalbars_Mat_0001: THREE.Mesh
-    metalroof_Mat_0001: THREE.Mesh
-    outsidewall_Mat_0001: THREE.Mesh
-    outsidewall2_Mat_0001: THREE.Mesh
-    powerline_Mat_0001: THREE.Mesh
-    powerbox_Mat_0001: THREE.Mesh
-    roof_Mat_0001: THREE.Mesh
-    stairs_Mat_0002: THREE.Mesh
-    stairs_Mat_0003: THREE.Mesh
-    topcel_Mat_0001: THREE.Mesh
-    trimin_Mat_0001: THREE.Mesh
-    Cube_Mat_0001: THREE.Mesh
-    Cube_2_Mat_0001: THREE.Mesh
-    Cube_3_Mat_0001: THREE.Mesh
-    Cube_4_Mat_0001: THREE.Mesh
-    Cube_5_Mat_0001: THREE.Mesh
-    Cube_54_Mat_0001: THREE.Mesh
-    Cube_54_2_Mat_0001: THREE.Mesh
-    Cube_54_3_Mat_0001: THREE.Mesh
-    Cube_54_4_Mat_0001: THREE.Mesh
-    Cube_54_5_Mat_0001: THREE.Mesh
-    Cube_54_6_Mat_0001: THREE.Mesh
-    Cube_54_7_Mat_0001: THREE.Mesh
-    Cube_6_Mat_0001: THREE.Mesh
-    Cube_7_Mat_0001: THREE.Mesh
-    frame_Mat_0001: THREE.Mesh
-    piece_29_Mat_0001: THREE.Mesh
-    piece_30_Mat_0001: THREE.Mesh
-    woodcaps_Mat_0001: THREE.Mesh
-    woodbrackets_Mat_0001: THREE.Mesh
-    ['0floor1_71Mtl_0']: THREE.Mesh
-    ['0floor21_21Mtl_0']: THREE.Mesh
-    ['0floor31_0floor31Mtl_0']: THREE.Mesh
-    ['0floor41_0floor41Mtl_0']: THREE.Mesh
-    ['0floor61_81Mtl_0']: THREE.Mesh
-    ['11_71Mtl_0']: THREE.Mesh
-    ['12_71Mtl_0']: THREE.Mesh
-    ['13_71Mtl_0']: THREE.Mesh
-    ['21_21Mtl_0']: THREE.Mesh
-    ['22_21Mtl_0']: THREE.Mesh
-    ['23_21Mtl_0']: THREE.Mesh
-    ['31_51Mtl_0']: THREE.Mesh
-    ['32_51Mtl_0']: THREE.Mesh
-    ['33_51Mtl_0']: THREE.Mesh
-    ['41_51Mtl_0']: THREE.Mesh
-    ['42_51Mtl_0']: THREE.Mesh
-    ['43_51Mtl_0']: THREE.Mesh
-    ['51_51Mtl_0']: THREE.Mesh
-    ['52_51Mtl_0']: THREE.Mesh
-    ['53_51Mtl_0']: THREE.Mesh
-    ['61_81Mtl_0']: THREE.Mesh
-    ['62_81Mtl_0']: THREE.Mesh
-    ['63_81Mtl_0']: THREE.Mesh
-    ['71_71Mtl_0']: THREE.Mesh
-    ['72_71Mtl_0']: THREE.Mesh
-    ['73_71Mtl_0']: THREE.Mesh
-    ['81_81Mtl_0']: THREE.Mesh
-    ['82_81Mtl_0']: THREE.Mesh
-    ['83_81Mtl_0']: THREE.Mesh
-    Dumpster1_Dumpster1Mtl_0: THREE.Mesh
-    Meshpart1_Meshpart1Mtl_0: THREE.Mesh
-    Meshpart2_Meshpart2Mtl_0: THREE.Mesh
-    Meshpart3_Meshpart3Mtl_0: THREE.Mesh
-    Meshpart4_Meshpart4Mtl_0: THREE.Mesh
-    Meshpart5_Meshpart5Mtl_0: THREE.Mesh
-    Meshpart6_Meshpart6Mtl_0: THREE.Mesh
-    Meshpart7_Meshpart7Mtl_0: THREE.Mesh
-    Meshpart8_Meshpart8Mtl_0: THREE.Mesh
-    Meshpart9_Meshpart9Mtl_0: THREE.Mesh
-    Polysurface1031_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1032_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1033_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1034_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1035_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1036_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1041_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1042_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1043_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1044_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1045_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1046_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface11_Polysurface11Mtl_0: THREE.Mesh
-    Polysurface1111_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1112_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1113_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1114_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1115_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface1116_Polysurface1111Mtl_0: THREE.Mesh
-    Polysurface121_Polysurface211Mtl_0: THREE.Mesh
-    Polysurface1471_Polysurface1471Mtl_0: THREE.Mesh
-    Polysurface1481_Polysurface1471Mtl_0: THREE.Mesh
-    Polysurface1501_Polysurface1471Mtl_0: THREE.Mesh
-    Polysurface211_Polysurface211Mtl_0: THREE.Mesh
-    Polysurface281_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface282_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface283_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface421_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface422_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface423_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface4471_Polysurface5371Mtl_0: THREE.Mesh
-    Polysurface461_Polysurface481Mtl_0: THREE.Mesh
-    Polysurface462_Polysurface481Mtl_0: THREE.Mesh
-    Polysurface463_Polysurface481Mtl_0: THREE.Mesh
-    Polysurface464_Polysurface481Mtl_0: THREE.Mesh
-    Polysurface481_Polysurface481Mtl_0: THREE.Mesh
-    Polysurface482_Polysurface481Mtl_0: THREE.Mesh
-    Polysurface483_Polysurface481Mtl_0: THREE.Mesh
-    Polysurface484_Polysurface481Mtl_0: THREE.Mesh
-    Polysurface485_Polysurface481Mtl_0: THREE.Mesh
-    Polysurface486_Polysurface481Mtl_0: THREE.Mesh
-    Polysurface487_Polysurface481Mtl_0: THREE.Mesh
-    Polysurface4871_Polysurface5371Mtl_0: THREE.Mesh
-    Polysurface488_Polysurface481Mtl_0: THREE.Mesh
-    Polysurface4891_Polysurface5371Mtl_0: THREE.Mesh
-    Polysurface501_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface5010_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface5011_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface5012_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface502_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface503_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface504_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface505_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface506_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface507_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface508_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface509_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface521_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5210_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface5211_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5212_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5213_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5214_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5215_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5216_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5217_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5218_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5219_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface522_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5220_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5221_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5222_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5223_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5224_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5225_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5226_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5227_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5228_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5229_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface523_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5230_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5231_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5232_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5233_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5234_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5235_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5236_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5237_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5238_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5239_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface524_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5240_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5241_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5242_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5243_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5244_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5245_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5246_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5247_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface5248_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5249_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface525_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface526_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface527_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface528_Polysurface528Mtl_0: THREE.Mesh
-    Polysurface529_Polysurface521Mtl_0: THREE.Mesh
-    Polysurface5371_Polysurface5371Mtl_0: THREE.Mesh
-    Polysurface5381_Polysurface5371Mtl_0: THREE.Mesh
-    Polysurface6341_Polysurface6341Mtl_0: THREE.Mesh
-    Polysurface71_Polysurface71Mtl_0: THREE.Mesh
-    Powerboxeslppolysurface751_Powerboxeslppolysurface751Mtl_0: THREE.Mesh
     column_module_002_column_0: THREE.Mesh
     column_module_002_column_0001: THREE.Mesh
     column_module_004_column_0: THREE.Mesh
@@ -570,24 +114,33 @@ type GLTFResult = GLTF & {
     Pillar_M_trimsheet_0: THREE.Mesh
     Tall_pillar_M_Marble_0: THREE.Mesh
     Tall_pillar_M_trimsheet_0: THREE.Mesh
-    Object_7: THREE.Mesh
-    Plane006: THREE.Mesh
     Object_4001: THREE.Mesh
     Object_5001: THREE.Mesh
+    traffic_cone_traffic_cone_0002: THREE.Mesh
+    Object_5006: THREE.Mesh
+    Object_6002: THREE.Mesh
     Cube005: THREE.Mesh
     Cylinder: THREE.Mesh
     Cylinder001: THREE.Mesh
+    Plane: THREE.Mesh
+    Blossom01_jabami_mesh_Jabami_blossom_mat_0: THREE.Mesh
+    AncientRuins_Shell_M_AncientRuins_Props_0: THREE.Mesh
+    AncientRuins_Rock2_M_AncientRuins_Rocks_0: THREE.Mesh
+    AncientRuins_Rock4_M_AncientRuins_Rocks_0: THREE.Mesh
+    AncientRuins_Rock3_M_AncientRuins_Rocks_0: THREE.Mesh
+    AncientRuins_Rock1_M_AncientRuins_Rocks_0: THREE.Mesh
     ['10805_Moai_L3mb']: THREE.Mesh
-    FootballBall_Black_0: THREE.Mesh
-    Residential_Buildings_004_Cube009: THREE.Mesh
     Spheres_Portal_0: THREE.Mesh
     BlueRing_4_Portal_0: THREE.Mesh
     BlueRing_1_Portal_0: THREE.Mesh
     Portal3_Portal_0: THREE.Mesh
     BlueRing_2_Portal_0: THREE.Mesh
     WhiteRing_Portal_0: THREE.Mesh
+    BlueRing_3_Portal_0: THREE.Mesh
     WhiteRing_Portal_0001: THREE.Mesh
     BlueRing_3_Portal_0001: THREE.Mesh
+    Ring__0: THREE.Mesh
+    Ring__0001: THREE.Mesh
     Object_5008: THREE.Mesh
     Object_4006: THREE.Mesh
     Object_5009: THREE.Mesh
@@ -600,12 +153,43 @@ type GLTFResult = GLTF & {
     QUARTZ4_quartz4_0: THREE.Mesh
     QUARTZ5_quartz5_0: THREE.Mesh
     QUARTZ3_quartz3_0001: THREE.Mesh
-    Ring__0001: THREE.Mesh
+    ['10805_Moai_L3mb004']: THREE.Mesh
     floor: THREE.Mesh
     mixamorigHips: THREE.Bone
     mixamorigHips_1: THREE.Bone
   }
-  materials: {}
+  materials: {
+    ['material_0.001']: THREE.MeshStandardMaterial
+    Black: THREE.MeshStandardMaterial
+    Jabami_blossom_mat: THREE.MeshStandardMaterial
+    jabami_tronc_mat: THREE.MeshStandardMaterial
+    ['a-little-prince-bust']: THREE.MeshStandardMaterial
+    hair11: THREE.MeshStandardMaterial
+    ['Material.007']: THREE.MeshStandardMaterial
+    ['01_-_Default']: THREE.MeshStandardMaterial
+    ['Material.003']: THREE.MeshStandardMaterial
+    Material: THREE.MeshStandardMaterial
+    ['lambert1.001']: THREE.MeshStandardMaterial
+    Glittery_Glow_44: THREE.MeshStandardMaterial
+    ['Material.005']: THREE.MeshBasicMaterial
+    ['Line.001']: THREE.MeshBasicMaterial
+    ['Scene_-_Root.004']: THREE.MeshStandardMaterial
+    column: THREE.MeshStandardMaterial
+    M_Marble: THREE.MeshStandardMaterial
+    M_trimsheet: THREE.MeshStandardMaterial
+    ['Material.007']: THREE.MeshStandardMaterial
+    ['Material.009']: THREE.MeshStandardMaterial
+    M_AncientRuins_Props: THREE.MeshStandardMaterial
+    M_AncientRuins_Rocks: THREE.MeshStandardMaterial
+    ['glossy_putih.001']: THREE.MeshStandardMaterial
+    ['.gs_grass_01.002']: THREE.MeshStandardMaterial
+    ['.gs_type_e.002']: THREE.MeshStandardMaterial
+    quartz1: THREE.MeshStandardMaterial
+    quartz4: THREE.MeshStandardMaterial
+    quartz5: THREE.MeshStandardMaterial
+    quartz3: THREE.MeshStandardMaterial
+    ['Material.012']: THREE.MeshStandardMaterial
+  }
   animations: GLTFAction[]
 }
 
@@ -637,131 +221,10 @@ export function Model(props: React.ComponentPropsWithoutRef<'group'>) {
   return (
     <group ref={group} {...props} dispose={null}>
       <group name="Scene">
-        <group name="ss3" position={[117.279, -1.092, 27.593]} rotation={[-Math.PI / 2, 0, 0]} scale={0.999}>
-          <group name="7d60b6d7853149eebaa49a9b7ce0d376fbx" position={[0, 0, 0.712]} rotation={[Math.PI / 2, 0, 0]}>
-            <group name="RootNode003" position={[0, 0.712, 0]}>
-              <group name="big_concrete" position={[-16.344, 18.623, -15.308]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="big_concrete__0" geometry={(nodes['big_concrete__0'] || nodes['big_concrete__0'.replace(/(.*?)000(\d+)/, 'big_concrete__0.$2')])?.geometry} material={(nodes['big_concrete__0'] || nodes['big_concrete__0'.replace(/(.*?)000(\d+)/, 'big_concrete__0.$2')])?.material} />
-                <mesh name="big_concrete__0001" geometry={(nodes['big_concrete__0001'] || nodes['big_concrete__0001'.replace(/(.*?)000(\d+)/, 'big_concrete__0001.$2')])?.geometry} material={(nodes['big_concrete__0001'] || nodes['big_concrete__0001'.replace(/(.*?)000(\d+)/, 'big_concrete__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="body_balcony" position={[0, 0.712, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="body_balcony__0" geometry={(nodes['body_balcony__0'] || nodes['body_balcony__0'.replace(/(.*?)000(\d+)/, 'body_balcony__0.$2')])?.geometry} material={(nodes['body_balcony__0'] || nodes['body_balcony__0'.replace(/(.*?)000(\d+)/, 'body_balcony__0.$2')])?.material} position={[0, 0, 0.712]} />
-                <mesh name="body_balcony__0001" geometry={(nodes['body_balcony__0001'] || nodes['body_balcony__0001'.replace(/(.*?)000(\d+)/, 'body_balcony__0001.$2')])?.geometry} material={(nodes['body_balcony__0001'] || nodes['body_balcony__0001'.replace(/(.*?)000(\d+)/, 'body_balcony__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="body_fames" position={[0.001, 14.793, -1.512]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="body_fames__0" geometry={(nodes['body_fames__0'] || nodes['body_fames__0'.replace(/(.*?)000(\d+)/, 'body_fames__0.$2')])?.geometry} material={(nodes['body_fames__0'] || nodes['body_fames__0'.replace(/(.*?)000(\d+)/, 'body_fames__0.$2')])?.material} />
-                <mesh name="body_fames__0001" geometry={(nodes['body_fames__0001'] || nodes['body_fames__0001'.replace(/(.*?)000(\d+)/, 'body_fames__0001.$2')])?.geometry} material={(nodes['body_fames__0001'] || nodes['body_fames__0001'.replace(/(.*?)000(\d+)/, 'body_fames__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="body_panels" position={[0.001, 16.875, -1.534]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="body_panels__0" geometry={(nodes['body_panels__0'] || nodes['body_panels__0'.replace(/(.*?)000(\d+)/, 'body_panels__0.$2')])?.geometry} material={(nodes['body_panels__0'] || nodes['body_panels__0'.replace(/(.*?)000(\d+)/, 'body_panels__0.$2')])?.material} />
-                <mesh name="body_panels__0001" geometry={(nodes['body_panels__0001'] || nodes['body_panels__0001'.replace(/(.*?)000(\d+)/, 'body_panels__0001.$2')])?.geometry} material={(nodes['body_panels__0001'] || nodes['body_panels__0001'.replace(/(.*?)000(\d+)/, 'body_panels__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="body_slabs" position={[0.001, 10.41, -0.109]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="body_slabs__0" geometry={(nodes['body_slabs__0'] || nodes['body_slabs__0'.replace(/(.*?)000(\d+)/, 'body_slabs__0.$2')])?.geometry} material={(nodes['body_slabs__0'] || nodes['body_slabs__0'.replace(/(.*?)000(\d+)/, 'body_slabs__0.$2')])?.material} />
-                <mesh name="body_slabs__0001" geometry={(nodes['body_slabs__0001'] || nodes['body_slabs__0001'.replace(/(.*?)000(\d+)/, 'body_slabs__0001.$2')])?.geometry} material={(nodes['body_slabs__0001'] || nodes['body_slabs__0001'.replace(/(.*?)000(\d+)/, 'body_slabs__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="body_walls" position={[0.001, 15.341, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="body_walls__0" geometry={(nodes['body_walls__0'] || nodes['body_walls__0'.replace(/(.*?)000(\d+)/, 'body_walls__0.$2')])?.geometry} material={(nodes['body_walls__0'] || nodes['body_walls__0'.replace(/(.*?)000(\d+)/, 'body_walls__0.$2')])?.material} />
-                <mesh name="body_walls__0001" geometry={(nodes['body_walls__0001'] || nodes['body_walls__0001'.replace(/(.*?)000(\d+)/, 'body_walls__0001.$2')])?.geometry} material={(nodes['body_walls__0001'] || nodes['body_walls__0001'.replace(/(.*?)000(\d+)/, 'body_walls__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="body_windows" position={[0.001, 16.875, -1.49]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="body_windows__0" geometry={(nodes['body_windows__0'] || nodes['body_windows__0'.replace(/(.*?)000(\d+)/, 'body_windows__0.$2')])?.geometry} material={(nodes['body_windows__0'] || nodes['body_windows__0'.replace(/(.*?)000(\d+)/, 'body_windows__0.$2')])?.material} />
-                <mesh name="body_windows__0001" geometry={(nodes['body_windows__0001'] || nodes['body_windows__0001'.replace(/(.*?)000(\d+)/, 'body_windows__0001.$2')])?.geometry} material={(nodes['body_windows__0001'] || nodes['body_windows__0001'.replace(/(.*?)000(\d+)/, 'body_windows__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="concrete_debris" position={[3.047, 13.844, 7.629]} rotation={[1.671, -1.535, -0.402]}>
-                <mesh name="concrete_debris__0" geometry={(nodes['concrete_debris__0'] || nodes['concrete_debris__0'.replace(/(.*?)000(\d+)/, 'concrete_debris__0.$2')])?.geometry} material={(nodes['concrete_debris__0'] || nodes['concrete_debris__0'.replace(/(.*?)000(\d+)/, 'concrete_debris__0.$2')])?.material} />
-                <mesh name="concrete_debris__0001" geometry={(nodes['concrete_debris__0001'] || nodes['concrete_debris__0001'.replace(/(.*?)000(\d+)/, 'concrete_debris__0001.$2')])?.geometry} material={(nodes['concrete_debris__0001'] || nodes['concrete_debris__0001'.replace(/(.*?)000(\d+)/, 'concrete_debris__0001.$2')])?.material} position={[6.888, 2.926, -209.028]} />
-              </group>
-              <group name="simple_wood" position={[-17.803, 15.964, 0.254]} rotation={[-2.614, -0.138, 0.445]}>
-                <mesh name="simple_wood__0" geometry={(nodes['simple_wood__0'] || nodes['simple_wood__0'.replace(/(.*?)000(\d+)/, 'simple_wood__0.$2')])?.geometry} material={(nodes['simple_wood__0'] || nodes['simple_wood__0'.replace(/(.*?)000(\d+)/, 'simple_wood__0.$2')])?.material} />
-                <mesh name="simple_wood__0001" geometry={(nodes['simple_wood__0001'] || nodes['simple_wood__0001'.replace(/(.*?)000(\d+)/, 'simple_wood__0001.$2')])?.geometry} material={(nodes['simple_wood__0001'] || nodes['simple_wood__0001'.replace(/(.*?)000(\d+)/, 'simple_wood__0001.$2')])?.material} position={[187.024, -89.09, -28.874]} />
-              </group>
-              <group name="top" position={[0, 31.091, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="top__0" geometry={(nodes['top__0'] || nodes['top__0'.replace(/(.*?)000(\d+)/, 'top__0.$2')])?.geometry} material={(nodes['top__0'] || nodes['top__0'.replace(/(.*?)000(\d+)/, 'top__0.$2')])?.material} />
-                <mesh name="top__0001" geometry={(nodes['top__0001'] || nodes['top__0001'.replace(/(.*?)000(\d+)/, 'top__0001.$2')])?.geometry} material={(nodes['top__0001'] || nodes['top__0001'.replace(/(.*?)000(\d+)/, 'top__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="top_frames" position={[-0.079, 34.438, 8.528]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="top_frames__0" geometry={(nodes['top_frames__0'] || nodes['top_frames__0'.replace(/(.*?)000(\d+)/, 'top_frames__0.$2')])?.geometry} material={(nodes['top_frames__0'] || nodes['top_frames__0'.replace(/(.*?)000(\d+)/, 'top_frames__0.$2')])?.material} />
-                <mesh name="top_frames__0001" geometry={(nodes['top_frames__0001'] || nodes['top_frames__0001'.replace(/(.*?)000(\d+)/, 'top_frames__0001.$2')])?.geometry} material={(nodes['top_frames__0001'] || nodes['top_frames__0001'.replace(/(.*?)000(\d+)/, 'top_frames__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="top_panels" position={[-12.132, 34.274, 0.266]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="top_panels__0" geometry={(nodes['top_panels__0'] || nodes['top_panels__0'.replace(/(.*?)000(\d+)/, 'top_panels__0.$2')])?.geometry} material={(nodes['top_panels__0'] || nodes['top_panels__0'.replace(/(.*?)000(\d+)/, 'top_panels__0.$2')])?.material} />
-                <mesh name="top_panels__0001" geometry={(nodes['top_panels__0001'] || nodes['top_panels__0001'.replace(/(.*?)000(\d+)/, 'top_panels__0001.$2')])?.geometry} material={(nodes['top_panels__0001'] || nodes['top_panels__0001'.replace(/(.*?)000(\d+)/, 'top_panels__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="top_roof" position={[-0.079, 38.986, 8.528]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="Object_31" geometry={(nodes['Object_31'] || nodes['Object_31'.replace(/(.*?)000(\d+)/, 'Object_31.$2')])?.geometry} material={(nodes['Object_31'] || nodes['Object_31'.replace(/(.*?)000(\d+)/, 'Object_31.$2')])?.material} />
-                <mesh name="top_roof__0001" geometry={(nodes['top_roof__0001'] || nodes['top_roof__0001'.replace(/(.*?)000(\d+)/, 'top_roof__0001.$2')])?.geometry} material={(nodes['top_roof__0001'] || nodes['top_roof__0001'.replace(/(.*?)000(\d+)/, 'top_roof__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="top_slabs" position={[-0.079, 30.658, 8.528]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="top_slabs__0" geometry={(nodes['top_slabs__0'] || nodes['top_slabs__0'.replace(/(.*?)000(\d+)/, 'top_slabs__0.$2')])?.geometry} material={(nodes['top_slabs__0'] || nodes['top_slabs__0'.replace(/(.*?)000(\d+)/, 'top_slabs__0.$2')])?.material} />
-                <mesh name="top_slabs__0001" geometry={(nodes['top_slabs__0001'] || nodes['top_slabs__0001'.replace(/(.*?)000(\d+)/, 'top_slabs__0001.$2')])?.geometry} material={(nodes['top_slabs__0001'] || nodes['top_slabs__0001'.replace(/(.*?)000(\d+)/, 'top_slabs__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="top_vent" position={[31.568, 40.26, 8.445]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="top_vent__0" geometry={(nodes['top_vent__0'] || nodes['top_vent__0'.replace(/(.*?)000(\d+)/, 'top_vent__0.$2')])?.geometry} material={(nodes['top_vent__0'] || nodes['top_vent__0'.replace(/(.*?)000(\d+)/, 'top_vent__0.$2')])?.material} />
-              </group>
-              <group name="top_walls" position={[-0.079, 34.931, 8.528]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="top_walls__0" geometry={(nodes['top_walls__0'] || nodes['top_walls__0'.replace(/(.*?)000(\d+)/, 'top_walls__0.$2')])?.geometry} material={(nodes['top_walls__0'] || nodes['top_walls__0'.replace(/(.*?)000(\d+)/, 'top_walls__0.$2')])?.material} />
-                <mesh name="top_walls__0001" geometry={(nodes['top_walls__0001'] || nodes['top_walls__0001'.replace(/(.*?)000(\d+)/, 'top_walls__0001.$2')])?.geometry} material={(nodes['top_walls__0001'] || nodes['top_walls__0001'.replace(/(.*?)000(\d+)/, 'top_walls__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="top_windows" position={[-0.079, 35.534, 8.528]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="top_windows__0" geometry={(nodes['top_windows__0'] || nodes['top_windows__0'.replace(/(.*?)000(\d+)/, 'top_windows__0.$2')])?.geometry} material={(nodes['top_windows__0'] || nodes['top_windows__0'.replace(/(.*?)000(\d+)/, 'top_windows__0.$2')])?.material} />
-                <mesh name="top_windows__0001" geometry={(nodes['top_windows__0001'] || nodes['top_windows__0001'.replace(/(.*?)000(\d+)/, 'top_windows__0001.$2')])?.geometry} material={(nodes['top_windows__0001'] || nodes['top_windows__0001'.replace(/(.*?)000(\d+)/, 'top_windows__0001.$2')])?.material} position={[209.162, 0, 0]} />
-              </group>
-              <group name="vertical_concrete" position={[-34.187, 28.756, 15.614]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="vertical_concrete__0" geometry={(nodes['vertical_concrete__0'] || nodes['vertical_concrete__0'.replace(/(.*?)000(\d+)/, 'vertical_concrete__0.$2')])?.geometry} material={(nodes['vertical_concrete__0'] || nodes['vertical_concrete__0'.replace(/(.*?)000(\d+)/, 'vertical_concrete__0.$2')])?.material} />
-              </group>
-              <group name="vertical_concrete001" position={[174.975, 28.756, 15.614]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="vertical_concrete__0001" geometry={(nodes['vertical_concrete__0001'] || nodes['vertical_concrete__0001'.replace(/(.*?)000(\d+)/, 'vertical_concrete__0001.$2')])?.geometry} material={(nodes['vertical_concrete__0001'] || nodes['vertical_concrete__0001'.replace(/(.*?)000(\d+)/, 'vertical_concrete__0001.$2')])?.material} />
-              </group>
-              <group name="wood_doors" position={[-17.101, 14.598, -0.784]} rotation={[Math.PI / 2, 0, -1.524]}>
-                <mesh name="wood_doors__0" geometry={(nodes['wood_doors__0'] || nodes['wood_doors__0'.replace(/(.*?)000(\d+)/, 'wood_doors__0.$2')])?.geometry} material={(nodes['wood_doors__0'] || nodes['wood_doors__0'.replace(/(.*?)000(\d+)/, 'wood_doors__0.$2')])?.material} />
-                <mesh name="wood_doors__0001" geometry={(nodes['wood_doors__0001'] || nodes['wood_doors__0001'.replace(/(.*?)000(\d+)/, 'wood_doors__0001.$2')])?.geometry} material={(nodes['wood_doors__0001'] || nodes['wood_doors__0001'.replace(/(.*?)000(\d+)/, 'wood_doors__0001.$2')])?.material} position={[9.759, 208.934, -0.001]} />
-              </group>
-              <group name="wood_pant" position={[-16.348, 12.084, 0.888]} rotation={[0.225, 0, -1.573]}>
-                <mesh name="wood_pant__0" geometry={(nodes['wood_pant__0'] || nodes['wood_pant__0'.replace(/(.*?)000(\d+)/, 'wood_pant__0.$2')])?.geometry} material={(nodes['wood_pant__0'] || nodes['wood_pant__0'.replace(/(.*?)000(\d+)/, 'wood_pant__0.$2')])?.material} />
-                <mesh name="wood_pant__0001" geometry={(nodes['wood_pant__0001'] || nodes['wood_pant__0001'.replace(/(.*?)000(\d+)/, 'wood_pant__0001.$2')])?.geometry} material={(nodes['wood_pant__0001'] || nodes['wood_pant__0001'.replace(/(.*?)000(\d+)/, 'wood_pant__0001.$2')])?.material} position={[-0.494, 209.161, 0]} />
-              </group>
-              <group name="wooden_cabinet" position={[-16.296, 12.415, 0.181]} rotation={[0.149, 0, -1.574]}>
-                <mesh name="wooden_cabinet__0" geometry={(nodes['wooden_cabinet__0'] || nodes['wooden_cabinet__0'.replace(/(.*?)000(\d+)/, 'wooden_cabinet__0.$2')])?.geometry} material={(nodes['wooden_cabinet__0'] || nodes['wooden_cabinet__0'.replace(/(.*?)000(\d+)/, 'wooden_cabinet__0.$2')])?.material} />
-                <mesh name="wooden_cabinet__0001" geometry={(nodes['wooden_cabinet__0001'] || nodes['wooden_cabinet__0001'.replace(/(.*?)000(\d+)/, 'wooden_cabinet__0001.$2')])?.geometry} material={(nodes['wooden_cabinet__0001'] || nodes['wooden_cabinet__0001'.replace(/(.*?)000(\d+)/, 'wooden_cabinet__0001.$2')])?.material} position={[-0.619, 209.161, 0]} />
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="Sketchfab_model006" position={[249.466, -25.632, -37.895]} rotation={[-1.543, -0.059, -3.108]}>
-          <group name="DestroyObyektfbx" rotation={[Math.PI / 2, 0, 0]}>
-            <group name="RootNode006">
-              <group name="DestroyObyect" rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="DestroyObyect_����������������_001" geometry={(nodes['DestroyObyect_����������������_001'] || nodes['DestroyObyect_����������������_001'.replace(/(.*?)000(\d+)/, 'DestroyObyect_����������������_001.$2')])?.geometry} material={(nodes['DestroyObyect_����������������_001'] || nodes['DestroyObyect_����������������_001'.replace(/(.*?)000(\d+)/, 'DestroyObyect_����������������_001.$2')])?.material} position={[-202.419, -17.963, 13.491]} rotation={[0.035, -0.056, 0]} scale={0.656} />
-                <mesh name="DestroyObyect_����������������_002" geometry={(nodes['DestroyObyect_����������������_002'] || nodes['DestroyObyect_����������������_002'.replace(/(.*?)000(\d+)/, 'DestroyObyect_����������������_002.$2')])?.geometry} material={(nodes['DestroyObyect_����������������_002'] || nodes['DestroyObyect_����������������_002'.replace(/(.*?)000(\d+)/, 'DestroyObyect_����������������_002.$2')])?.material} position={[0.89, -73.072, 24.322]} rotation={[0.037, -0.063, -1.611]} scale={0.352} />
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="traffic_cone" position={[131.181, 16.866, 3.885]} rotation={[-Math.PI / 2, 0, 0]}>
-          <mesh name="traffic_cone_traffic_cone_0002" geometry={(nodes['traffic_cone_traffic_cone_0002'] || nodes['traffic_cone_traffic_cone_0002'.replace(/(.*?)000(\d+)/, 'traffic_cone_traffic_cone_0002.$2')])?.geometry} material={(nodes['traffic_cone_traffic_cone_0002'] || nodes['traffic_cone_traffic_cone_0002'.replace(/(.*?)000(\d+)/, 'traffic_cone_traffic_cone_0002.$2')])?.material} position={[416.47, 29.417, -13.39]} />
-        </group>
-        <group name="root" position={[-128.238, -4.453, -0.249]} rotation={[-Math.PI / 2, 0, 2.038]}>
-          <group name="GLTF_SceneRootNode" rotation={[Math.PI / 2, 0, 0]}>
-            <group name="Fence-Barricade_02_0" rotation={[Math.PI / 2, 0, 0]}>
-              <mesh name="baricade" geometry={(nodes['baricade'] || nodes['baricade'.replace(/(.*?)000(\d+)/, 'baricade.$2')])?.geometry} material={(nodes['baricade'] || nodes['baricade'.replace(/(.*?)000(\d+)/, 'baricade.$2')])?.material} position={[-23.105, 263.241, -4.441]} scale={0.911} />
-            </group>
-          </group>
-        </group>
-        <group name="building" position={[219.307, 1.792, 33.294]} rotation={[1.569, 0, -0.007]} scale={1.575}>
-          <group name="519572b95b17448f8e0866ef25733d10fbx001" rotation={[-Math.PI, 0, 0]}>
-            <group name="RootNode004">
-              <group name="base_cell001" rotation={[1.936, -0.668, 0.256]} scale={0.791}>
-                <mesh name="base_cell002_concrete_0002" geometry={(nodes['base_cell002_concrete_0002'] || nodes['base_cell002_concrete_0002'.replace(/(.*?)000(\d+)/, 'base_cell002_concrete_0002.$2')])?.geometry} material={(nodes['base_cell002_concrete_0002'] || nodes['base_cell002_concrete_0002'.replace(/(.*?)000(\d+)/, 'base_cell002_concrete_0002.$2')])?.material} position={[15.536, -28.674, -88.009]} />
-                <mesh name="base_cell002_concrete_0003" geometry={(nodes['base_cell002_concrete_0003'] || nodes['base_cell002_concrete_0003'.replace(/(.*?)000(\d+)/, 'base_cell002_concrete_0003.$2')])?.geometry} material={(nodes['base_cell002_concrete_0003'] || nodes['base_cell002_concrete_0003'.replace(/(.*?)000(\d+)/, 'base_cell002_concrete_0003.$2')])?.material} position={[129.286, -34.449, -107.328]} scale={0.88} />
-              </group>
-            </group>
-          </group>
-        </group>
         <group name="skate" position={[578.906, -0.411, 1.694]} rotation={[-1.405, -0.207, -0.873]} scale={0.444}>
           <group name="Skate_A1objcleanergles001" position={[-15.438, -3.78, -2.659]}>
             <group name="Object_2002">
-              <mesh name="Object_3" geometry={(nodes['Object_3'] || nodes['Object_3'.replace(/(.*?)000(\d+)/, 'Object_3.$2')])?.geometry} material={(nodes['Object_3'] || nodes['Object_3'.replace(/(.*?)000(\d+)/, 'Object_3.$2')])?.material} position={[2.945, 3.821, 1.531]} rotation={[0.05, 0.03, -0.127]} scale={0.837} />
+              <mesh name="Object_3" geometry={nodes.Object_3?.geometry} material={materials?.['material_0.001']} position={[2.945, 3.821, 1.531]} rotation={[0.05, 0.03, -0.127]} scale={0.837} />
             </group>
           </group>
         </group>
@@ -769,20 +232,24 @@ export function Model(props: React.ComponentPropsWithoutRef<'group'>) {
           <group name="GLTF_SceneRootNode003" position={[2.396, 3.786, -0.298]} rotation={[Math.PI / 2, 0, 0]} scale={0.356}>
             <group name="_1" position={[2.627, -0.648, -3.805]} scale={1.184}>
               <group name="mesh_0_0" position={[-0.951, -0.297, -0.291]} scale={0}>
-                <mesh name="Object_5004" geometry={(nodes['Object_5004'] || nodes['Object_5004'.replace(/(.*?)000(\d+)/, 'Object_5004.$2')])?.geometry} material={(nodes['Object_5004'] || nodes['Object_5004'.replace(/(.*?)000(\d+)/, 'Object_5004.$2')])?.material} position={[1471306.25, 624627, 2960357.75]} scale={0.5} />
-                <mesh name="Object_6" geometry={(nodes['Object_6'] || nodes['Object_6'.replace(/(.*?)000(\d+)/, 'Object_6.$2')])?.geometry} material={(nodes['Object_6'] || nodes['Object_6'.replace(/(.*?)000(\d+)/, 'Object_6.$2')])?.material} position={[1471306.25, 624627, 2960357.75]} scale={0.5} />
+                <mesh name="Object_5004" geometry={nodes.Object_5004?.geometry} material={materials.Black} position={[1471306.25, 624627, 2960357.75]} scale={0.5} />
+                <mesh name="Object_6" geometry={nodes.Object_6?.geometry} material={materials.Black} position={[1471306.25, 624627, 2960357.75]} scale={0.5} />
               </group>
             </group>
           </group>
         </group>
-        <group name="root007" position={[0, 6.051, 0]}>
-          <group name="GLTF_SceneRootNode007" position={[0, 6.048, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <group name="_1002" position={[0, 0, -6.045]} scale={3.331}>
-              <group name="mesh_0_0002" position={[-0.951, -0.297, -0.291]} scale={0}>
-                <mesh name="Object_5006" geometry={(nodes['Object_5006'] || nodes['Object_5006'.replace(/(.*?)000(\d+)/, 'Object_5006.$2')])?.geometry} material={(nodes['Object_5006'] || nodes['Object_5006'.replace(/(.*?)000(\d+)/, 'Object_5006.$2')])?.material} position={[-675467.563, 784952.25, 4511500]} rotation={[0.012, 0.864, -0.184]} scale={0.593} />
-                <mesh name="Object_6002" geometry={(nodes['Object_6002'] || nodes['Object_6002'.replace(/(.*?)000(\d+)/, 'Object_6002.$2')])?.geometry} material={(nodes['Object_6002'] || nodes['Object_6002'.replace(/(.*?)000(\d+)/, 'Object_6002.$2')])?.material} position={[-675467.563, 784952.25, 4511500]} rotation={[0.012, 0.864, -0.184]} scale={0.593} />
-              </group>
-            </group>
+        <group name="Blossom02_jabami_mesh" position={[0, 0, 931.028]} rotation={[-Math.PI / 2, 0, 0]}>
+          <mesh name="Blossom02_jabami_mesh_Jabami_blossom_mat_0" geometry={nodes.Blossom02_jabami_mesh_Jabami_blossom_mat_0?.geometry} material={materials.Jabami_blossom_mat} position={[3534.213, 0, 0]} scale={1.756} />
+          <mesh name="Blossom02_jabami_mesh_jabami_tronc_mat_0" geometry={nodes.Blossom02_jabami_mesh_jabami_tronc_mat_0?.geometry} material={materials.jabami_tronc_mat} position={[3534.213, 0, 0]} scale={1.756} />
+        </group>
+        <group name="Blossomtree00_jabami_mesh" rotation={[-Math.PI / 2, 0, 0]}>
+          <mesh name="Blossomtree00_jabami_mesh_Jabami_blossom_mat_0" geometry={nodes.Blossomtree00_jabami_mesh_Jabami_blossom_mat_0?.geometry} material={materials.Jabami_blossom_mat} position={[9336.617, 981.792, 0]} scale={2.109} />
+          <mesh name="Blossomtree00_jabami_mesh_jabami_tronc_mat_0" geometry={nodes.Blossomtree00_jabami_mesh_jabami_tronc_mat_0?.geometry} material={materials.jabami_tronc_mat} position={[9336.617, 981.792, 0]} scale={2.109} />
+        </group>
+        <group name="Sketchfab_model" position={[1181.063, 0, 0]} rotation={[-2.886, -0.527, -1.093]} scale={[1273.002, 1273.003, 1273.003]}>
+          <group name="81dc5cae76334b2d8ecd3a9e9f0789b7objcleanermaterialmergergles">
+            <mesh name="Object_2" geometry={nodes.Object_2?.geometry} material={materials?.['a-little-prince-bust']} position={[-0.014, -0.005, 0.084]} rotation={[-0.089, 0.418, -0.34]} scale={0.883} />
+            <mesh name="Object_2004" geometry={nodes.Object_2004?.geometry} material={materials?.['a-little-prince-bust']} position={[-0.329, -0.651, 0.424]} rotation={[-0.089, 0.418, -0.34]} scale={0.011} />
           </group>
         </group>
         <group name="Sketchfab_model017" position={[594.657, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={9.221}>
@@ -795,93 +262,45 @@ export function Model(props: React.ComponentPropsWithoutRef<'group'>) {
             </group>
           </group>
         </group>
-        <group name="LGPOST" position={[52.339, 0.885, -11.967]} rotation={[-Math.PI / 2, 0, 0.001]} scale={5.424}>
-          <group name="656f456211ad484d80aa4a0f34fd2a71fbx001" rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
-            <group name="RootNode012" position={[0.002, 0.001, 0]}>
-              <group name="Cables001" rotation={[-Math.PI / 2, 0, 0]} scale={100}>
-                <mesh name="Cables_1_0" geometry={(nodes['Cables_1_0'] || nodes['Cables_1_0'.replace(/(.*?)000(\d+)/, 'Cables_1_0.$2')])?.geometry} material={(nodes['Cables_1_0'] || nodes['Cables_1_0'.replace(/(.*?)000(\d+)/, 'Cables_1_0.$2')])?.material} />
-              </group>
-              <group name="Left001" rotation={[-Math.PI / 2, 0, 0]} scale={100}>
-                <mesh name="Left_2_0001" geometry={(nodes['Left_2_0001'] || nodes['Left_2_0001'.replace(/(.*?)000(\d+)/, 'Left_2_0001.$2')])?.geometry} material={(nodes['Left_2_0001'] || nodes['Left_2_0001'.replace(/(.*?)000(\d+)/, 'Left_2_0001.$2')])?.material} />
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="LGPOST001" position={[395.27, -0.159, 9.975]} rotation={[-Math.PI / 2, 0, 0.001]} scale={5.424}>
-          <group name="656f456211ad484d80aa4a0f34fd2a71fbx002" rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
-            <group name="RootNode013" position={[0.001, 0, 0]}>
-              <group name="Cables002" position={[-0.002, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={100}>
-                <mesh name="Cables_1_0001" geometry={(nodes['Cables_1_0001'] || nodes['Cables_1_0001'.replace(/(.*?)000(\d+)/, 'Cables_1_0001.$2')])?.geometry} material={(nodes['Cables_1_0001'] || nodes['Cables_1_0001'.replace(/(.*?)000(\d+)/, 'Cables_1_0001.$2')])?.material} position={[0.002, 1.107, 0]} />
-              </group>
-              <group name="Left002" position={[-0.002, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={100}>
-                <mesh name="Left_2_0002" geometry={(nodes['Left_2_0002'] || nodes['Left_2_0002'.replace(/(.*?)000(\d+)/, 'Left_2_0002.$2')])?.geometry} material={(nodes['Left_2_0002'] || nodes['Left_2_0002'.replace(/(.*?)000(\d+)/, 'Left_2_0002.$2')])?.material} position={[0.002, 1.107, 0]} />
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="LGPOST002" position={[221.621, 0.885, -11.967]} rotation={[-Math.PI / 2, 0, 0.001]} scale={5.424}>
-          <group name="656f456211ad484d80aa4a0f34fd2a71fbx003" rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
-            <group name="RootNode014" position={[0, 0.001, 0]}>
-              <group name="Cables003" rotation={[-Math.PI / 2, 0, 0]} scale={100}>
-                <mesh name="Cables_1_0002" geometry={(nodes['Cables_1_0002'] || nodes['Cables_1_0002'.replace(/(.*?)000(\d+)/, 'Cables_1_0002.$2')])?.geometry} material={(nodes['Cables_1_0002'] || nodes['Cables_1_0002'.replace(/(.*?)000(\d+)/, 'Cables_1_0002.$2')])?.material} />
-              </group>
-              <group name="Left003" rotation={[-Math.PI / 2, 0, 0]} scale={100}>
-                <mesh name="Left_2_0003" geometry={(nodes['Left_2_0003'] || nodes['Left_2_0003'.replace(/(.*?)000(\d+)/, 'Left_2_0003.$2')])?.geometry} material={(nodes['Left_2_0003'] || nodes['Left_2_0003'.replace(/(.*?)000(\d+)/, 'Left_2_0003.$2')])?.material} />
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="LGPOST003" position={[459.891, 0.885, -28.055]} rotation={[-Math.PI / 2, 0, 0.001]} scale={5.424}>
-          <group name="656f456211ad484d80aa4a0f34fd2a71fbx004" rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
-            <group name="RootNode016" position={[0, 0.001, 0]}>
-              <group name="Cables004" position={[0.002, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={100}>
-                <mesh name="Cables_1_0003" geometry={(nodes['Cables_1_0003'] || nodes['Cables_1_0003'.replace(/(.*?)000(\d+)/, 'Cables_1_0003.$2')])?.geometry} material={(nodes['Cables_1_0003'] || nodes['Cables_1_0003'.replace(/(.*?)000(\d+)/, 'Cables_1_0003.$2')])?.material} />
-              </group>
-              <group name="Left004" position={[0.002, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={100}>
-                <mesh name="Left_2_0004" geometry={(nodes['Left_2_0004'] || nodes['Left_2_0004'.replace(/(.*?)000(\d+)/, 'Left_2_0004.$2')])?.geometry} material={(nodes['Left_2_0004'] || nodes['Left_2_0004'.replace(/(.*?)000(\d+)/, 'Left_2_0004.$2')])?.material} />
-              </group>
-            </group>
-          </group>
-        </group>
         <group name="simon001" position={[533.003, 3.953, -5.324]} rotation={[Math.PI / 2, 0.132, 2.015]} scale={9.368}>
           <primitive object={nodes.mixamorigHips} />
-          <skinnedMesh name="bodypart" geometry={(nodes['bodypart'] || nodes['bodypart'.replace(/(.*?)000(\d+)/, 'bodypart.$2')])?.geometry} material={(nodes['bodypart'] || nodes['bodypart'.replace(/(.*?)000(\d+)/, 'bodypart.$2')])?.material} skeleton={nodes.bodypart.skeleton} />
-          <skinnedMesh name="pant" geometry={(nodes['pant'] || nodes['pant'.replace(/(.*?)000(\d+)/, 'pant.$2')])?.geometry} material={(nodes['pant'] || nodes['pant'.replace(/(.*?)000(\d+)/, 'pant.$2')])?.material} skeleton={nodes.pant.skeleton} />
-          <skinnedMesh name="sneaker" geometry={(nodes['sneaker'] || nodes['sneaker'.replace(/(.*?)000(\d+)/, 'sneaker.$2')])?.geometry} material={(nodes['sneaker'] || nodes['sneaker'.replace(/(.*?)000(\d+)/, 'sneaker.$2')])?.material} skeleton={nodes.sneaker.skeleton} />
-          <skinnedMesh name="tshirt" geometry={(nodes['tshirt'] || nodes['tshirt'.replace(/(.*?)000(\d+)/, 'tshirt.$2')])?.geometry} material={(nodes['tshirt'] || nodes['tshirt'.replace(/(.*?)000(\d+)/, 'tshirt.$2')])?.material} skeleton={nodes.tshirt.skeleton} />
+          <skinnedMesh name="bodypart" geometry={nodes.bodypart?.geometry} material={materials?.['Material.007']} skeleton={nodes.bodypart.skeleton} />
+          <skinnedMesh name="pant" geometry={nodes.pant?.geometry} material={materials?.['01_-_Default']} skeleton={nodes.pant.skeleton} />
+          <skinnedMesh name="sneaker" geometry={nodes.sneaker?.geometry} material={materials?.['Material.003']} skeleton={nodes.sneaker.skeleton} />
+          <skinnedMesh name="tshirt" geometry={nodes.tshirt?.geometry} material={materials.Material} skeleton={nodes.tshirt.skeleton} />
         </group>
         <group name="Sketchfab_model005" position={[561.93, 0, -16.194]} rotation={[-Math.PI / 2, 0, -1.551]} scale={0.863}>
           <group name="1e49b02c43e8441796b2de9f598e67abfbx" position={[1.765, 0, 0]} rotation={[Math.PI / 2, 0, 0]} scale={0.65}>
             <group name="RootNode005" position={[2.713, 0, 0]} scale={0.65}>
               <group name="shouyintai" position={[4.172, 0, -0.001]} scale={0.65}>
                 <group name="dianhuaPOS" position={[6.415, 0, 0]} scale={0.65}>
-                  <mesh name="dianhuaPOS_lambert1_0" geometry={(nodes['dianhuaPOS_lambert1_0'] || nodes['dianhuaPOS_lambert1_0'.replace(/(.*?)000(\d+)/, 'dianhuaPOS_lambert1_0.$2')])?.geometry} material={(nodes['dianhuaPOS_lambert1_0'] || nodes['dianhuaPOS_lambert1_0'.replace(/(.*?)000(\d+)/, 'dianhuaPOS_lambert1_0.$2')])?.material} position={[-7.685, 73.312, -140.979]} scale={0.65} />
+                  <mesh name="dianhuaPOS_lambert1_0" geometry={nodes.dianhuaPOS_lambert1_0?.geometry} material={materials?.['lambert1.001']} position={[-7.685, 73.312, -140.979]} scale={0.65} />
                 </group>
                 <group name="diannao_jianpan" position={[6.415, 0, 0]} scale={0.65}>
-                  <mesh name="diannao_jianpan_lambert1_0" geometry={(nodes['diannao_jianpan_lambert1_0'] || nodes['diannao_jianpan_lambert1_0'.replace(/(.*?)000(\d+)/, 'diannao_jianpan_lambert1_0.$2')])?.geometry} material={(nodes['diannao_jianpan_lambert1_0'] || nodes['diannao_jianpan_lambert1_0'.replace(/(.*?)000(\d+)/, 'diannao_jianpan_lambert1_0.$2')])?.material} position={[-7.257, 72.581, -145.263]} scale={0.65} />
+                  <mesh name="diannao_jianpan_lambert1_0" geometry={nodes.diannao_jianpan_lambert1_0?.geometry} material={materials?.['lambert1.001']} position={[-7.257, 72.581, -145.263]} scale={0.65} />
                 </group>
                 <group name="diannao_pingmu" position={[6.415, 0, 0]} scale={0.65}>
-                  <mesh name="diannao_pingmu_lambert1_0" geometry={(nodes['diannao_pingmu_lambert1_0'] || nodes['diannao_pingmu_lambert1_0'.replace(/(.*?)000(\d+)/, 'diannao_pingmu_lambert1_0.$2')])?.geometry} material={(nodes['diannao_pingmu_lambert1_0'] || nodes['diannao_pingmu_lambert1_0'.replace(/(.*?)000(\d+)/, 'diannao_pingmu_lambert1_0.$2')])?.material} position={[-10.113, 85.588, -134.223]} scale={0.65} />
+                  <mesh name="diannao_pingmu_lambert1_0" geometry={nodes.diannao_pingmu_lambert1_0?.geometry} material={materials?.['lambert1.001']} position={[-10.113, 85.588, -134.223]} scale={0.65} />
                 </group>
                 <group name="diannao_xian" position={[6.415, 0, 0]} scale={0.65}>
-                  <mesh name="diannao_xian_lambert1_0" geometry={(nodes['diannao_xian_lambert1_0'] || nodes['diannao_xian_lambert1_0'.replace(/(.*?)000(\d+)/, 'diannao_xian_lambert1_0.$2')])?.geometry} material={(nodes['diannao_xian_lambert1_0'] || nodes['diannao_xian_lambert1_0'.replace(/(.*?)000(\d+)/, 'diannao_xian_lambert1_0.$2')])?.material} position={[-17.1, 76.98, -131.325]} scale={0.65} />
+                  <mesh name="diannao_xian_lambert1_0" geometry={nodes.diannao_xian_lambert1_0?.geometry} material={materials?.['lambert1.001']} position={[-17.1, 76.98, -131.325]} scale={0.65} />
                 </group>
                 <group name="erweima" position={[6.415, 0, 0]} scale={0.65}>
-                  <mesh name="erweima_lambert1_0" geometry={(nodes['erweima_lambert1_0'] || nodes['erweima_lambert1_0'.replace(/(.*?)000(\d+)/, 'erweima_lambert1_0.$2')])?.geometry} material={(nodes['erweima_lambert1_0'] || nodes['erweima_lambert1_0'.replace(/(.*?)000(\d+)/, 'erweima_lambert1_0.$2')])?.material} position={[17.604, 74.388, -120.956]} scale={0.65} />
+                  <mesh name="erweima_lambert1_0" geometry={nodes.erweima_lambert1_0?.geometry} material={materials?.['lambert1.001']} position={[17.604, 74.388, -120.956]} scale={0.65} />
                 </group>
                 <group name="zhuozi_dalishi" position={[6.415, 0, 0]} scale={0.65}>
-                  <mesh name="zhuozi_dalishi_lambert1_0" geometry={(nodes['zhuozi_dalishi_lambert1_0'] || nodes['zhuozi_dalishi_lambert1_0'.replace(/(.*?)000(\d+)/, 'zhuozi_dalishi_lambert1_0.$2')])?.geometry} material={(nodes['zhuozi_dalishi_lambert1_0'] || nodes['zhuozi_dalishi_lambert1_0'.replace(/(.*?)000(\d+)/, 'zhuozi_dalishi_lambert1_0.$2')])?.material} position={[-18.775, 62.265, -133.333]} scale={0.65} />
+                  <mesh name="zhuozi_dalishi_lambert1_0" geometry={nodes.zhuozi_dalishi_lambert1_0?.geometry} material={materials?.['lambert1.001']} position={[-18.775, 62.265, -133.333]} scale={0.65} />
                 </group>
                 <group name="zhuozi_lashoujinshu" position={[6.415, 0, 0]} scale={0.65}>
-                  <mesh name="zhuozi_lashoujinshu_lambert1_0" geometry={(nodes['zhuozi_lashoujinshu_lambert1_0'] || nodes['zhuozi_lashoujinshu_lambert1_0'.replace(/(.*?)000(\d+)/, 'zhuozi_lashoujinshu_lambert1_0.$2')])?.geometry} material={(nodes['zhuozi_lashoujinshu_lambert1_0'] || nodes['zhuozi_lashoujinshu_lambert1_0'.replace(/(.*?)000(\d+)/, 'zhuozi_lashoujinshu_lambert1_0.$2')])?.material} position={[-15.584, 48.948, -160.3]} scale={0.65} />
+                  <mesh name="zhuozi_lashoujinshu_lambert1_0" geometry={nodes.zhuozi_lashoujinshu_lambert1_0?.geometry} material={materials?.['lambert1.001']} position={[-15.584, 48.948, -160.3]} scale={0.65} />
                 </group>
                 <group name="zhuozi_mutou" position={[6.415, 0, 0]} scale={0.65}>
-                  <mesh name="zhuozi_mutou_lambert1_0" geometry={(nodes['zhuozi_mutou_lambert1_0'] || nodes['zhuozi_mutou_lambert1_0'.replace(/(.*?)000(\d+)/, 'zhuozi_mutou_lambert1_0.$2')])?.geometry} material={(nodes['zhuozi_mutou_lambert1_0'] || nodes['zhuozi_mutou_lambert1_0'.replace(/(.*?)000(\d+)/, 'zhuozi_mutou_lambert1_0.$2')])?.material} position={[-7.67, 38.137, -148.125]} scale={0.65} />
+                  <mesh name="zhuozi_mutou_lambert1_0" geometry={nodes.zhuozi_mutou_lambert1_0?.geometry} material={materials?.['lambert1.001']} position={[-7.67, 38.137, -148.125]} scale={0.65} />
                 </group>
               </group>
               <group name="yifu09" position={[4.172, 0, -0.001]} scale={0.65}>
                 <group name="yifu09_duanku02" position={[6.415, 0, 0]} scale={0.65}>
-                  <mesh name="yifu09_duanku02_lambert1_0" geometry={(nodes['yifu09_duanku02_lambert1_0'] || nodes['yifu09_duanku02_lambert1_0'.replace(/(.*?)000(\d+)/, 'yifu09_duanku02_lambert1_0.$2')])?.geometry} material={(nodes['yifu09_duanku02_lambert1_0'] || nodes['yifu09_duanku02_lambert1_0'.replace(/(.*?)000(\d+)/, 'yifu09_duanku02_lambert1_0.$2')])?.material} position={[58.99, 8.307, 16.432]} scale={0.65} />
+                  <mesh name="yifu09_duanku02_lambert1_0" geometry={nodes.yifu09_duanku02_lambert1_0?.geometry} material={materials?.['lambert1.001']} position={[58.99, 8.307, 16.432]} scale={0.65} />
                 </group>
               </group>
             </group>
@@ -889,109 +308,23 @@ export function Model(props: React.ComponentPropsWithoutRef<'group'>) {
         </group>
         <group name="PADRAO_3" position={[150688.469, -2114.518, 0]}>
           <group name="predio" position={[-0.016, 3624.169, 1011.642]} scale={[600, 700, 800]}>
-            <mesh name="predio_Glittery_Glow_17_0" geometry={(nodes['predio_Glittery_Glow_17_0'] || nodes['predio_Glittery_Glow_17_0'.replace(/(.*?)000(\d+)/, 'predio_Glittery_Glow_17_0.$2')])?.geometry} material={(nodes['predio_Glittery_Glow_17_0'] || nodes['predio_Glittery_Glow_17_0'.replace(/(.*?)000(\d+)/, 'predio_Glittery_Glow_17_0.$2')])?.material} />
-          </group>
-        </group>
-        <group name="Sketchfab_model012" position={[51.072, 0, -36.615]} rotation={[-Math.PI / 2, 0, 0]} scale={0.214}>
-          <group name="root004" position={[0, 2.59, 0]} scale={1.487}>
-            <group name="GLTF_SceneRootNode004" position={[0, 1.742, 0]} rotation={[Math.PI / 2, 0, 0]} scale={1.487}>
-              <group name="M��lleimer_Image_Texture_2" position={[0, 0, -1.171]} scale={[1.487, 1.576, 1.487]}>
-                <mesh name="Object_4" geometry={(nodes['Object_4'] || nodes['Object_4'.replace(/(.*?)000(\d+)/, 'Object_4.$2')])?.geometry} material={(nodes['Object_4'] || nodes['Object_4'.replace(/(.*?)000(\d+)/, 'Object_4.$2')])?.material} position={[-0.002, 1.55, -0.761]} scale={1.487} />
-                <mesh name="Object_5" geometry={(nodes['Object_5'] || nodes['Object_5'.replace(/(.*?)000(\d+)/, 'Object_5.$2')])?.geometry} material={(nodes['Object_5'] || nodes['Object_5'.replace(/(.*?)000(\d+)/, 'Object_5.$2')])?.material} position={[0.049, 2.456, -0.82]} scale={1.487} />
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="LGPOST005" position={[-0.467, -0.159, 3.973]} rotation={[-Math.PI / 2, 0, 0.001]} scale={5.424}>
-          <group name="656f456211ad484d80aa4a0f34fd2a71fbx006" rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
-            <group name="RootNode015" position={[221.128, 0, 0.309]}>
-              <group name="Cables006" position={[221.125, 0, 0.309]} rotation={[-Math.PI / 2, 0, 0]} scale={100}>
-                <mesh name="Cables_1_0005" geometry={(nodes['Cables_1_0005'] || nodes['Cables_1_0005'.replace(/(.*?)000(\d+)/, 'Cables_1_0005.$2')])?.geometry} material={(nodes['Cables_1_0005'] || nodes['Cables_1_0005'.replace(/(.*?)000(\d+)/, 'Cables_1_0005.$2')])?.material} />
-              </group>
-              <group name="Left006" position={[221.125, 0, 0.309]} rotation={[-Math.PI / 2, 0, 0]} scale={100}>
-                <mesh name="Left_2_0006" geometry={(nodes['Left_2_0006'] || nodes['Left_2_0006'.replace(/(.*?)000(\d+)/, 'Left_2_0006.$2')])?.geometry} material={(nodes['Left_2_0006'] || nodes['Left_2_0006'.replace(/(.*?)000(\d+)/, 'Left_2_0006.$2')])?.material} />
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="Sketchfab_model013" position={[0, 0, -1.608]} rotation={[-Math.PI / 2, 0, 0]} scale={0.657}>
-          <group name="oldcarwreckFBX" position={[0, 0.294, 0]} rotation={[Math.PI / 2, 0, 0]} scale={0.657}>
-            <group name="RootNode017" position={[0, 0, -2.862]} scale={0.657}>
-              <group name="Object005" position={[-0.032, 0, -5.082]} rotation={[-Math.PI / 2, 0, 0]} scale={0.727}>
-                <mesh name="Object005_Material_#107_0" geometry={(nodes['Object005_Material_#107_0'] || nodes['Object005_Material_#107_0'.replace(/(.*?)000(\d+)/, 'Object005_Material_#107_0.$2')])?.geometry} material={(nodes['Object005_Material_#107_0'] || nodes['Object005_Material_#107_0'.replace(/(.*?)000(\d+)/, 'Object005_Material_#107_0.$2')])?.material} position={[732.768, 134.527, 20.822]} rotation={[0, 0, -0.336]} scale={0.727} />
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="Sketchfab_model018" position={[9.085, 0, -32.076]} rotation={[-Math.PI / 2, 0, -2.294]} scale={0.503}>
-          <group name="80bd10b7584e4c63a61d78f7769ada68fbx" position={[0.072, 1.183, 0]} rotation={[Math.PI / 2, 0, 0]} scale={0.503}>
-            <group name="RootNode020" position={[3.373, 0, -0.784]} rotation={[0, -0.782, 0]} scale={0.503}>
-              <group name="TrafficLight" position={[19.763, 237.234, 0.038]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="TrafficLight_TrafficLight001_0" geometry={(nodes['TrafficLight_TrafficLight001_0'] || nodes['TrafficLight_TrafficLight001_0'.replace(/(.*?)000(\d+)/, 'TrafficLight_TrafficLight001_0.$2')])?.geometry} material={(nodes['TrafficLight_TrafficLight001_0'] || nodes['TrafficLight_TrafficLight001_0'.replace(/(.*?)000(\d+)/, 'TrafficLight_TrafficLight001_0.$2')])?.material} position={[-0.591, 53.585, 10.764]} />
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="Sketchfab_model020" position={[473.012, 0, 12.787]} rotation={[-Math.PI / 2, 0, -2.544]} scale={0.503}>
-          <group name="80bd10b7584e4c63a61d78f7769ada68fbx001" position={[0.072, 1.183, 0]} rotation={[Math.PI / 2, 0, 0]} scale={0.503}>
-            <group name="RootNode022" position={[3.373, 0, -0.784]} rotation={[0, -0.782, 0]} scale={0.503}>
-              <group name="TrafficLight001" position={[19.763, 237.233, 0.038]} rotation={[-Math.PI / 2, 0, 0]}>
-                <mesh name="TrafficLight_TrafficLight001_0001" geometry={(nodes['TrafficLight_TrafficLight001_0001'] || nodes['TrafficLight_TrafficLight001_0001'.replace(/(.*?)000(\d+)/, 'TrafficLight_TrafficLight001_0001.$2')])?.geometry} material={(nodes['TrafficLight_TrafficLight001_0001'] || nodes['TrafficLight_TrafficLight001_0001'.replace(/(.*?)000(\d+)/, 'TrafficLight_TrafficLight001_0001.$2')])?.material} position={[-4.119, -0.291, 10.764]} />
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="Sketchfab_model021" position={[-13.897, 0, -3.114]} rotation={[-Math.PI / 2, 0, 0]} scale={0.212}>
-          <group name="cfd94a6b1e3f4303a7fbb8ef5578c371fbx" position={[0, 14.684, 0]} rotation={[Math.PI / 2, 0, 0]} scale={0.552}>
-            <group name="RootNode023" position={[0, 0, -26.586]} scale={0.552}>
-              <group name="trafficcone_v2" position={[0.006, 3.243, -45.107]} scale={[51.541, 5.939, 49.7]}>
-                <mesh name="trafficcone_v2_trafficconev2_blinn_0" geometry={(nodes['trafficcone_v2_trafficconev2_blinn_0'] || nodes['trafficcone_v2_trafficconev2_blinn_0'.replace(/(.*?)000(\d+)/, 'trafficcone_v2_trafficconev2_blinn_0.$2')])?.geometry} material={(nodes['trafficcone_v2_trafficconev2_blinn_0'] || nodes['trafficcone_v2_trafficconev2_blinn_0'.replace(/(.*?)000(\d+)/, 'trafficcone_v2_trafficconev2_blinn_0.$2')])?.material} position={[0, 0, -15.73]} />
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="Sketchfab_model029">
-          <group name="a860818e00a64764bb144567d257e301fbx">
-            <group name="RootNode024">
-              <group name="Portal_Grp">
-                <group name="BlueRing_3">
-                  <mesh name="BlueRing_3_Portal_0" geometry={(nodes['BlueRing_3_Portal_0'] || nodes['BlueRing_3_Portal_0'.replace(/(.*?)000(\d+)/, 'BlueRing_3_Portal_0.$2')])?.geometry} material={(nodes['BlueRing_3_Portal_0'] || nodes['BlueRing_3_Portal_0'.replace(/(.*?)000(\d+)/, 'BlueRing_3_Portal_0.$2')])?.material} position={[534.463, 538.773, -56.729]} rotation={[-2.129, 0.606, -0.326]} />
-                </group>
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="802c32bf636b4bc2aab91dfc614e8772fbx" position={[0, -33.942, 0]} rotation={[Math.PI / 2, 0, 0]} scale={0.26}>
-          <group name="RootNode025" position={[0, 0, -459.842]} scale={0.26}>
-            <group name="Ring" position={[0, 503.412, 144.034]} rotation={[-Math.PI / 2, -1.158, 0]} scale={100}>
-              <mesh name="Ring__0" geometry={(nodes['Ring__0'] || nodes['Ring__0'.replace(/(.*?)000(\d+)/, 'Ring__0.$2')])?.geometry} material={(nodes['Ring__0'] || nodes['Ring__0'.replace(/(.*?)000(\d+)/, 'Ring__0.$2')])?.material} position={[496.26, -39.617, -338.229]} rotation={[-2.565, 0.335, 0.19]} scale={0.944} />
-            </group>
+            <mesh name="predio_Glittery_Glow_17_0" geometry={nodes.predio_Glittery_Glow_17_0?.geometry} material={materials.Glittery_Glow_44} />
           </group>
         </group>
         <group name="ball" position={[515.036, 3.799, 4.183]} rotation={[2.802, -0.211, 0.849]} scale={1.276}>
           <group name="af7cf1d13a7141dea17e13fbd7707a38fbx" rotation={[Math.PI / 2, 0, 0]} scale={0.011}>
             <group name="RootNode027" position={[0.002, 0, -0.001]} scale={1.079}>
               <group name="Sphere" position={[-0.005, -0.003, 0.003]} rotation={[-Math.PI / 2, 0, 0]} scale={107.933}>
-                <mesh name="Sphere_Material_0" geometry={(nodes['Sphere_Material_0'] || nodes['Sphere_Material_0'.replace(/(.*?)000(\d+)/, 'Sphere_Material_0.$2')])?.geometry} material={(nodes['Sphere_Material_0'] || nodes['Sphere_Material_0'.replace(/(.*?)000(\d+)/, 'Sphere_Material_0.$2')])?.material} scale={1.079} />
+                <mesh name="Sphere_Material_0" geometry={nodes.Sphere_Material_0?.geometry} material={materials?.['Material.005']} scale={1.079} />
               </group>
               <group name="X001" position={[-0.005, -0.003, 0.003]} rotation={[-Math.PI / 2, 0, 0]} scale={107.933}>
-                <mesh name="X_Line_0001" geometry={(nodes['X_Line_0001'] || nodes['X_Line_0001'.replace(/(.*?)000(\d+)/, 'X_Line_0001.$2')])?.geometry} material={(nodes['X_Line_0001'] || nodes['X_Line_0001'.replace(/(.*?)000(\d+)/, 'X_Line_0001.$2')])?.material} scale={1.079} />
+                <mesh name="X_Line_0001" geometry={nodes.X_Line_0001?.geometry} material={materials?.['Line.001']} scale={1.079} />
               </group>
               <group name="Y001" position={[-0.005, -0.003, 0.003]} rotation={[-Math.PI / 2, 0, 0]} scale={107.933}>
-                <mesh name="Y_Line_0001" geometry={(nodes['Y_Line_0001'] || nodes['Y_Line_0001'.replace(/(.*?)000(\d+)/, 'Y_Line_0001.$2')])?.geometry} material={(nodes['Y_Line_0001'] || nodes['Y_Line_0001'.replace(/(.*?)000(\d+)/, 'Y_Line_0001.$2')])?.material} scale={1.079} />
+                <mesh name="Y_Line_0001" geometry={nodes.Y_Line_0001?.geometry} material={materials?.['Line.001']} scale={1.079} />
               </group>
               <group name="Z001" position={[-0.005, -0.003, 0.003]} rotation={[-Math.PI / 2, 0, 0]} scale={107.933}>
-                <mesh name="Z_Line_0001" geometry={(nodes['Z_Line_0001'] || nodes['Z_Line_0001'.replace(/(.*?)000(\d+)/, 'Z_Line_0001.$2')])?.geometry} material={(nodes['Z_Line_0001'] || nodes['Z_Line_0001'.replace(/(.*?)000(\d+)/, 'Z_Line_0001.$2')])?.material} scale={1.079} />
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="root006" position={[1.884, 0, 0]} rotation={[0, 1.05, 0]} scale={0.515}>
-          <group name="GLTF_SceneRootNode006" position={[1.826, 0, 3.181]} rotation={[Math.PI / 2, 0, -1.049]} scale={0.515}>
-            <group name="_1001" position={[-3.576, 6.133, 0]} rotation={[0, 0, -1.049]} scale={1.715}>
-              <group name="mesh_0_0001" position={[-0.951, -0.297, -0.291]} scale={0}>
-                <mesh name="Object_5005" geometry={(nodes['Object_5005'] || nodes['Object_5005'.replace(/(.*?)000(\d+)/, 'Object_5005.$2')])?.geometry} material={(nodes['Object_5005'] || nodes['Object_5005'.replace(/(.*?)000(\d+)/, 'Object_5005.$2')])?.material} position={[1539157.375, 462066.063, 3085761.5]} scale={0.45} />
-                <mesh name="Object_6001" geometry={(nodes['Object_6001'] || nodes['Object_6001'.replace(/(.*?)000(\d+)/, 'Object_6001.$2')])?.geometry} material={(nodes['Object_6001'] || nodes['Object_6001'.replace(/(.*?)000(\d+)/, 'Object_6001.$2')])?.material} position={[1539157.375, 462066.063, 3085761.5]} scale={0.45} />
+                <mesh name="Z_Line_0001" geometry={nodes.Z_Line_0001?.geometry} material={materials?.['Line.001']} scale={1.079} />
               </group>
             </group>
           </group>
@@ -1000,1340 +333,121 @@ export function Model(props: React.ComponentPropsWithoutRef<'group'>) {
           <group name="1383a92987264da288bbada66fc522cefbx" rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
             <group name="RootNode029">
               <group name="Cube001" position={[9.096, 35.343, 37.174]} rotation={[-Math.PI / 2, 0, 0]} scale={[76.407, 21.881, 6.56]}>
-                <mesh name="Cube__0" geometry={(nodes['Cube__0'] || nodes['Cube__0'.replace(/(.*?)000(\d+)/, 'Cube__0.$2')])?.geometry} material={(nodes['Cube__0'] || nodes['Cube__0'.replace(/(.*?)000(\d+)/, 'Cube__0.$2')])?.material} />
+                <mesh name="Cube__0" geometry={nodes.Cube__0?.geometry} material={nodes.Cube__0?.material} />
               </group>
               <group name="Cube002" position={[9.096, 17.807, 33.685]} rotation={[-Math.PI / 2, 0, 0]} scale={[76.419, 28.798, 13.709]}>
-                <mesh name="Cube001__0" geometry={(nodes['Cube001__0'] || nodes['Cube001__0'.replace(/(.*?)000(\d+)/, 'Cube001__0.$2')])?.geometry} material={(nodes['Cube001__0'] || nodes['Cube001__0'.replace(/(.*?)000(\d+)/, 'Cube001__0.$2')])?.material} />
+                <mesh name="Cube001__0" geometry={nodes.Cube001__0?.geometry} material={nodes.Cube001__0?.material} />
               </group>
               <group name="Plane001" position={[36.909, 60.792, 17.49]} rotation={[0, 0, -Math.PI / 2]} scale={36.253}>
-                <mesh name="Plane001__0" geometry={(nodes['Plane001__0'] || nodes['Plane001__0'.replace(/(.*?)000(\d+)/, 'Plane001__0.$2')])?.geometry} material={(nodes['Plane001__0'] || nodes['Plane001__0'.replace(/(.*?)000(\d+)/, 'Plane001__0.$2')])?.material} />
-                <mesh name="Plane001__0001" geometry={(nodes['Plane001__0001'] || nodes['Plane001__0001'.replace(/(.*?)000(\d+)/, 'Plane001__0001.$2')])?.geometry} material={(nodes['Plane001__0001'] || nodes['Plane001__0001'.replace(/(.*?)000(\d+)/, 'Plane001__0001.$2')])?.material} />
-                <mesh name="Plane001__0002" geometry={(nodes['Plane001__0002'] || nodes['Plane001__0002'.replace(/(.*?)000(\d+)/, 'Plane001__0002.$2')])?.geometry} material={(nodes['Plane001__0002'] || nodes['Plane001__0002'.replace(/(.*?)000(\d+)/, 'Plane001__0002.$2')])?.material} />
-                <mesh name="Plane001__0003" geometry={(nodes['Plane001__0003'] || nodes['Plane001__0003'.replace(/(.*?)000(\d+)/, 'Plane001__0003.$2')])?.geometry} material={(nodes['Plane001__0003'] || nodes['Plane001__0003'.replace(/(.*?)000(\d+)/, 'Plane001__0003.$2')])?.material} />
-                <mesh name="Plane001__0004" geometry={(nodes['Plane001__0004'] || nodes['Plane001__0004'.replace(/(.*?)000(\d+)/, 'Plane001__0004.$2')])?.geometry} material={(nodes['Plane001__0004'] || nodes['Plane001__0004'.replace(/(.*?)000(\d+)/, 'Plane001__0004.$2')])?.material} />
-                <mesh name="Plane001__0005" geometry={(nodes['Plane001__0005'] || nodes['Plane001__0005'.replace(/(.*?)000(\d+)/, 'Plane001__0005.$2')])?.geometry} material={(nodes['Plane001__0005'] || nodes['Plane001__0005'.replace(/(.*?)000(\d+)/, 'Plane001__0005.$2')])?.material} />
-                <mesh name="Plane001__0006" geometry={(nodes['Plane001__0006'] || nodes['Plane001__0006'.replace(/(.*?)000(\d+)/, 'Plane001__0006.$2')])?.geometry} material={(nodes['Plane001__0006'] || nodes['Plane001__0006'.replace(/(.*?)000(\d+)/, 'Plane001__0006.$2')])?.material} />
-                <mesh name="Plane001__0007" geometry={(nodes['Plane001__0007'] || nodes['Plane001__0007'.replace(/(.*?)000(\d+)/, 'Plane001__0007.$2')])?.geometry} material={(nodes['Plane001__0007'] || nodes['Plane001__0007'.replace(/(.*?)000(\d+)/, 'Plane001__0007.$2')])?.material} />
-                <mesh name="Plane001__0008" geometry={(nodes['Plane001__0008'] || nodes['Plane001__0008'.replace(/(.*?)000(\d+)/, 'Plane001__0008.$2')])?.geometry} material={(nodes['Plane001__0008'] || nodes['Plane001__0008'.replace(/(.*?)000(\d+)/, 'Plane001__0008.$2')])?.material} />
-                <mesh name="Plane001__0009" geometry={(nodes['Plane001__0009'] || nodes['Plane001__0009'.replace(/(.*?)000(\d+)/, 'Plane001__0009.$2')])?.geometry} material={(nodes['Plane001__0009'] || nodes['Plane001__0009'.replace(/(.*?)000(\d+)/, 'Plane001__0009.$2')])?.material} />
-                <mesh name="Plane001__0010" geometry={(nodes['Plane001__0010'] || nodes['Plane001__0010'.replace(/(.*?)000(\d+)/, 'Plane001__0010.$2')])?.geometry} material={(nodes['Plane001__0010'] || nodes['Plane001__0010'.replace(/(.*?)000(\d+)/, 'Plane001__0010.$2')])?.material} />
-                <mesh name="Plane001__0011" geometry={(nodes['Plane001__0011'] || nodes['Plane001__0011'.replace(/(.*?)000(\d+)/, 'Plane001__0011.$2')])?.geometry} material={(nodes['Plane001__0011'] || nodes['Plane001__0011'.replace(/(.*?)000(\d+)/, 'Plane001__0011.$2')])?.material} />
+                <mesh name="Plane001__0" geometry={nodes.Plane001__0?.geometry} material={nodes.Plane001__0?.material} />
+                <mesh name="Plane001__0001" geometry={nodes.Plane001__0001?.geometry} material={materials?.['Scene_-_Root.004']} />
+                <mesh name="Plane001__0002" geometry={nodes.Plane001__0002?.geometry} material={materials?.['Scene_-_Root.004']} />
+                <mesh name="Plane001__0003" geometry={nodes.Plane001__0003?.geometry} material={materials?.['Scene_-_Root.004']} />
+                <mesh name="Plane001__0004" geometry={nodes.Plane001__0004?.geometry} material={materials?.['Scene_-_Root.004']} />
+                <mesh name="Plane001__0005" geometry={nodes.Plane001__0005?.geometry} material={materials?.['Scene_-_Root.004']} />
+                <mesh name="Plane001__0006" geometry={nodes.Plane001__0006?.geometry} material={materials?.['Scene_-_Root.004']} />
+                <mesh name="Plane001__0007" geometry={nodes.Plane001__0007?.geometry} material={materials?.['Scene_-_Root.004']} />
+                <mesh name="Plane001__0008" geometry={nodes.Plane001__0008?.geometry} material={materials?.['Scene_-_Root.004']} />
+                <mesh name="Plane001__0009" geometry={nodes.Plane001__0009?.geometry} material={materials?.['Scene_-_Root.004']} />
+                <mesh name="Plane001__0010" geometry={nodes.Plane001__0010?.geometry} material={materials?.['Scene_-_Root.004']} />
+                <mesh name="Plane001__0011" geometry={nodes.Plane001__0011?.geometry} material={nodes.Plane001__0011?.material} />
               </group>
             </group>
           </group>
         </group>
         <group name="Armature" position={[1050.677, 513.69, -4.99]} rotation={[1.392, 1.553, 1.736]} scale={1.078}>
           <primitive object={nodes.mixamorigHips_1} />
-          <skinnedMesh name="bodypart2" geometry={(nodes['bodypart2'] || nodes['bodypart2'.replace(/(.*?)000(\d+)/, 'bodypart2.$2')])?.geometry} material={(nodes['bodypart2'] || nodes['bodypart2'.replace(/(.*?)000(\d+)/, 'bodypart2.$2')])?.material} skeleton={nodes.bodypart2.skeleton} />
-          <skinnedMesh name="pant2" geometry={(nodes['pant2'] || nodes['pant2'.replace(/(.*?)000(\d+)/, 'pant2.$2')])?.geometry} material={(nodes['pant2'] || nodes['pant2'.replace(/(.*?)000(\d+)/, 'pant2.$2')])?.material} skeleton={nodes.pant2.skeleton} />
-          <skinnedMesh name="shirt2" geometry={(nodes['shirt2'] || nodes['shirt2'.replace(/(.*?)000(\d+)/, 'shirt2.$2')])?.geometry} material={(nodes['shirt2'] || nodes['shirt2'.replace(/(.*?)000(\d+)/, 'shirt2.$2')])?.material} skeleton={nodes.shirt2.skeleton} />
-          <skinnedMesh name="shoe2" geometry={(nodes['shoe2'] || nodes['shoe2'.replace(/(.*?)000(\d+)/, 'shoe2.$2')])?.geometry} material={(nodes['shoe2'] || nodes['shoe2'.replace(/(.*?)000(\d+)/, 'shoe2.$2')])?.material} skeleton={nodes.shoe2.skeleton} />
-        </group>
-        <group name="ub" position={[236.11, 16.845, -43.77]} rotation={[-Math.PI / 2, 0, 0]} scale={1.395}>
-          <group name="root009" scale={1.359}>
-            <group name="GLTF_SceneRootNode009" rotation={[Math.PI / 2, 0, 0]} scale={1.359}>
-              <group name="apocalipse_0" scale={1.359}>
-                <group name="Grupo_1" position={[-2.039, 0, 0.727]}>
-                  <group name="Object_113" position={[0.855, 13.401, -7.572]}>
-                    <mesh name="Object_26" geometry={(nodes['Object_26'] || nodes['Object_26'.replace(/(.*?)000(\d+)/, 'Object_26.$2')])?.geometry} material={(nodes['Object_26'] || nodes['Object_26'.replace(/(.*?)000(\d+)/, 'Object_26.$2')])?.material} />
-                  </group>
-                  <group name="Object_114" position={[2.814, 15.599, -6.471]} rotation={[0, -1.386, 0]}>
-                    <mesh name="Object_24" geometry={(nodes['Object_24'] || nodes['Object_24'.replace(/(.*?)000(\d+)/, 'Object_24.$2')])?.geometry} material={(nodes['Object_24'] || nodes['Object_24'.replace(/(.*?)000(\d+)/, 'Object_24.$2')])?.material} />
-                  </group>
-                  <group name="Object_12_20" position={[0.682, 7.246, -0.886]} rotation={[Math.PI, 0, 0]}>
-                    <mesh name="Object_242" geometry={(nodes['Object_242'] || nodes['Object_242'.replace(/(.*?)000(\d+)/, 'Object_242.$2')])?.geometry} material={(nodes['Object_242'] || nodes['Object_242'.replace(/(.*?)000(\d+)/, 'Object_242.$2')])?.material} />
-                  </group>
-                  <group name="Object_1_62" position={[4.018, 2.043, 4.949]}>
-                    <mesh name="Object_158" geometry={(nodes['Object_158'] || nodes['Object_158'.replace(/(.*?)000(\d+)/, 'Object_158.$2')])?.geometry} material={(nodes['Object_158'] || nodes['Object_158'.replace(/(.*?)000(\d+)/, 'Object_158.$2')])?.material} />
-                  </group>
-                  <group name="Object_1_63" position={[-0.012, -0.618, 3.911]} rotation={[-1.532, 0, 0]}>
-                    <mesh name="Object_156" geometry={(nodes['Object_156'] || nodes['Object_156'.replace(/(.*?)000(\d+)/, 'Object_156.$2')])?.geometry} material={(nodes['Object_156'] || nodes['Object_156'.replace(/(.*?)000(\d+)/, 'Object_156.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_100" position={[-5.95, 12.456, 0.921]}>
-                    <mesh name="Object_54001" geometry={(nodes['Object_54001'] || nodes['Object_54001'.replace(/(.*?)000(\d+)/, 'Object_54001.$2')])?.geometry} material={(nodes['Object_54001'] || nodes['Object_54001'.replace(/(.*?)000(\d+)/, 'Object_54001.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_101" position={[-5.997, 12.465, 0.926]}>
-                    <mesh name="Object_52" geometry={(nodes['Object_52'] || nodes['Object_52'.replace(/(.*?)000(\d+)/, 'Object_52.$2')])?.geometry} material={(nodes['Object_52'] || nodes['Object_52'.replace(/(.*?)000(\d+)/, 'Object_52.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_102" position={[-5.997, 15.444, 0.927]}>
-                    <mesh name="Object_50" geometry={(nodes['Object_50'] || nodes['Object_50'.replace(/(.*?)000(\d+)/, 'Object_50.$2')])?.geometry} material={(nodes['Object_50'] || nodes['Object_50'.replace(/(.*?)000(\d+)/, 'Object_50.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_103" position={[-5.997, 12.429, -1.548]}>
-                    <mesh name="Object_48" geometry={(nodes['Object_48'] || nodes['Object_48'.replace(/(.*?)000(\d+)/, 'Object_48.$2')])?.geometry} material={(nodes['Object_48'] || nodes['Object_48'.replace(/(.*?)000(\d+)/, 'Object_48.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_104" position={[-5.997, 15.428, -1.546]}>
-                    <mesh name="Object_46" geometry={(nodes['Object_46'] || nodes['Object_46'.replace(/(.*?)000(\d+)/, 'Object_46.$2')])?.geometry} material={(nodes['Object_46'] || nodes['Object_46'.replace(/(.*?)000(\d+)/, 'Object_46.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_105" position={[0.387, 15.45, -5.495]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_44" geometry={(nodes['Object_44'] || nodes['Object_44'.replace(/(.*?)000(\d+)/, 'Object_44.$2')])?.geometry} material={(nodes['Object_44'] || nodes['Object_44'.replace(/(.*?)000(\d+)/, 'Object_44.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_106" position={[0.387, 12.479, -5.493]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_42" geometry={(nodes['Object_42'] || nodes['Object_42'.replace(/(.*?)000(\d+)/, 'Object_42.$2')])?.geometry} material={(nodes['Object_42'] || nodes['Object_42'.replace(/(.*?)000(\d+)/, 'Object_42.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_107" position={[-2.118, 15.458, -5.496]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_40" geometry={(nodes['Object_40'] || nodes['Object_40'.replace(/(.*?)000(\d+)/, 'Object_40.$2')])?.geometry} material={(nodes['Object_40'] || nodes['Object_40'.replace(/(.*?)000(\d+)/, 'Object_40.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_108" position={[2.903, 12.441, -5.492]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_38" geometry={(nodes['Object_38'] || nodes['Object_38'.replace(/(.*?)000(\d+)/, 'Object_38.$2')])?.geometry} material={(nodes['Object_38'] || nodes['Object_38'.replace(/(.*?)000(\d+)/, 'Object_38.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_11" position={[5.467, 9.397, 4.822]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_86" geometry={(nodes['Object_86'] || nodes['Object_86'.replace(/(.*?)000(\d+)/, 'Object_86.$2')])?.geometry} material={(nodes['Object_86'] || nodes['Object_86'.replace(/(.*?)000(\d+)/, 'Object_86.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_120" position={[1.99, -2.768, 4.967]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_12" geometry={(nodes['Object_12'] || nodes['Object_12'.replace(/(.*?)000(\d+)/, 'Object_12.$2')])?.geometry} material={(nodes['Object_12'] || nodes['Object_12'.replace(/(.*?)000(\d+)/, 'Object_12.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_121" position={[-0.106, -2.765, 4.97]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_10" geometry={(nodes['Object_10'] || nodes['Object_10'.replace(/(.*?)000(\d+)/, 'Object_10.$2')])?.geometry} material={(nodes['Object_10'] || nodes['Object_10'.replace(/(.*?)000(\d+)/, 'Object_10.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_122" position={[-2.436, -2.763, 4.972]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_8" geometry={(nodes['Object_8'] || nodes['Object_8'.replace(/(.*?)000(\d+)/, 'Object_8.$2')])?.geometry} material={(nodes['Object_8'] || nodes['Object_8'.replace(/(.*?)000(\d+)/, 'Object_8.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_123" position={[-3.833, -2.757, 4.978]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_6004" geometry={(nodes['Object_6004'] || nodes['Object_6004'.replace(/(.*?)000(\d+)/, 'Object_6004.$2')])?.geometry} material={(nodes['Object_6004'] || nodes['Object_6004'.replace(/(.*?)000(\d+)/, 'Object_6004.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_13" position={[6.811, 9.518, 0.833]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_90" geometry={(nodes['Object_90'] || nodes['Object_90'.replace(/(.*?)000(\d+)/, 'Object_90.$2')])?.geometry} material={(nodes['Object_90'] || nodes['Object_90'.replace(/(.*?)000(\d+)/, 'Object_90.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_14" position={[6.811, 9.518, -1.627]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_88" geometry={(nodes['Object_88'] || nodes['Object_88'.replace(/(.*?)000(\d+)/, 'Object_88.$2')])?.geometry} material={(nodes['Object_88'] || nodes['Object_88'.replace(/(.*?)000(\d+)/, 'Object_88.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_15" position={[-5.95, 9.368, -1.552]}>
-                    <mesh name="Object_76" geometry={(nodes['Object_76'] || nodes['Object_76'.replace(/(.*?)000(\d+)/, 'Object_76.$2')])?.geometry} material={(nodes['Object_76'] || nodes['Object_76'.replace(/(.*?)000(\d+)/, 'Object_76.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_16" position={[-5.95, 9.369, 0.919]}>
-                    <mesh name="Object_74" geometry={(nodes['Object_74'] || nodes['Object_74'.replace(/(.*?)000(\d+)/, 'Object_74.$2')])?.geometry} material={(nodes['Object_74'] || nodes['Object_74'.replace(/(.*?)000(\d+)/, 'Object_74.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_19" position={[0.639, -4.545, -0.893]} rotation={[Math.PI, 0, 0]}>
-                    <mesh name="Object_244" geometry={(nodes['Object_244'] || nodes['Object_244'.replace(/(.*?)000(\d+)/, 'Object_244.$2')])?.geometry} material={(nodes['Object_244'] || nodes['Object_244'.replace(/(.*?)000(\d+)/, 'Object_244.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_2" position={[0.387, 9.495, -5.497]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_94" geometry={(nodes['Object_94'] || nodes['Object_94'.replace(/(.*?)000(\d+)/, 'Object_94.$2')])?.geometry} material={(nodes['Object_94'] || nodes['Object_94'.replace(/(.*?)000(\d+)/, 'Object_94.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_22" position={[6.811, 0.539, -1.618]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_238" geometry={(nodes['Object_238'] || nodes['Object_238'.replace(/(.*?)000(\d+)/, 'Object_238.$2')])?.geometry} material={(nodes['Object_238'] || nodes['Object_238'.replace(/(.*?)000(\d+)/, 'Object_238.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_23" position={[6.811, 0.542, 0.854]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_236" geometry={(nodes['Object_236'] || nodes['Object_236'.replace(/(.*?)000(\d+)/, 'Object_236.$2')])?.geometry} material={(nodes['Object_236'] || nodes['Object_236'.replace(/(.*?)000(\d+)/, 'Object_236.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_24" position={[6.811, 3.619, 0.824]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_234" geometry={(nodes['Object_234'] || nodes['Object_234'.replace(/(.*?)000(\d+)/, 'Object_234.$2')])?.geometry} material={(nodes['Object_234'] || nodes['Object_234'.replace(/(.*?)000(\d+)/, 'Object_234.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_25" position={[6.811, 3.618, -1.635]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_232" geometry={(nodes['Object_232'] || nodes['Object_232'.replace(/(.*?)000(\d+)/, 'Object_232.$2')])?.geometry} material={(nodes['Object_232'] || nodes['Object_232'.replace(/(.*?)000(\d+)/, 'Object_232.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_26" position={[5.464, 0.53, 4.816]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_230" geometry={(nodes['Object_230'] || nodes['Object_230'.replace(/(.*?)000(\d+)/, 'Object_230.$2')])?.geometry} material={(nodes['Object_230'] || nodes['Object_230'.replace(/(.*?)000(\d+)/, 'Object_230.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_29" position={[6.811, 6.437, -1.616]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_224" geometry={(nodes['Object_224'] || nodes['Object_224'.replace(/(.*?)000(\d+)/, 'Object_224.$2')])?.geometry} material={(nodes['Object_224'] || nodes['Object_224'.replace(/(.*?)000(\d+)/, 'Object_224.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_3" position={[-2.118, 9.495, -5.498]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_92" geometry={(nodes['Object_92'] || nodes['Object_92'.replace(/(.*?)000(\d+)/, 'Object_92.$2')])?.geometry} material={(nodes['Object_92'] || nodes['Object_92'.replace(/(.*?)000(\d+)/, 'Object_92.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_30" position={[6.811, 6.44, 0.856]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_222" geometry={(nodes['Object_222'] || nodes['Object_222'.replace(/(.*?)000(\d+)/, 'Object_222.$2')])?.geometry} material={(nodes['Object_222'] || nodes['Object_222'.replace(/(.*?)000(\d+)/, 'Object_222.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_32" position={[6.887, -2.777, -1.728]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_218" geometry={(nodes['Object_218'] || nodes['Object_218'.replace(/(.*?)000(\d+)/, 'Object_218.$2')])?.geometry} material={(nodes['Object_218'] || nodes['Object_218'.replace(/(.*?)000(\d+)/, 'Object_218.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_34" position={[4.72, -2.77, 4.965]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_214" geometry={(nodes['Object_214'] || nodes['Object_214'.replace(/(.*?)000(\d+)/, 'Object_214.$2')])?.geometry} material={(nodes['Object_214'] || nodes['Object_214'.replace(/(.*?)000(\d+)/, 'Object_214.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_37" position={[0.387, 3.595, -5.506]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_208" geometry={(nodes['Object_208'] || nodes['Object_208'.replace(/(.*?)000(\d+)/, 'Object_208.$2')])?.geometry} material={(nodes['Object_208'] || nodes['Object_208'.replace(/(.*?)000(\d+)/, 'Object_208.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_38" position={[-2.118, 3.595, -5.506]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_206" geometry={(nodes['Object_206'] || nodes['Object_206'.replace(/(.*?)000(\d+)/, 'Object_206.$2')])?.geometry} material={(nodes['Object_206'] || nodes['Object_206'.replace(/(.*?)000(\d+)/, 'Object_206.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_39" position={[0.396, 0.611, -5.498]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_204" geometry={(nodes['Object_204'] || nodes['Object_204'.replace(/(.*?)000(\d+)/, 'Object_204.$2')])?.geometry} material={(nodes['Object_204'] || nodes['Object_204'.replace(/(.*?)000(\d+)/, 'Object_204.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_4" position={[2.96, 9.493, 4.825]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_84" geometry={(nodes['Object_84'] || nodes['Object_84'.replace(/(.*?)000(\d+)/, 'Object_84.$2')])?.geometry} material={(nodes['Object_84'] || nodes['Object_84'.replace(/(.*?)000(\d+)/, 'Object_84.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_40" position={[2.903, 0.607, -5.502]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_202" geometry={(nodes['Object_202'] || nodes['Object_202'.replace(/(.*?)000(\d+)/, 'Object_202.$2')])?.geometry} material={(nodes['Object_202'] || nodes['Object_202'.replace(/(.*?)000(\d+)/, 'Object_202.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_41" position={[5.467, 3.497, 4.814]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_200" geometry={(nodes['Object_200'] || nodes['Object_200'.replace(/(.*?)000(\d+)/, 'Object_200.$2')])?.geometry} material={(nodes['Object_200'] || nodes['Object_200'.replace(/(.*?)000(\d+)/, 'Object_200.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_42" position={[2.96, 0.53, 4.816]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_198" geometry={(nodes['Object_198'] || nodes['Object_198'.replace(/(.*?)000(\d+)/, 'Object_198.$2')])?.geometry} material={(nodes['Object_198'] || nodes['Object_198'.replace(/(.*?)000(\d+)/, 'Object_198.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_43" position={[2.96, 3.593, 4.817]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_196" geometry={(nodes['Object_196'] || nodes['Object_196'.replace(/(.*?)000(\d+)/, 'Object_196.$2')])?.geometry} material={(nodes['Object_196'] || nodes['Object_196'.replace(/(.*?)000(\d+)/, 'Object_196.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_44" position={[-2.045, 3.596, 4.82]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_194" geometry={(nodes['Object_194'] || nodes['Object_194'.replace(/(.*?)000(\d+)/, 'Object_194.$2')])?.geometry} material={(nodes['Object_194'] || nodes['Object_194'.replace(/(.*?)000(\d+)/, 'Object_194.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_45" position={[-4.553, 3.598, 4.822]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_192" geometry={(nodes['Object_192'] || nodes['Object_192'.replace(/(.*?)000(\d+)/, 'Object_192.$2')])?.geometry} material={(nodes['Object_192'] || nodes['Object_192'.replace(/(.*?)000(\d+)/, 'Object_192.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_46" position={[-4.553, 0.619, 4.823]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_190" geometry={(nodes['Object_190'] || nodes['Object_190'.replace(/(.*?)000(\d+)/, 'Object_190.$2')])?.geometry} material={(nodes['Object_190'] || nodes['Object_190'.replace(/(.*?)000(\d+)/, 'Object_190.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_47" position={[-2.045, 0.573, 4.822]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_188" geometry={(nodes['Object_188'] || nodes['Object_188'.replace(/(.*?)000(\d+)/, 'Object_188.$2')])?.geometry} material={(nodes['Object_188'] || nodes['Object_188'.replace(/(.*?)000(\d+)/, 'Object_188.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_5" position={[-2.045, 9.496, 4.829]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_82" geometry={(nodes['Object_82'] || nodes['Object_82'.replace(/(.*?)000(\d+)/, 'Object_82.$2')])?.geometry} material={(nodes['Object_82'] || nodes['Object_82'.replace(/(.*?)000(\d+)/, 'Object_82.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_50" position={[-5.95, 3.468, -1.56]}>
-                    <mesh name="Object_182" geometry={(nodes['Object_182'] || nodes['Object_182'.replace(/(.*?)000(\d+)/, 'Object_182.$2')])?.geometry} material={(nodes['Object_182'] || nodes['Object_182'.replace(/(.*?)000(\d+)/, 'Object_182.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_51" position={[-5.95, 3.47, 0.911]}>
-                    <mesh name="Object_180" geometry={(nodes['Object_180'] || nodes['Object_180'.replace(/(.*?)000(\d+)/, 'Object_180.$2')])?.geometry} material={(nodes['Object_180'] || nodes['Object_180'.replace(/(.*?)000(\d+)/, 'Object_180.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_52" position={[-5.95, 0.588, 0.912]}>
-                    <mesh name="Object_178" geometry={(nodes['Object_178'] || nodes['Object_178'.replace(/(.*?)000(\d+)/, 'Object_178.$2')])?.geometry} material={(nodes['Object_178'] || nodes['Object_178'.replace(/(.*?)000(\d+)/, 'Object_178.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_53" position={[-5.95, 0.589, -1.557]}>
-                    <mesh name="Object_176" geometry={(nodes['Object_176'] || nodes['Object_176'.replace(/(.*?)000(\d+)/, 'Object_176.$2')])?.geometry} material={(nodes['Object_176'] || nodes['Object_176'.replace(/(.*?)000(\d+)/, 'Object_176.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_6" position={[-4.553, 9.498, 4.831]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_80" geometry={(nodes['Object_80'] || nodes['Object_80'.replace(/(.*?)000(\d+)/, 'Object_80.$2')])?.geometry} material={(nodes['Object_80'] || nodes['Object_80'.replace(/(.*?)000(\d+)/, 'Object_80.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_65" position={[0.387, 9.494, -5.504]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_152" geometry={(nodes['Object_152'] || nodes['Object_152'.replace(/(.*?)000(\d+)/, 'Object_152.$2')])?.geometry} material={(nodes['Object_152'] || nodes['Object_152'.replace(/(.*?)000(\d+)/, 'Object_152.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_66" position={[-2.118, 9.494, -5.504]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_150" geometry={(nodes['Object_150'] || nodes['Object_150'.replace(/(.*?)000(\d+)/, 'Object_150.$2')])?.geometry} material={(nodes['Object_150'] || nodes['Object_150'.replace(/(.*?)000(\d+)/, 'Object_150.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_67" position={[0.396, 6.509, -5.496]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_148" geometry={(nodes['Object_148'] || nodes['Object_148'.replace(/(.*?)000(\d+)/, 'Object_148.$2')])?.geometry} material={(nodes['Object_148'] || nodes['Object_148'.replace(/(.*?)000(\d+)/, 'Object_148.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_68" position={[2.903, 6.505, -5.5]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_146" geometry={(nodes['Object_146'] || nodes['Object_146'.replace(/(.*?)000(\d+)/, 'Object_146.$2')])?.geometry} material={(nodes['Object_146'] || nodes['Object_146'.replace(/(.*?)000(\d+)/, 'Object_146.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_69" position={[6.811, 9.517, 0.826]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_144" geometry={(nodes['Object_144'] || nodes['Object_144'.replace(/(.*?)000(\d+)/, 'Object_144.$2')])?.geometry} material={(nodes['Object_144'] || nodes['Object_144'.replace(/(.*?)000(\d+)/, 'Object_144.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_70" position={[6.811, 9.517, -1.633]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_142" geometry={(nodes['Object_142'] || nodes['Object_142'.replace(/(.*?)000(\d+)/, 'Object_142.$2')])?.geometry} material={(nodes['Object_142'] || nodes['Object_142'.replace(/(.*?)000(\d+)/, 'Object_142.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_71" position={[5.467, 9.396, 4.816]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_140" geometry={(nodes['Object_140'] || nodes['Object_140'.replace(/(.*?)000(\d+)/, 'Object_140.$2')])?.geometry} material={(nodes['Object_140'] || nodes['Object_140'.replace(/(.*?)000(\d+)/, 'Object_140.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_72" position={[5.464, 6.429, 4.817]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_138" geometry={(nodes['Object_138'] || nodes['Object_138'.replace(/(.*?)000(\d+)/, 'Object_138.$2')])?.geometry} material={(nodes['Object_138'] || nodes['Object_138'.replace(/(.*?)000(\d+)/, 'Object_138.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_73" position={[2.96, 6.429, 4.817]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_136" geometry={(nodes['Object_136'] || nodes['Object_136'.replace(/(.*?)000(\d+)/, 'Object_136.$2')])?.geometry} material={(nodes['Object_136'] || nodes['Object_136'.replace(/(.*?)000(\d+)/, 'Object_136.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_74" position={[2.96, 9.491, 4.818]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_134" geometry={(nodes['Object_134'] || nodes['Object_134'.replace(/(.*?)000(\d+)/, 'Object_134.$2')])?.geometry} material={(nodes['Object_134'] || nodes['Object_134'.replace(/(.*?)000(\d+)/, 'Object_134.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_75" position={[-2.045, 9.495, 4.822]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_132" geometry={(nodes['Object_132'] || nodes['Object_132'.replace(/(.*?)000(\d+)/, 'Object_132.$2')])?.geometry} material={(nodes['Object_132'] || nodes['Object_132'.replace(/(.*?)000(\d+)/, 'Object_132.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_76" position={[-4.553, 9.497, 4.824]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_130" geometry={(nodes['Object_130'] || nodes['Object_130'.replace(/(.*?)000(\d+)/, 'Object_130.$2')])?.geometry} material={(nodes['Object_130'] || nodes['Object_130'.replace(/(.*?)000(\d+)/, 'Object_130.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_77" position={[-4.553, 6.517, 4.825]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_128" geometry={(nodes['Object_128'] || nodes['Object_128'.replace(/(.*?)000(\d+)/, 'Object_128.$2')])?.geometry} material={(nodes['Object_128'] || nodes['Object_128'.replace(/(.*?)000(\d+)/, 'Object_128.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_78" position={[-2.045, 6.472, 4.824]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_126" geometry={(nodes['Object_126'] || nodes['Object_126'.replace(/(.*?)000(\d+)/, 'Object_126.$2')])?.geometry} material={(nodes['Object_126'] || nodes['Object_126'.replace(/(.*?)000(\d+)/, 'Object_126.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_81" position={[-5.95, 9.366, -1.559]}>
-                    <mesh name="Object_120" geometry={(nodes['Object_120'] || nodes['Object_120'.replace(/(.*?)000(\d+)/, 'Object_120.$2')])?.geometry} material={(nodes['Object_120'] || nodes['Object_120'.replace(/(.*?)000(\d+)/, 'Object_120.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_82" position={[-5.95, 9.368, 0.912]}>
-                    <mesh name="Object_118" geometry={(nodes['Object_118'] || nodes['Object_118'.replace(/(.*?)000(\d+)/, 'Object_118.$2')])?.geometry} material={(nodes['Object_118'] || nodes['Object_118'.replace(/(.*?)000(\d+)/, 'Object_118.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_83" position={[-5.95, 6.486, 0.914]}>
-                    <mesh name="Object_116" geometry={(nodes['Object_116'] || nodes['Object_116'.replace(/(.*?)000(\d+)/, 'Object_116.$2')])?.geometry} material={(nodes['Object_116'] || nodes['Object_116'.replace(/(.*?)000(\d+)/, 'Object_116.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_84" position={[-5.95, 6.488, -1.555]}>
-                    <mesh name="Object_114001" geometry={(nodes['Object_114001'] || nodes['Object_114001'.replace(/(.*?)000(\d+)/, 'Object_114001.$2')])?.geometry} material={(nodes['Object_114001'] || nodes['Object_114001'.replace(/(.*?)000(\d+)/, 'Object_114001.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_94" position={[6.858, 12.507, 0.84]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_64" geometry={(nodes['Object_64'] || nodes['Object_64'.replace(/(.*?)000(\d+)/, 'Object_64.$2')])?.geometry} material={(nodes['Object_64'] || nodes['Object_64'.replace(/(.*?)000(\d+)/, 'Object_64.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_95" position={[6.811, 12.487, -1.625]} rotation={[-Math.PI, 0, -Math.PI]}>
-                    <mesh name="Object_62" geometry={(nodes['Object_62'] || nodes['Object_62'.replace(/(.*?)000(\d+)/, 'Object_62.$2')])?.geometry} material={(nodes['Object_62'] || nodes['Object_62'.replace(/(.*?)000(\d+)/, 'Object_62.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_97" position={[-2.045, 12.401, 4.797]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_60" geometry={(nodes['Object_60'] || nodes['Object_60'.replace(/(.*?)000(\d+)/, 'Object_60.$2')])?.geometry} material={(nodes['Object_60'] || nodes['Object_60'.replace(/(.*?)000(\d+)/, 'Object_60.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_98" position={[-4.546, 12.446, 4.771]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_58" geometry={(nodes['Object_58'] || nodes['Object_58'.replace(/(.*?)000(\d+)/, 'Object_58.$2')])?.geometry} material={(nodes['Object_58'] || nodes['Object_58'.replace(/(.*?)000(\d+)/, 'Object_58.$2')])?.material} />
-                  </group>
-                  <group name="Object_4_99" position={[-4.546, 15.463, 4.771]} rotation={[0, Math.PI / 2, 0]}>
-                    <mesh name="Object_56" geometry={(nodes['Object_56'] || nodes['Object_56'.replace(/(.*?)000(\d+)/, 'Object_56.$2')])?.geometry} material={(nodes['Object_56'] || nodes['Object_56'.replace(/(.*?)000(\d+)/, 'Object_56.$2')])?.material} />
-                  </group>
-                  <group name="Object_5_109" position={[2.974, 15.171, -5.534]}>
-                    <mesh name="Object_36" geometry={(nodes['Object_36'] || nodes['Object_36'.replace(/(.*?)000(\d+)/, 'Object_36.$2')])?.geometry} material={(nodes['Object_36'] || nodes['Object_36'.replace(/(.*?)000(\d+)/, 'Object_36.$2')])?.material} />
-                  </group>
-                  <group name="Object_5_33" position={[7.119, -2.649, 1.129]}>
-                    <mesh name="Object_216" geometry={(nodes['Object_216'] || nodes['Object_216'.replace(/(.*?)000(\d+)/, 'Object_216.$2')])?.geometry} material={(nodes['Object_216'] || nodes['Object_216'.replace(/(.*?)000(\d+)/, 'Object_216.$2')])?.material} />
-                  </group>
-                  <group name="Object_5_35" position={[-2.194, 11.177, -4.098]} rotation={[Math.PI / 2, 0, 0.102]}>
-                    <mesh name="Object_212" geometry={(nodes['Object_212'] || nodes['Object_212'.replace(/(.*?)000(\d+)/, 'Object_212.$2')])?.geometry} material={(nodes['Object_212'] || nodes['Object_212'.replace(/(.*?)000(\d+)/, 'Object_212.$2')])?.material} />
-                  </group>
-                  <group name="Object_5_48" position={[2.974, 3.418, -5.545]}>
-                    <mesh name="Object_186" geometry={(nodes['Object_186'] || nodes['Object_186'.replace(/(.*?)000(\d+)/, 'Object_186.$2')])?.geometry} material={(nodes['Object_186'] || nodes['Object_186'.replace(/(.*?)000(\d+)/, 'Object_186.$2')])?.material} />
-                  </group>
-                  <group name="Object_5_49" position={[-2.027, 0.389, -5.536]}>
-                    <mesh name="Object_184" geometry={(nodes['Object_184'] || nodes['Object_184'.replace(/(.*?)000(\d+)/, 'Object_184.$2')])?.geometry} material={(nodes['Object_184'] || nodes['Object_184'.replace(/(.*?)000(\d+)/, 'Object_184.$2')])?.material} />
-                  </group>
-                  <group name="Object_5_54" position={[9.764, -0.615, -15.527]}>
-                    <mesh name="Object_174" geometry={(nodes['Object_174'] || nodes['Object_174'.replace(/(.*?)000(\d+)/, 'Object_174.$2')])?.geometry} material={(nodes['Object_174'] || nodes['Object_174'.replace(/(.*?)000(\d+)/, 'Object_174.$2')])?.material} />
-                  </group>
-                  <group name="Object_5_7" position={[2.974, 9.318, -5.536]}>
-                    <mesh name="Object_78" geometry={(nodes['Object_78'] || nodes['Object_78'.replace(/(.*?)000(\d+)/, 'Object_78.$2')])?.geometry} material={(nodes['Object_78'] || nodes['Object_78'.replace(/(.*?)000(\d+)/, 'Object_78.$2')])?.material} />
-                  </group>
-                  <group name="Object_5_79" position={[2.974, 9.316, -5.543]}>
-                    <mesh name="Object_124" geometry={(nodes['Object_124'] || nodes['Object_124'.replace(/(.*?)000(\d+)/, 'Object_124.$2')])?.geometry} material={(nodes['Object_124'] || nodes['Object_124'.replace(/(.*?)000(\d+)/, 'Object_124.$2')])?.material} />
-                  </group>
-                  <group name="Object_5_80" position={[-2.027, 6.287, -5.534]}>
-                    <mesh name="Object_122" geometry={(nodes['Object_122'] || nodes['Object_122'.replace(/(.*?)000(\d+)/, 'Object_122.$2')])?.geometry} material={(nodes['Object_122'] || nodes['Object_122'.replace(/(.*?)000(\d+)/, 'Object_122.$2')])?.material} />
-                  </group>
-                  <group name="Object_5_85" position={[9.764, 5.283, -15.525]}>
-                    <mesh name="Object_112" geometry={(nodes['Object_112'] || nodes['Object_112'.replace(/(.*?)000(\d+)/, 'Object_112.$2')])?.geometry} material={(nodes['Object_112'] || nodes['Object_112'.replace(/(.*?)000(\d+)/, 'Object_112.$2')])?.material} />
-                  </group>
-                  <group name="Object_5_9" position={[9.764, 11.174, -15.511]}>
-                    <mesh name="Object_34" geometry={(nodes['Object_34'] || nodes['Object_34'.replace(/(.*?)000(\d+)/, 'Object_34.$2')])?.geometry} material={(nodes['Object_34'] || nodes['Object_34'.replace(/(.*?)000(\d+)/, 'Object_34.$2')])?.material} />
-                  </group>
-                  <group name="Object_60001" position={[0.855, 1.612, -7.588]}>
-                    <mesh name="Object_162" geometry={(nodes['Object_162'] || nodes['Object_162'.replace(/(.*?)000(\d+)/, 'Object_162.$2')])?.geometry} material={(nodes['Object_162'] || nodes['Object_162'.replace(/(.*?)000(\d+)/, 'Object_162.$2')])?.material} />
-                  </group>
-                  <group name="Object_61" position={[0.59, -1.96, 5.077]} rotation={[Math.PI, -0.11, Math.PI]}>
-                    <mesh name="Object_160" geometry={(nodes['Object_160'] || nodes['Object_160'.replace(/(.*?)000(\d+)/, 'Object_160.$2')])?.geometry} material={(nodes['Object_160'] || nodes['Object_160'.replace(/(.*?)000(\d+)/, 'Object_160.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_110" position={[6.34, 14.156, -6.393]} rotation={[-0.367, -0.007, -1.537]}>
-                    <mesh name="Object_32" geometry={(nodes['Object_32'] || nodes['Object_32'.replace(/(.*?)000(\d+)/, 'Object_32.$2')])?.geometry} material={(nodes['Object_32'] || nodes['Object_32'.replace(/(.*?)000(\d+)/, 'Object_32.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_111" position={[1.501, 11.662, -6.035]} rotation={[0, 0.959, 0]}>
-                    <mesh name="Object_30" geometry={(nodes['Object_30'] || nodes['Object_30'.replace(/(.*?)000(\d+)/, 'Object_30.$2')])?.geometry} material={(nodes['Object_30'] || nodes['Object_30'.replace(/(.*?)000(\d+)/, 'Object_30.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_112" position={[3.433, 11.783, -6.465]}>
-                    <mesh name="Object_28" geometry={(nodes['Object_28'] || nodes['Object_28'.replace(/(.*?)000(\d+)/, 'Object_28.$2')])?.geometry} material={(nodes['Object_28'] || nodes['Object_28'.replace(/(.*?)000(\d+)/, 'Object_28.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_17" position={[6.525, 8.721, -6.52]} rotation={[-0.367, -0.007, -1.537]}>
-                    <mesh name="Object_70" geometry={(nodes['Object_70'] || nodes['Object_70'.replace(/(.*?)000(\d+)/, 'Object_70.$2')])?.geometry} material={(nodes['Object_70'] || nodes['Object_70'.replace(/(.*?)000(\d+)/, 'Object_70.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_27" position={[6.525, 2.822, -6.529]} rotation={[-0.367, -0.007, -1.537]}>
-                    <mesh name="Object_228" geometry={(nodes['Object_228'] || nodes['Object_228'.replace(/(.*?)000(\d+)/, 'Object_228.$2')])?.geometry} material={(nodes['Object_228'] || nodes['Object_228'.replace(/(.*?)000(\d+)/, 'Object_228.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_31" position={[6.525, 8.72, -6.527]} rotation={[-0.367, -0.007, -1.537]}>
-                    <mesh name="Object_220" geometry={(nodes['Object_220'] || nodes['Object_220'.replace(/(.*?)000(\d+)/, 'Object_220.$2')])?.geometry} material={(nodes['Object_220'] || nodes['Object_220'.replace(/(.*?)000(\d+)/, 'Object_220.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_55" position={[3.433, -0.065, -6.476]}>
-                    <mesh name="Object_172" geometry={(nodes['Object_172'] || nodes['Object_172'.replace(/(.*?)000(\d+)/, 'Object_172.$2')])?.geometry} material={(nodes['Object_172'] || nodes['Object_172'.replace(/(.*?)000(\d+)/, 'Object_172.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_56" position={[1.501, 0.072, -6.045]} rotation={[0, 0.959, 0]}>
-                    <mesh name="Object_170" geometry={(nodes['Object_170'] || nodes['Object_170'.replace(/(.*?)000(\d+)/, 'Object_170.$2')])?.geometry} material={(nodes['Object_170'] || nodes['Object_170'.replace(/(.*?)000(\d+)/, 'Object_170.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_57" position={[-1.707, 3.073, -6.532]} rotation={[-0.085, 0.003, 0]}>
-                    <mesh name="Object_168" geometry={(nodes['Object_168'] || nodes['Object_168'.replace(/(.*?)000(\d+)/, 'Object_168.$2')])?.geometry} material={(nodes['Object_168'] || nodes['Object_168'.replace(/(.*?)000(\d+)/, 'Object_168.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_8" position={[-1.707, 8.972, -6.523]} rotation={[-0.085, 0.003, 0]}>
-                    <mesh name="Object_72" geometry={(nodes['Object_72'] || nodes['Object_72'.replace(/(.*?)000(\d+)/, 'Object_72.$2')])?.geometry} material={(nodes['Object_72'] || nodes['Object_72'.replace(/(.*?)000(\d+)/, 'Object_72.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_86" position={[3.433, 5.834, -6.474]}>
-                    <mesh name="Object_110" geometry={(nodes['Object_110'] || nodes['Object_110'.replace(/(.*?)000(\d+)/, 'Object_110.$2')])?.geometry} material={(nodes['Object_110'] || nodes['Object_110'.replace(/(.*?)000(\d+)/, 'Object_110.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_87" position={[1.501, 5.97, -6.043]} rotation={[0, 0.959, 0]}>
-                    <mesh name="Object_108" geometry={(nodes['Object_108'] || nodes['Object_108'.replace(/(.*?)000(\d+)/, 'Object_108.$2')])?.geometry} material={(nodes['Object_108'] || nodes['Object_108'.replace(/(.*?)000(\d+)/, 'Object_108.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_88" position={[-1.707, 8.971, -6.53]} rotation={[-0.085, 0.003, 0]}>
-                    <mesh name="Object_106" geometry={(nodes['Object_106'] || nodes['Object_106'.replace(/(.*?)000(\d+)/, 'Object_106.$2')])?.geometry} material={(nodes['Object_106'] || nodes['Object_106'.replace(/(.*?)000(\d+)/, 'Object_106.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_90" position={[3.433, 11.55, -6.472]}>
-                    <mesh name="Object_102" geometry={(nodes['Object_102'] || nodes['Object_102'.replace(/(.*?)000(\d+)/, 'Object_102.$2')])?.geometry} material={(nodes['Object_102'] || nodes['Object_102'.replace(/(.*?)000(\d+)/, 'Object_102.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_91" position={[1.501, 11.686, -6.04]} rotation={[0, 0.959, 0]}>
-                    <mesh name="Object_100" geometry={(nodes['Object_100'] || nodes['Object_100'.replace(/(.*?)000(\d+)/, 'Object_100.$2')])?.geometry} material={(nodes['Object_100'] || nodes['Object_100'.replace(/(.*?)000(\d+)/, 'Object_100.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_92" position={[-1.706, 14.714, -6.373]} rotation={[-0.085, 0.003, 0]}>
-                    <mesh name="Object_98" geometry={(nodes['Object_98'] || nodes['Object_98'.replace(/(.*?)000(\d+)/, 'Object_98.$2')])?.geometry} material={(nodes['Object_98'] || nodes['Object_98'.replace(/(.*?)000(\d+)/, 'Object_98.$2')])?.material} />
-                  </group>
-                  <group name="Object_6_93" position={[2.828, 17.584, -6.583]} rotation={[-0.085, 0.003, 0]}>
-                    <mesh name="Object_96" geometry={(nodes['Object_96'] || nodes['Object_96'.replace(/(.*?)000(\d+)/, 'Object_96.$2')])?.geometry} material={(nodes['Object_96'] || nodes['Object_96'.replace(/(.*?)000(\d+)/, 'Object_96.$2')])?.material} />
-                  </group>
-                  <group name="Object_7_10" position={[-3.264, 10.194, 5.17]} rotation={[1.471, 0.464, 0]}>
-                    <mesh name="Object_66" geometry={(nodes['Object_66'] || nodes['Object_66'.replace(/(.*?)000(\d+)/, 'Object_66.$2')])?.geometry} material={(nodes['Object_66'] || nodes['Object_66'.replace(/(.*?)000(\d+)/, 'Object_66.$2')])?.material} />
-                  </group>
-                  <group name="Object_7_118" position={[-5.706, -2.698, 0.4]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_16" geometry={(nodes['Object_16'] || nodes['Object_16'.replace(/(.*?)000(\d+)/, 'Object_16.$2')])?.geometry} material={(nodes['Object_16'] || nodes['Object_16'.replace(/(.*?)000(\d+)/, 'Object_16.$2')])?.material} />
-                  </group>
-                  <group name="Object_7_119" position={[-5.706, -2.695, 2.235]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_14" geometry={(nodes['Object_14'] || nodes['Object_14'.replace(/(.*?)000(\d+)/, 'Object_14.$2')])?.geometry} material={(nodes['Object_14'] || nodes['Object_14'.replace(/(.*?)000(\d+)/, 'Object_14.$2')])?.material} />
-                  </group>
-                  <group name="Object_7_12" position={[3.996, 8.06, 5.378]} rotation={[1.471, 0, 0]}>
-                    <mesh name="Object_68" geometry={(nodes['Object_68'] || nodes['Object_68'.replace(/(.*?)000(\d+)/, 'Object_68.$2')])?.geometry} material={(nodes['Object_68'] || nodes['Object_68'.replace(/(.*?)000(\d+)/, 'Object_68.$2')])?.material} />
-                  </group>
-                  <group name="Object_7_36" position={[-5.706, -2.7, -1.459]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Object_210" geometry={(nodes['Object_210'] || nodes['Object_210'.replace(/(.*?)000(\d+)/, 'Object_210.$2')])?.geometry} material={(nodes['Object_210'] || nodes['Object_210'.replace(/(.*?)000(\d+)/, 'Object_210.$2')])?.material} />
-                  </group>
-                  <group name="Object_7_58" position={[3.996, 2.16, 5.37]} rotation={[1.471, 0, 0]}>
-                    <mesh name="Object_166" geometry={(nodes['Object_166'] || nodes['Object_166'.replace(/(.*?)000(\d+)/, 'Object_166.$2')])?.geometry} material={(nodes['Object_166'] || nodes['Object_166'.replace(/(.*?)000(\d+)/, 'Object_166.$2')])?.material} />
-                  </group>
-                  <group name="Object_7_59" position={[-3.264, 4.295, 5.162]} rotation={[1.471, 0.464, 0]}>
-                    <mesh name="Object_164" geometry={(nodes['Object_164'] || nodes['Object_164'.replace(/(.*?)000(\d+)/, 'Object_164.$2')])?.geometry} material={(nodes['Object_164'] || nodes['Object_164'.replace(/(.*?)000(\d+)/, 'Object_164.$2')])?.material} />
-                  </group>
-                  <group name="Object_7_64" position={[0.233, -0.109, 4.14]} rotation={[0.229, 0, 0]}>
-                    <mesh name="Object_154" geometry={(nodes['Object_154'] || nodes['Object_154'.replace(/(.*?)000(\d+)/, 'Object_154.$2')])?.geometry} material={(nodes['Object_154'] || nodes['Object_154'.replace(/(.*?)000(\d+)/, 'Object_154.$2')])?.material} />
-                  </group>
-                  <group name="Object_7_89" position={[3.996, 8.059, 5.372]} rotation={[1.471, 0, 0]}>
-                    <mesh name="Object_104" geometry={(nodes['Object_104'] || nodes['Object_104'.replace(/(.*?)000(\d+)/, 'Object_104.$2')])?.geometry} material={(nodes['Object_104'] || nodes['Object_104'.replace(/(.*?)000(\d+)/, 'Object_104.$2')])?.material} />
-                  </group>
-                  <group name="Object_8_115" position={[2.056, -2.729, -5.763]}>
-                    <mesh name="Object_22" geometry={(nodes['Object_22'] || nodes['Object_22'.replace(/(.*?)000(\d+)/, 'Object_22.$2')])?.geometry} material={(nodes['Object_22'] || nodes['Object_22'.replace(/(.*?)000(\d+)/, 'Object_22.$2')])?.material} />
-                  </group>
-                  <group name="Object_8_116" position={[0.36, -2.724, -5.76]}>
-                    <mesh name="Object_20" geometry={(nodes['Object_20'] || nodes['Object_20'.replace(/(.*?)000(\d+)/, 'Object_20.$2')])?.geometry} material={(nodes['Object_20'] || nodes['Object_20'.replace(/(.*?)000(\d+)/, 'Object_20.$2')])?.material} />
-                  </group>
-                  <group name="Object_8_117" position={[-1.397, -2.719, -5.758]}>
-                    <mesh name="Object_18" geometry={(nodes['Object_18'] || nodes['Object_18'.replace(/(.*?)000(\d+)/, 'Object_18.$2')])?.geometry} material={(nodes['Object_18'] || nodes['Object_18'.replace(/(.*?)000(\d+)/, 'Object_18.$2')])?.material} />
-                  </group>
-                  <group name="Object_8_21" position={[0.632, -4.604, -0.889]} rotation={[-Math.PI, 0, 0]}>
-                    <mesh name="Object_240" geometry={(nodes['Object_240'] || nodes['Object_240'.replace(/(.*?)000(\d+)/, 'Object_240.$2')])?.geometry} material={(nodes['Object_240'] || nodes['Object_240'.replace(/(.*?)000(\d+)/, 'Object_240.$2')])?.material} />
-                  </group>
-                  <group name="Object_8_28" position={[0.632, 1.295, -0.887]} rotation={[-Math.PI, 0, 0]}>
-                    <mesh name="Object_226" geometry={(nodes['Object_226'] || nodes['Object_226'.replace(/(.*?)000(\d+)/, 'Object_226.$2')])?.geometry} material={(nodes['Object_226'] || nodes['Object_226'.replace(/(.*?)000(\d+)/, 'Object_226.$2')])?.material} />
-                  </group>
-                  <group name="SM_Prop_Sign_Hotel_01_Scene391_PolygonApocalypse_Material_01_A001_0_18" position={[-5.516, 3.435, 5.483]}>
-                    <mesh name="Object_246" geometry={(nodes['Object_246'] || nodes['Object_246'.replace(/(.*?)000(\d+)/, 'Object_246.$2')])?.geometry} material={(nodes['Object_246'] || nodes['Object_246'.replace(/(.*?)000(\d+)/, 'Object_246.$2')])?.material} />
-                  </group>
-                </group>
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="ss2" position={[257.42, 0, 13.844]} rotation={[-Math.PI / 2, 0, 1.028]} scale={0.592}>
-          <group name="6d00ad905951472989ed60bd3d15cf71fbx" rotation={[Math.PI / 2, 1.051, 0]} scale={0.514}>
-            <group name="RootNode030" rotation={[0, 1.051, 0]} scale={0.514}>
-              <group name="building3" position={[256.686, 129.825, -123.391]}>
-                <group name="aircondition" position={[-40.739, 24.75, 120.611]}>
-                  <group name="aircondition2" position={[32.414, -43.452, -124.106]}>
-                    <mesh name="aircondition2_Mat_0" geometry={(nodes['aircondition2_Mat_0'] || nodes['aircondition2_Mat_0'.replace(/(.*?)000(\d+)/, 'aircondition2_Mat_0.$2')])?.geometry} material={(nodes['aircondition2_Mat_0'] || nodes['aircondition2_Mat_0'.replace(/(.*?)000(\d+)/, 'aircondition2_Mat_0.$2')])?.material} />
-                  </group>
-                  <mesh name="aircondition_Mat_0" geometry={(nodes['aircondition_Mat_0'] || nodes['aircondition_Mat_0'.replace(/(.*?)000(\d+)/, 'aircondition_Mat_0.$2')])?.geometry} material={(nodes['aircondition_Mat_0'] || nodes['aircondition_Mat_0'.replace(/(.*?)000(\d+)/, 'aircondition_Mat_0.$2')])?.material} />
-                </group>
-                <group name="Boole" position={[-49.294, 80.158, -47.696]}>
-                  <mesh name="Boole_Mat1_0" geometry={(nodes['Boole_Mat1_0'] || nodes['Boole_Mat1_0'.replace(/(.*?)000(\d+)/, 'Boole_Mat1_0.$2')])?.geometry} material={(nodes['Boole_Mat1_0'] || nodes['Boole_Mat1_0'.replace(/(.*?)000(\d+)/, 'Boole_Mat1_0.$2')])?.material} />
-                </group>
-                <group name="Boole_2" position={[-107.844, 75.095, 108.224]}>
-                  <mesh name="Boole_2_Mat2_0" geometry={(nodes['Boole_2_Mat2_0'] || nodes['Boole_2_Mat2_0'.replace(/(.*?)000(\d+)/, 'Boole_2_Mat2_0.$2')])?.geometry} material={(nodes['Boole_2_Mat2_0'] || nodes['Boole_2_Mat2_0'.replace(/(.*?)000(\d+)/, 'Boole_2_Mat2_0.$2')])?.material} />
-                </group>
-                <group name="Boole_2_2" position={[-107.843, 75.095, 110.615]}>
-                  <mesh name="Boole_2_2_Mat11_0" geometry={(nodes['Boole_2_2_Mat11_0'] || nodes['Boole_2_2_Mat11_0'.replace(/(.*?)000(\d+)/, 'Boole_2_2_Mat11_0.$2')])?.geometry} material={(nodes['Boole_2_2_Mat11_0'] || nodes['Boole_2_2_Mat11_0'.replace(/(.*?)000(\d+)/, 'Boole_2_2_Mat11_0.$2')])?.material} />
-                </group>
-                <group name="brockenbrick" position={[172.477, -67.008, 109.002]}>
-                  <mesh name="brockenbrick_Mat_0" geometry={(nodes['brockenbrick_Mat_0'] || nodes['brockenbrick_Mat_0'.replace(/(.*?)000(\d+)/, 'brockenbrick_Mat_0.$2')])?.geometry} material={(nodes['brockenbrick_Mat_0'] || nodes['brockenbrick_Mat_0'.replace(/(.*?)000(\d+)/, 'brockenbrick_Mat_0.$2')])?.material} />
-                </group>
-                <group name="brockenbricks" position={[238.556, -97.918, 106.933]}>
-                  <mesh name="brockenbricks_Mat_0" geometry={(nodes['brockenbricks_Mat_0'] || nodes['brockenbricks_Mat_0'.replace(/(.*?)000(\d+)/, 'brockenbricks_Mat_0.$2')])?.geometry} material={(nodes['brockenbricks_Mat_0'] || nodes['brockenbricks_Mat_0'.replace(/(.*?)000(\d+)/, 'brockenbricks_Mat_0.$2')])?.material} />
-                </group>
-                <group name="brockenbricks2" position={[300.191, -97.862, 105.156]}>
-                  <mesh name="brockenbricks2_Mat_0" geometry={(nodes['brockenbricks2_Mat_0'] || nodes['brockenbricks2_Mat_0'.replace(/(.*?)000(\d+)/, 'brockenbricks2_Mat_0.$2')])?.geometry} material={(nodes['brockenbricks2_Mat_0'] || nodes['brockenbricks2_Mat_0'.replace(/(.*?)000(\d+)/, 'brockenbricks2_Mat_0.$2')])?.material} />
-                </group>
-                <group name="Cube_8" position={[-42.56, -0.089, -49.217]}>
-                  <mesh name="Cube_8_Mat_0" geometry={(nodes['Cube_8_Mat_0'] || nodes['Cube_8_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_8_Mat_0.$2')])?.geometry} material={(nodes['Cube_8_Mat_0'] || nodes['Cube_8_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_8_Mat_0.$2')])?.material} />
-                </group>
-                <group name="dicals" position={[89.307, -22.819, 7.601]} rotation={[Math.PI / 2, 0, 0]}>
-                  <group name="dical1" position={[-29.882, -211.2, 51.188]}>
-                    <mesh name="dical1_Mat_0" geometry={(nodes['dical1_Mat_0'] || nodes['dical1_Mat_0'.replace(/(.*?)000(\d+)/, 'dical1_Mat_0.$2')])?.geometry} material={(nodes['dical1_Mat_0'] || nodes['dical1_Mat_0'.replace(/(.*?)000(\d+)/, 'dical1_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="dical2" position={[54.851, 105.488, 42.222]}>
-                    <mesh name="dical2_Mat_0" geometry={(nodes['dical2_Mat_0'] || nodes['dical2_Mat_0'.replace(/(.*?)000(\d+)/, 'dical2_Mat_0.$2')])?.geometry} material={(nodes['dical2_Mat_0'] || nodes['dical2_Mat_0'.replace(/(.*?)000(\d+)/, 'dical2_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="dical3" position={[-112.42, 105.712, -81.237]}>
-                    <mesh name="dical3_Mat_0" geometry={(nodes['dical3_Mat_0'] || nodes['dical3_Mat_0'.replace(/(.*?)000(\d+)/, 'dical3_Mat_0.$2')])?.geometry} material={(nodes['dical3_Mat_0'] || nodes['dical3_Mat_0'.replace(/(.*?)000(\d+)/, 'dical3_Mat_0.$2')])?.material} />
-                  </group>
-                </group>
-                <group name="doorplates" position={[-81.631, -123.287, 33.675]} rotation={[0, -1.571, 0]}>
-                  <group name="doorjam" position={[-1.863, 48.952, -1.96]}>
-                    <group name="door" position={[50.663, -0.705, -173.104]} rotation={[0, -0.336, 0]}>
-                      <mesh name="door_Mat_0" geometry={(nodes['door_Mat_0'] || nodes['door_Mat_0'.replace(/(.*?)000(\d+)/, 'door_Mat_0.$2')])?.geometry} material={(nodes['door_Mat_0'] || nodes['door_Mat_0'.replace(/(.*?)000(\d+)/, 'door_Mat_0.$2')])?.material} position={[0, 0, 0.001]} />
-                    </group>
-                    <group name="door2" position={[-40.018, -48.605, 71.001]} rotation={[-1.551, 0.018, -3.008]}>
-                      <mesh name="door2_Mat_0" geometry={(nodes['door2_Mat_0'] || nodes['door2_Mat_0'.replace(/(.*?)000(\d+)/, 'door2_Mat_0.$2')])?.geometry} material={(nodes['door2_Mat_0'] || nodes['door2_Mat_0'.replace(/(.*?)000(\d+)/, 'door2_Mat_0.$2')])?.material} position={[0, 0.001, 0]} />
-                    </group>
-                    <group name="door3" position={[-38.683, -0.705, 191.21]} rotation={[0, 1.498, 0]}>
-                      <mesh name="door3_Mat_0" geometry={(nodes['door3_Mat_0'] || nodes['door3_Mat_0'.replace(/(.*?)000(\d+)/, 'door3_Mat_0.$2')])?.geometry} material={(nodes['door3_Mat_0'] || nodes['door3_Mat_0'.replace(/(.*?)000(\d+)/, 'door3_Mat_0.$2')])?.material} position={[-0.001, 0, 0]} />
-                    </group>
-                    <mesh name="doorjam_Mat_0" geometry={(nodes['doorjam_Mat_0'] || nodes['doorjam_Mat_0'.replace(/(.*?)000(\d+)/, 'doorjam_Mat_0.$2')])?.geometry} material={(nodes['doorjam_Mat_0'] || nodes['doorjam_Mat_0'.replace(/(.*?)000(\d+)/, 'doorjam_Mat_0.$2')])?.material} />
-                  </group>
-                  <mesh name="doorplates_Mat_0" geometry={(nodes['doorplates_Mat_0'] || nodes['doorplates_Mat_0'.replace(/(.*?)000(\d+)/, 'doorplates_Mat_0.$2')])?.geometry} material={(nodes['doorplates_Mat_0'] || nodes['doorplates_Mat_0'.replace(/(.*?)000(\d+)/, 'doorplates_Mat_0.$2')])?.material} />
-                </group>
-                <group name="firstfloor" position={[-59.702, -127.455, -38.171]}>
-                  <mesh name="firstfloor_Mat3_0" geometry={(nodes['firstfloor_Mat3_0'] || nodes['firstfloor_Mat3_0'.replace(/(.*?)000(\d+)/, 'firstfloor_Mat3_0.$2')])?.geometry} material={(nodes['firstfloor_Mat3_0'] || nodes['firstfloor_Mat3_0'.replace(/(.*?)000(\d+)/, 'firstfloor_Mat3_0.$2')])?.material} />
-                </group>
-                <group name="floor001" position={[-40.077, 6.596, -48.497]}>
-                  <mesh name="floor_Mat_0" geometry={(nodes['floor_Mat_0'] || nodes['floor_Mat_0'.replace(/(.*?)000(\d+)/, 'floor_Mat_0.$2')])?.geometry} material={(nodes['floor_Mat_0'] || nodes['floor_Mat_0'.replace(/(.*?)000(\d+)/, 'floor_Mat_0.$2')])?.material} />
-                </group>
-                <group name="floortrim" position={[-14.524, 2.574, -169.903]}>
-                  <mesh name="floortrim_Mat_0" geometry={(nodes['floortrim_Mat_0'] || nodes['floortrim_Mat_0'.replace(/(.*?)000(\d+)/, 'floortrim_Mat_0.$2')])?.geometry} material={(nodes['floortrim_Mat_0'] || nodes['floortrim_Mat_0'.replace(/(.*?)000(\d+)/, 'floortrim_Mat_0.$2')])?.material} />
-                </group>
-                <group name="insidewall" position={[-42.418, -65.704, -48.981]}>
-                  <mesh name="insidewall_Mat_0" geometry={(nodes['insidewall_Mat_0'] || nodes['insidewall_Mat_0'.replace(/(.*?)000(\d+)/, 'insidewall_Mat_0.$2')])?.geometry} material={(nodes['insidewall_Mat_0'] || nodes['insidewall_Mat_0'.replace(/(.*?)000(\d+)/, 'insidewall_Mat_0.$2')])?.material} />
-                </group>
-                <group name="insidewall2" position={[-42.418, 17.042, -48.981]}>
-                  <mesh name="insidewall2_Mat_0" geometry={(nodes['insidewall2_Mat_0'] || nodes['insidewall2_Mat_0'.replace(/(.*?)000(\d+)/, 'insidewall2_Mat_0.$2')])?.geometry} material={(nodes['insidewall2_Mat_0'] || nodes['insidewall2_Mat_0'.replace(/(.*?)000(\d+)/, 'insidewall2_Mat_0.$2')])?.material} />
-                </group>
-                <group name="interior" position={[-124.947, -53.653, -57.272]}>
-                  <group name="chair" position={[81.066, -49.404, -33.084]}>
-                    <mesh name="chair_Mat_0" geometry={(nodes['chair_Mat_0'] || nodes['chair_Mat_0'.replace(/(.*?)000(\d+)/, 'chair_Mat_0.$2')])?.geometry} material={(nodes['chair_Mat_0'] || nodes['chair_Mat_0'.replace(/(.*?)000(\d+)/, 'chair_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="lamp2" position={[222.571, 176.844, 8.633]} rotation={[-0.28, 0, 0]}>
-                    <mesh name="lamp2_Mat_0" geometry={(nodes['lamp2_Mat_0'] || nodes['lamp2_Mat_0'.replace(/(.*?)000(\d+)/, 'lamp2_Mat_0.$2')])?.geometry} material={(nodes['lamp2_Mat_0'] || nodes['lamp2_Mat_0'.replace(/(.*?)000(\d+)/, 'lamp2_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="lamp_1" position={[2.372, 184.557, 7.548]}>
-                    <mesh name="lamp_1_Mat_0" geometry={(nodes['lamp_1_Mat_0'] || nodes['lamp_1_Mat_0'.replace(/(.*?)000(\d+)/, 'lamp_1_Mat_0.$2')])?.geometry} material={(nodes['lamp_1_Mat_0'] || nodes['lamp_1_Mat_0'.replace(/(.*?)000(\d+)/, 'lamp_1_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="later" position={[307.372, -31.911, -14.088]}>
-                    <mesh name="later_Mat_0" geometry={(nodes['later_Mat_0'] || nodes['later_Mat_0'.replace(/(.*?)000(\d+)/, 'later_Mat_0.$2')])?.geometry} material={(nodes['later_Mat_0'] || nodes['later_Mat_0'.replace(/(.*?)000(\d+)/, 'later_Mat_0.$2')])?.material} position={[0.001, 0, 0]} />
-                  </group>
-                  <group name="matress_2" position={[-38.318, -38.614, -64.118]} rotation={[-Math.PI, 1.528, -Math.PI]}>
-                    <mesh name="matress_2_Mat_0" geometry={(nodes['matress_2_Mat_0'] || nodes['matress_2_Mat_0'.replace(/(.*?)000(\d+)/, 'matress_2_Mat_0.$2')])?.geometry} material={(nodes['matress_2_Mat_0'] || nodes['matress_2_Mat_0'.replace(/(.*?)000(\d+)/, 'matress_2_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="table" position={[71.113, -56.121, -60.083]}>
-                    <mesh name="table_Mat_0" geometry={(nodes['table_Mat_0'] || nodes['table_Mat_0'.replace(/(.*?)000(\d+)/, 'table_Mat_0.$2')])?.geometry} material={(nodes['table_Mat_0'] || nodes['table_Mat_0'.replace(/(.*?)000(\d+)/, 'table_Mat_0.$2')])?.material} />
-                  </group>
-                </group>
-                <group name="metalbars" position={[-111.785, 75.184, 121.215]} rotation={[Math.PI, -1.278, Math.PI]}>
-                  <group name="metalbars2" position={[-163.492, 51.087, -169.696]} rotation={[0, 0.061, 0]}>
-                    <mesh name="metalbars2_Mat_0" geometry={(nodes['metalbars2_Mat_0'] || nodes['metalbars2_Mat_0'.replace(/(.*?)000(\d+)/, 'metalbars2_Mat_0.$2')])?.geometry} material={(nodes['metalbars2_Mat_0'] || nodes['metalbars2_Mat_0'.replace(/(.*?)000(\d+)/, 'metalbars2_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="metalbars3" position={[-225.579, 14.925, -225.41]} rotation={[-Math.PI, 1.278, -Math.PI]}>
-                    <mesh name="metalbars3_Mat_0" geometry={(nodes['metalbars3_Mat_0'] || nodes['metalbars3_Mat_0'.replace(/(.*?)000(\d+)/, 'metalbars3_Mat_0.$2')])?.geometry} material={(nodes['metalbars3_Mat_0'] || nodes['metalbars3_Mat_0'.replace(/(.*?)000(\d+)/, 'metalbars3_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="metalbars4" position={[-181.063, -46.139, -107.547]} rotation={[-Math.PI, 1.278, -Math.PI]}>
-                    <mesh name="metalbars4_Mat_0" geometry={(nodes['metalbars4_Mat_0'] || nodes['metalbars4_Mat_0'.replace(/(.*?)000(\d+)/, 'metalbars4_Mat_0.$2')])?.geometry} material={(nodes['metalbars4_Mat_0'] || nodes['metalbars4_Mat_0'.replace(/(.*?)000(\d+)/, 'metalbars4_Mat_0.$2')])?.material} />
-                  </group>
-                  <mesh name="metalbars_Mat_0" geometry={(nodes['metalbars_Mat_0'] || nodes['metalbars_Mat_0'.replace(/(.*?)000(\d+)/, 'metalbars_Mat_0.$2')])?.geometry} material={(nodes['metalbars_Mat_0'] || nodes['metalbars_Mat_0'.replace(/(.*?)000(\d+)/, 'metalbars_Mat_0.$2')])?.material} />
-                </group>
-                <group name="metalroof" position={[-59.892, 1.541, 132.714]}>
-                  <mesh name="metalroof_Mat_0" geometry={(nodes['metalroof_Mat_0'] || nodes['metalroof_Mat_0'.replace(/(.*?)000(\d+)/, 'metalroof_Mat_0.$2')])?.geometry} material={(nodes['metalroof_Mat_0'] || nodes['metalroof_Mat_0'.replace(/(.*?)000(\d+)/, 'metalroof_Mat_0.$2')])?.material} />
-                </group>
-                <group name="outsidewall" position={[-42.418, -65.996, -48.981]}>
-                  <mesh name="outsidewall_Mat_0" geometry={(nodes['outsidewall_Mat_0'] || nodes['outsidewall_Mat_0'.replace(/(.*?)000(\d+)/, 'outsidewall_Mat_0.$2')])?.geometry} material={(nodes['outsidewall_Mat_0'] || nodes['outsidewall_Mat_0'.replace(/(.*?)000(\d+)/, 'outsidewall_Mat_0.$2')])?.material} />
-                </group>
-                <group name="outsidewall2" position={[-42.418, 68.111, -48.981]}>
-                  <mesh name="outsidewall2_Mat_0" geometry={(nodes['outsidewall2_Mat_0'] || nodes['outsidewall2_Mat_0'.replace(/(.*?)000(\d+)/, 'outsidewall2_Mat_0.$2')])?.geometry} material={(nodes['outsidewall2_Mat_0'] || nodes['outsidewall2_Mat_0'.replace(/(.*?)000(\d+)/, 'outsidewall2_Mat_0.$2')])?.material} />
-                </group>
-                <group name="powerbox" position={[121.293, 32.752, 115.572]}>
-                  <group name="powerline" position={[-79.96, 0.005, -2.579]}>
-                    <mesh name="powerline_Mat_0" geometry={(nodes['powerline_Mat_0'] || nodes['powerline_Mat_0'.replace(/(.*?)000(\d+)/, 'powerline_Mat_0.$2')])?.geometry} material={(nodes['powerline_Mat_0'] || nodes['powerline_Mat_0'.replace(/(.*?)000(\d+)/, 'powerline_Mat_0.$2')])?.material} />
-                  </group>
-                  <mesh name="powerbox_Mat_0" geometry={(nodes['powerbox_Mat_0'] || nodes['powerbox_Mat_0'.replace(/(.*?)000(\d+)/, 'powerbox_Mat_0.$2')])?.geometry} material={(nodes['powerbox_Mat_0'] || nodes['powerbox_Mat_0'.replace(/(.*?)000(\d+)/, 'powerbox_Mat_0.$2')])?.material} />
-                </group>
-                <group name="roof" position={[-49.294, 136.413, -47.696]}>
-                  <mesh name="roof_Mat_0" geometry={(nodes['roof_Mat_0'] || nodes['roof_Mat_0'.replace(/(.*?)000(\d+)/, 'roof_Mat_0.$2')])?.geometry} material={(nodes['roof_Mat_0'] || nodes['roof_Mat_0'.replace(/(.*?)000(\d+)/, 'roof_Mat_0.$2')])?.material} />
-                </group>
-                <group name="stairs" position={[-18.301, -61.516, -171.16]}>
-                  <mesh name="stairs_Mat_0" geometry={(nodes['stairs_Mat_0'] || nodes['stairs_Mat_0'.replace(/(.*?)000(\d+)/, 'stairs_Mat_0.$2')])?.geometry} material={(nodes['stairs_Mat_0'] || nodes['stairs_Mat_0'.replace(/(.*?)000(\d+)/, 'stairs_Mat_0.$2')])?.material} />
-                  <mesh name="stairs_Mat_0001" geometry={(nodes['stairs_Mat_0001'] || nodes['stairs_Mat_0001'.replace(/(.*?)000(\d+)/, 'stairs_Mat_0001.$2')])?.geometry} material={(nodes['stairs_Mat_0001'] || nodes['stairs_Mat_0001'.replace(/(.*?)000(\d+)/, 'stairs_Mat_0001.$2')])?.material} />
-                </group>
-                <group name="topcel" position={[-49.294, 65.762, -47.696]}>
-                  <mesh name="topcel_Mat_0" geometry={(nodes['topcel_Mat_0'] || nodes['topcel_Mat_0'.replace(/(.*?)000(\d+)/, 'topcel_Mat_0.$2')])?.geometry} material={(nodes['topcel_Mat_0'] || nodes['topcel_Mat_0'.replace(/(.*?)000(\d+)/, 'topcel_Mat_0.$2')])?.material} />
-                </group>
-                <group name="trimin" position={[35.194, 0.331, -203.633]}>
-                  <mesh name="trimin_Mat_0" geometry={(nodes['trimin_Mat_0'] || nodes['trimin_Mat_0'.replace(/(.*?)000(\d+)/, 'trimin_Mat_0.$2')])?.geometry} material={(nodes['trimin_Mat_0'] || nodes['trimin_Mat_0'.replace(/(.*?)000(\d+)/, 'trimin_Mat_0.$2')])?.material} />
-                </group>
-                <group name="windows" position={[92.901, 63.884, -209.48]}>
-                  <group name="Cube003" position={[8.829, 11.424, 2.15]}>
-                    <mesh name="Cube_Mat_0" geometry={(nodes['Cube_Mat_0'] || nodes['Cube_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_Mat_0.$2')])?.geometry} material={(nodes['Cube_Mat_0'] || nodes['Cube_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_2" position={[-87.284, 11.424, 2.15]}>
-                    <mesh name="Cube_2_Mat_0" geometry={(nodes['Cube_2_Mat_0'] || nodes['Cube_2_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_2_Mat_0.$2')])?.geometry} material={(nodes['Cube_2_Mat_0'] || nodes['Cube_2_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_2_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_3" position={[-231.438, 11.424, 2.15]}>
-                    <mesh name="Cube_3_Mat_0" geometry={(nodes['Cube_3_Mat_0'] || nodes['Cube_3_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_3_Mat_0.$2')])?.geometry} material={(nodes['Cube_3_Mat_0'] || nodes['Cube_3_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_3_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_4" position={[-336.864, 11.424, 104.01]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Cube_4_Mat_0" geometry={(nodes['Cube_4_Mat_0'] || nodes['Cube_4_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_4_Mat_0.$2')])?.geometry} material={(nodes['Cube_4_Mat_0'] || nodes['Cube_4_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_4_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_5" position={[-108.081, 12.306, 324.521]} rotation={[0.033, -0.015, -0.432]}>
-                    <mesh name="Cube_5_Mat_0" geometry={(nodes['Cube_5_Mat_0'] || nodes['Cube_5_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_5_Mat_0.$2')])?.geometry} material={(nodes['Cube_5_Mat_0'] || nodes['Cube_5_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_5_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_54" position={[-11.741, 11.424, 2.15]}>
-                    <mesh name="Cube_54_Mat_0" geometry={(nodes['Cube_54_Mat_0'] || nodes['Cube_54_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_Mat_0.$2')])?.geometry} material={(nodes['Cube_54_Mat_0'] || nodes['Cube_54_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_54_2" position={[-252.009, 11.424, 2.15]}>
-                    <mesh name="Cube_54_2_Mat_0" geometry={(nodes['Cube_54_2_Mat_0'] || nodes['Cube_54_2_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_2_Mat_0.$2')])?.geometry} material={(nodes['Cube_54_2_Mat_0'] || nodes['Cube_54_2_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_2_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_54_3" position={[-107.854, 11.424, 2.15]}>
-                    <mesh name="Cube_54_3_Mat_0" geometry={(nodes['Cube_54_3_Mat_0'] || nodes['Cube_54_3_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_3_Mat_0.$2')])?.geometry} material={(nodes['Cube_54_3_Mat_0'] || nodes['Cube_54_3_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_3_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_54_4" position={[-336.864, 11.424, 83.439]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Cube_54_4_Mat_0" geometry={(nodes['Cube_54_4_Mat_0'] || nodes['Cube_54_4_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_4_Mat_0.$2')])?.geometry} material={(nodes['Cube_54_4_Mat_0'] || nodes['Cube_54_4_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_4_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_54_5" position={[-151.888, 11.863, 328.406]} rotation={[0, -1.514, 0]}>
-                    <mesh name="Cube_54_5_Mat_0" geometry={(nodes['Cube_54_5_Mat_0'] || nodes['Cube_54_5_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_5_Mat_0.$2')])?.geometry} material={(nodes['Cube_54_5_Mat_0'] || nodes['Cube_54_5_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_5_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_54_6" position={[-341.799, 11.423, 199.918]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Cube_54_6_Mat_0" geometry={(nodes['Cube_54_6_Mat_0'] || nodes['Cube_54_6_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_6_Mat_0.$2')])?.geometry} material={(nodes['Cube_54_6_Mat_0'] || nodes['Cube_54_6_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_6_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_54_7" position={[-275.18, 11.863, 318.54]}>
-                    <mesh name="Cube_54_7_Mat_0" geometry={(nodes['Cube_54_7_Mat_0'] || nodes['Cube_54_7_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_7_Mat_0.$2')])?.geometry} material={(nodes['Cube_54_7_Mat_0'] || nodes['Cube_54_7_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_54_7_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_6" position={[-255.426, 11.863, 318.54]}>
-                    <mesh name="Cube_6_Mat_0" geometry={(nodes['Cube_6_Mat_0'] || nodes['Cube_6_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_6_Mat_0.$2')])?.geometry} material={(nodes['Cube_6_Mat_0'] || nodes['Cube_6_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_6_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="Cube_7" position={[-341.408, 11.424, 261.363]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Cube_7_Mat_0" geometry={(nodes['Cube_7_Mat_0'] || nodes['Cube_7_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_7_Mat_0.$2')])?.geometry} material={(nodes['Cube_7_Mat_0'] || nodes['Cube_7_Mat_0'.replace(/(.*?)000(\d+)/, 'Cube_7_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="frame" position={[-133.302, -56.269, 160.531]}>
-                    <mesh name="frame_Mat_0" geometry={(nodes['frame_Mat_0'] || nodes['frame_Mat_0'.replace(/(.*?)000(\d+)/, 'frame_Mat_0.$2')])?.geometry} material={(nodes['frame_Mat_0'] || nodes['frame_Mat_0'.replace(/(.*?)000(\d+)/, 'frame_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="piece_29" position={[66.386, 10.707, 216.628]} rotation={[0, 1.571, 0]}>
-                    <mesh name="piece_29_Mat_0" geometry={(nodes['piece_29_Mat_0'] || nodes['piece_29_Mat_0'.replace(/(.*?)000(\d+)/, 'piece_29_Mat_0.$2')])?.geometry} material={(nodes['piece_29_Mat_0'] || nodes['piece_29_Mat_0'.replace(/(.*?)000(\d+)/, 'piece_29_Mat_0.$2')])?.material} />
-                  </group>
-                  <group name="piece_30" position={[66.385, 10.707, 237.126]} rotation={[0, 1.571, 0]}>
-                    <mesh name="piece_30_Mat_0" geometry={(nodes['piece_30_Mat_0'] || nodes['piece_30_Mat_0'.replace(/(.*?)000(\d+)/, 'piece_30_Mat_0.$2')])?.geometry} material={(nodes['piece_30_Mat_0'] || nodes['piece_30_Mat_0'.replace(/(.*?)000(\d+)/, 'piece_30_Mat_0.$2')])?.material} />
-                  </group>
-                </group>
-                <group name="woodbrackets" position={[-51.214, 64.813, -18.381]}>
-                  <group name="woodcaps" position={[18.955, -0.009, 148.111]}>
-                    <mesh name="woodcaps_Mat_0" geometry={(nodes['woodcaps_Mat_0'] || nodes['woodcaps_Mat_0'.replace(/(.*?)000(\d+)/, 'woodcaps_Mat_0.$2')])?.geometry} material={(nodes['woodcaps_Mat_0'] || nodes['woodcaps_Mat_0'.replace(/(.*?)000(\d+)/, 'woodcaps_Mat_0.$2')])?.material} />
-                  </group>
-                  <mesh name="woodbrackets_Mat_0" geometry={(nodes['woodbrackets_Mat_0'] || nodes['woodbrackets_Mat_0'.replace(/(.*?)000(\d+)/, 'woodbrackets_Mat_0.$2')])?.geometry} material={(nodes['woodbrackets_Mat_0'] || nodes['woodbrackets_Mat_0'.replace(/(.*?)000(\d+)/, 'woodbrackets_Mat_0.$2')])?.material} />
-                </group>
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="ss1" position={[109.245, 0.885, -73.016]} rotation={[-Math.PI / 2, 0, 1.028]} scale={0.592}>
-          <group name="6d00ad905951472989ed60bd3d15cf71fbx001" rotation={[Math.PI / 2, 1.051, 0]} scale={0.514}>
-            <group name="RootNode031" rotation={[0, 1.051, 0]} scale={0.514}>
-              <group name="building3001" position={[256.684, 129.825, -123.391]}>
-                <group name="aircondition001" position={[-40.739, 24.75, 120.611]}>
-                  <group name="aircondition2001" position={[32.414, -43.452, -124.106]}>
-                    <mesh name="aircondition2_Mat_0001" geometry={(nodes['aircondition2_Mat_0001'] || nodes['aircondition2_Mat_0001'.replace(/(.*?)000(\d+)/, 'aircondition2_Mat_0001.$2')])?.geometry} material={(nodes['aircondition2_Mat_0001'] || nodes['aircondition2_Mat_0001'.replace(/(.*?)000(\d+)/, 'aircondition2_Mat_0001.$2')])?.material} />
-                  </group>
-                  <mesh name="aircondition_Mat_0001" geometry={(nodes['aircondition_Mat_0001'] || nodes['aircondition_Mat_0001'.replace(/(.*?)000(\d+)/, 'aircondition_Mat_0001.$2')])?.geometry} material={(nodes['aircondition_Mat_0001'] || nodes['aircondition_Mat_0001'.replace(/(.*?)000(\d+)/, 'aircondition_Mat_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="Boole001" position={[-49.294, 80.158, -47.696]}>
-                  <mesh name="Boole_Mat1_0001" geometry={(nodes['Boole_Mat1_0001'] || nodes['Boole_Mat1_0001'.replace(/(.*?)000(\d+)/, 'Boole_Mat1_0001.$2')])?.geometry} material={(nodes['Boole_Mat1_0001'] || nodes['Boole_Mat1_0001'.replace(/(.*?)000(\d+)/, 'Boole_Mat1_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="Boole_2001" position={[-107.844, 75.096, 108.224]}>
-                  <mesh name="Boole_2_Mat2_0001" geometry={(nodes['Boole_2_Mat2_0001'] || nodes['Boole_2_Mat2_0001'.replace(/(.*?)000(\d+)/, 'Boole_2_Mat2_0001.$2')])?.geometry} material={(nodes['Boole_2_Mat2_0001'] || nodes['Boole_2_Mat2_0001'.replace(/(.*?)000(\d+)/, 'Boole_2_Mat2_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="Boole_2_2001" position={[-107.844, 75.096, 110.615]}>
-                  <mesh name="Boole_2_2_Mat11_0001" geometry={(nodes['Boole_2_2_Mat11_0001'] || nodes['Boole_2_2_Mat11_0001'.replace(/(.*?)000(\d+)/, 'Boole_2_2_Mat11_0001.$2')])?.geometry} material={(nodes['Boole_2_2_Mat11_0001'] || nodes['Boole_2_2_Mat11_0001'.replace(/(.*?)000(\d+)/, 'Boole_2_2_Mat11_0001.$2')])?.material} position={[0, 0.001, 0]} />
-                </group>
-                <group name="brockenbrick001" position={[172.477, -67.008, 109.002]}>
-                  <mesh name="brockenbrick_Mat_0001" geometry={(nodes['brockenbrick_Mat_0001'] || nodes['brockenbrick_Mat_0001'.replace(/(.*?)000(\d+)/, 'brockenbrick_Mat_0001.$2')])?.geometry} material={(nodes['brockenbrick_Mat_0001'] || nodes['brockenbrick_Mat_0001'.replace(/(.*?)000(\d+)/, 'brockenbrick_Mat_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="brockenbricks001" position={[238.556, -97.918, 106.933]}>
-                  <mesh name="brockenbricks_Mat_0001" geometry={(nodes['brockenbricks_Mat_0001'] || nodes['brockenbricks_Mat_0001'.replace(/(.*?)000(\d+)/, 'brockenbricks_Mat_0001.$2')])?.geometry} material={(nodes['brockenbricks_Mat_0001'] || nodes['brockenbricks_Mat_0001'.replace(/(.*?)000(\d+)/, 'brockenbricks_Mat_0001.$2')])?.material} position={[0.001, 0.001, 0]} />
-                </group>
-                <group name="brockenbricks2001" position={[300.191, -97.862, 105.156]}>
-                  <mesh name="brockenbricks2_Mat_0001" geometry={(nodes['brockenbricks2_Mat_0001'] || nodes['brockenbricks2_Mat_0001'.replace(/(.*?)000(\d+)/, 'brockenbricks2_Mat_0001.$2')])?.geometry} material={(nodes['brockenbricks2_Mat_0001'] || nodes['brockenbricks2_Mat_0001'.replace(/(.*?)000(\d+)/, 'brockenbricks2_Mat_0001.$2')])?.material} position={[0, 0.001, 0]} />
-                </group>
-                <group name="Cube_8001" position={[-42.56, -0.089, -49.217]}>
-                  <mesh name="Cube_8_Mat_0001" geometry={(nodes['Cube_8_Mat_0001'] || nodes['Cube_8_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_8_Mat_0001.$2')])?.geometry} material={(nodes['Cube_8_Mat_0001'] || nodes['Cube_8_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_8_Mat_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="dicals001" position={[89.306, -22.819, 7.601]} rotation={[Math.PI / 2, 0, 0]}>
-                  <group name="dical1001" position={[-29.881, -211.2, 51.188]}>
-                    <mesh name="dical1_Mat_0001" geometry={(nodes['dical1_Mat_0001'] || nodes['dical1_Mat_0001'.replace(/(.*?)000(\d+)/, 'dical1_Mat_0001.$2')])?.geometry} material={(nodes['dical1_Mat_0001'] || nodes['dical1_Mat_0001'.replace(/(.*?)000(\d+)/, 'dical1_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="dical2001" position={[54.852, 105.488, 42.222]}>
-                    <mesh name="dical2_Mat_0001" geometry={(nodes['dical2_Mat_0001'] || nodes['dical2_Mat_0001'.replace(/(.*?)000(\d+)/, 'dical2_Mat_0001.$2')])?.geometry} material={(nodes['dical2_Mat_0001'] || nodes['dical2_Mat_0001'.replace(/(.*?)000(\d+)/, 'dical2_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="dical3001" position={[-112.42, 105.712, -81.238]}>
-                    <mesh name="dical3_Mat_0001" geometry={(nodes['dical3_Mat_0001'] || nodes['dical3_Mat_0001'.replace(/(.*?)000(\d+)/, 'dical3_Mat_0001.$2')])?.geometry} material={(nodes['dical3_Mat_0001'] || nodes['dical3_Mat_0001'.replace(/(.*?)000(\d+)/, 'dical3_Mat_0001.$2')])?.material} />
-                  </group>
-                </group>
-                <group name="doorplates001" position={[-81.632, -123.286, 33.675]} rotation={[0, -1.571, 0]}>
-                  <group name="doorjam001" position={[-1.863, 48.953, -1.96]}>
-                    <group name="door001" position={[50.663, -0.704, -173.104]} rotation={[0, -0.336, 0]}>
-                      <mesh name="door_Mat_0001" geometry={(nodes['door_Mat_0001'] || nodes['door_Mat_0001'.replace(/(.*?)000(\d+)/, 'door_Mat_0001.$2')])?.geometry} material={(nodes['door_Mat_0001'] || nodes['door_Mat_0001'.replace(/(.*?)000(\d+)/, 'door_Mat_0001.$2')])?.material} />
-                    </group>
-                    <group name="door2001" position={[-40.019, -48.604, 71.001]} rotation={[-1.551, 0.018, -3.008]}>
-                      <mesh name="door2_Mat_0001" geometry={(nodes['door2_Mat_0001'] || nodes['door2_Mat_0001'.replace(/(.*?)000(\d+)/, 'door2_Mat_0001.$2')])?.geometry} material={(nodes['door2_Mat_0001'] || nodes['door2_Mat_0001'.replace(/(.*?)000(\d+)/, 'door2_Mat_0001.$2')])?.material} />
-                    </group>
-                    <group name="door3001" position={[-38.683, -0.704, 191.208]} rotation={[0, 1.498, 0]}>
-                      <mesh name="door3_Mat_0001" geometry={(nodes['door3_Mat_0001'] || nodes['door3_Mat_0001'.replace(/(.*?)000(\d+)/, 'door3_Mat_0001.$2')])?.geometry} material={(nodes['door3_Mat_0001'] || nodes['door3_Mat_0001'.replace(/(.*?)000(\d+)/, 'door3_Mat_0001.$2')])?.material} />
-                    </group>
-                    <mesh name="doorjam_Mat_0001" geometry={(nodes['doorjam_Mat_0001'] || nodes['doorjam_Mat_0001'.replace(/(.*?)000(\d+)/, 'doorjam_Mat_0001.$2')])?.geometry} material={(nodes['doorjam_Mat_0001'] || nodes['doorjam_Mat_0001'.replace(/(.*?)000(\d+)/, 'doorjam_Mat_0001.$2')])?.material} position={[0, 0, 0]} />
-                  </group>
-                  <mesh name="doorplates_Mat_0001" geometry={(nodes['doorplates_Mat_0001'] || nodes['doorplates_Mat_0001'.replace(/(.*?)000(\d+)/, 'doorplates_Mat_0001.$2')])?.geometry} material={(nodes['doorplates_Mat_0001'] || nodes['doorplates_Mat_0001'.replace(/(.*?)000(\d+)/, 'doorplates_Mat_0001.$2')])?.material} />
-                </group>
-                <group name="firstfloor001" position={[-59.702, -127.455, -38.171]}>
-                  <mesh name="firstfloor_Mat3_0001" geometry={(nodes['firstfloor_Mat3_0001'] || nodes['firstfloor_Mat3_0001'.replace(/(.*?)000(\d+)/, 'firstfloor_Mat3_0001.$2')])?.geometry} material={(nodes['firstfloor_Mat3_0001'] || nodes['firstfloor_Mat3_0001'.replace(/(.*?)000(\d+)/, 'firstfloor_Mat3_0001.$2')])?.material} position={[0, 0.001, 0]} />
-                </group>
-                <group name="floor002" position={[-40.077, 6.596, -48.497]}>
-                  <mesh name="floor_Mat_0001" geometry={(nodes['floor_Mat_0001'] || nodes['floor_Mat_0001'.replace(/(.*?)000(\d+)/, 'floor_Mat_0001.$2')])?.geometry} material={(nodes['floor_Mat_0001'] || nodes['floor_Mat_0001'.replace(/(.*?)000(\d+)/, 'floor_Mat_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="floortrim001" position={[-14.524, 2.575, -169.903]}>
-                  <mesh name="floortrim_Mat_0001" geometry={(nodes['floortrim_Mat_0001'] || nodes['floortrim_Mat_0001'.replace(/(.*?)000(\d+)/, 'floortrim_Mat_0001.$2')])?.geometry} material={(nodes['floortrim_Mat_0001'] || nodes['floortrim_Mat_0001'.replace(/(.*?)000(\d+)/, 'floortrim_Mat_0001.$2')])?.material} position={[0, 0.001, 0]} />
-                </group>
-                <group name="insidewall001" position={[-42.418, -65.704, -48.981]}>
-                  <mesh name="insidewall_Mat_0001" geometry={(nodes['insidewall_Mat_0001'] || nodes['insidewall_Mat_0001'.replace(/(.*?)000(\d+)/, 'insidewall_Mat_0001.$2')])?.geometry} material={(nodes['insidewall_Mat_0001'] || nodes['insidewall_Mat_0001'.replace(/(.*?)000(\d+)/, 'insidewall_Mat_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="insidewall2001" position={[-42.418, 17.042, -48.981]}>
-                  <mesh name="insidewall2_Mat_0001" geometry={(nodes['insidewall2_Mat_0001'] || nodes['insidewall2_Mat_0001'.replace(/(.*?)000(\d+)/, 'insidewall2_Mat_0001.$2')])?.geometry} material={(nodes['insidewall2_Mat_0001'] || nodes['insidewall2_Mat_0001'.replace(/(.*?)000(\d+)/, 'insidewall2_Mat_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="interior001" position={[-124.947, -53.652, -57.272]}>
-                  <group name="chair001" position={[81.066, -49.404, -33.084]}>
-                    <mesh name="chair_Mat_0001" geometry={(nodes['chair_Mat_0001'] || nodes['chair_Mat_0001'.replace(/(.*?)000(\d+)/, 'chair_Mat_0001.$2')])?.geometry} material={(nodes['chair_Mat_0001'] || nodes['chair_Mat_0001'.replace(/(.*?)000(\d+)/, 'chair_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="lamp2001" position={[222.572, 176.844, 8.633]} rotation={[-0.28, 0, 0]}>
-                    <mesh name="lamp2_Mat_0001" geometry={(nodes['lamp2_Mat_0001'] || nodes['lamp2_Mat_0001'.replace(/(.*?)000(\d+)/, 'lamp2_Mat_0001.$2')])?.geometry} material={(nodes['lamp2_Mat_0001'] || nodes['lamp2_Mat_0001'.replace(/(.*?)000(\d+)/, 'lamp2_Mat_0001.$2')])?.material} position={[0, 0, 0]} />
-                  </group>
-                  <group name="lamp_1001" position={[2.373, 184.558, 7.548]}>
-                    <mesh name="lamp_1_Mat_0001" geometry={(nodes['lamp_1_Mat_0001'] || nodes['lamp_1_Mat_0001'.replace(/(.*?)000(\d+)/, 'lamp_1_Mat_0001.$2')])?.geometry} material={(nodes['lamp_1_Mat_0001'] || nodes['lamp_1_Mat_0001'.replace(/(.*?)000(\d+)/, 'lamp_1_Mat_0001.$2')])?.material} position={[0, 0.001, 0]} />
-                  </group>
-                  <group name="later001" position={[307.373, -31.91, -14.088]}>
-                    <mesh name="later_Mat_0001" geometry={(nodes['later_Mat_0001'] || nodes['later_Mat_0001'.replace(/(.*?)000(\d+)/, 'later_Mat_0001.$2')])?.geometry} material={(nodes['later_Mat_0001'] || nodes['later_Mat_0001'.replace(/(.*?)000(\d+)/, 'later_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="matress_2001" position={[-38.318, -38.614, -64.118]} rotation={[-Math.PI, 1.528, -Math.PI]}>
-                    <mesh name="matress_2_Mat_0001" geometry={(nodes['matress_2_Mat_0001'] || nodes['matress_2_Mat_0001'.replace(/(.*?)000(\d+)/, 'matress_2_Mat_0001.$2')])?.geometry} material={(nodes['matress_2_Mat_0001'] || nodes['matress_2_Mat_0001'.replace(/(.*?)000(\d+)/, 'matress_2_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="table001" position={[71.113, -56.12, -60.083]}>
-                    <mesh name="table_Mat_0001" geometry={(nodes['table_Mat_0001'] || nodes['table_Mat_0001'.replace(/(.*?)000(\d+)/, 'table_Mat_0001.$2')])?.geometry} material={(nodes['table_Mat_0001'] || nodes['table_Mat_0001'.replace(/(.*?)000(\d+)/, 'table_Mat_0001.$2')])?.material} />
-                  </group>
-                </group>
-                <group name="metalbars001" position={[-111.785, 75.185, 121.215]} rotation={[Math.PI, -1.278, Math.PI]}>
-                  <group name="metalbars2001" position={[-163.493, 51.087, -169.697]} rotation={[0, 0.061, 0]}>
-                    <mesh name="metalbars2_Mat_0001" geometry={(nodes['metalbars2_Mat_0001'] || nodes['metalbars2_Mat_0001'.replace(/(.*?)000(\d+)/, 'metalbars2_Mat_0001.$2')])?.geometry} material={(nodes['metalbars2_Mat_0001'] || nodes['metalbars2_Mat_0001'.replace(/(.*?)000(\d+)/, 'metalbars2_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="metalbars3001" position={[-225.58, 14.926, -225.411]} rotation={[-Math.PI, 1.278, -Math.PI]}>
-                    <mesh name="metalbars3_Mat_0001" geometry={(nodes['metalbars3_Mat_0001'] || nodes['metalbars3_Mat_0001'.replace(/(.*?)000(\d+)/, 'metalbars3_Mat_0001.$2')])?.geometry} material={(nodes['metalbars3_Mat_0001'] || nodes['metalbars3_Mat_0001'.replace(/(.*?)000(\d+)/, 'metalbars3_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="metalbars4001" position={[-181.063, -46.139, -107.547]} rotation={[-Math.PI, 1.278, -Math.PI]}>
-                    <mesh name="metalbars4_Mat_0001" geometry={(nodes['metalbars4_Mat_0001'] || nodes['metalbars4_Mat_0001'.replace(/(.*?)000(\d+)/, 'metalbars4_Mat_0001.$2')])?.geometry} material={(nodes['metalbars4_Mat_0001'] || nodes['metalbars4_Mat_0001'.replace(/(.*?)000(\d+)/, 'metalbars4_Mat_0001.$2')])?.material} />
-                  </group>
-                  <mesh name="metalbars_Mat_0001" geometry={(nodes['metalbars_Mat_0001'] || nodes['metalbars_Mat_0001'.replace(/(.*?)000(\d+)/, 'metalbars_Mat_0001.$2')])?.geometry} material={(nodes['metalbars_Mat_0001'] || nodes['metalbars_Mat_0001'.replace(/(.*?)000(\d+)/, 'metalbars_Mat_0001.$2')])?.material} position={[0, 0.001, 0]} />
-                </group>
-                <group name="metalroof001" position={[-59.893, 1.541, 132.714]}>
-                  <mesh name="metalroof_Mat_0001" geometry={(nodes['metalroof_Mat_0001'] || nodes['metalroof_Mat_0001'.replace(/(.*?)000(\d+)/, 'metalroof_Mat_0001.$2')])?.geometry} material={(nodes['metalroof_Mat_0001'] || nodes['metalroof_Mat_0001'.replace(/(.*?)000(\d+)/, 'metalroof_Mat_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="outsidewall001" position={[-42.418, -65.996, -48.981]}>
-                  <mesh name="outsidewall_Mat_0001" geometry={(nodes['outsidewall_Mat_0001'] || nodes['outsidewall_Mat_0001'.replace(/(.*?)000(\d+)/, 'outsidewall_Mat_0001.$2')])?.geometry} material={(nodes['outsidewall_Mat_0001'] || nodes['outsidewall_Mat_0001'.replace(/(.*?)000(\d+)/, 'outsidewall_Mat_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="outsidewall2001" position={[-42.418, 68.111, -48.981]}>
-                  <mesh name="outsidewall2_Mat_0001" geometry={(nodes['outsidewall2_Mat_0001'] || nodes['outsidewall2_Mat_0001'.replace(/(.*?)000(\d+)/, 'outsidewall2_Mat_0001.$2')])?.geometry} material={(nodes['outsidewall2_Mat_0001'] || nodes['outsidewall2_Mat_0001'.replace(/(.*?)000(\d+)/, 'outsidewall2_Mat_0001.$2')])?.material} position={[0.002, 0, 0]} />
-                </group>
-                <group name="powerbox001" position={[121.292, 32.752, 115.572]}>
-                  <group name="powerline001" position={[-79.961, 0.005, -2.579]}>
-                    <mesh name="powerline_Mat_0001" geometry={(nodes['powerline_Mat_0001'] || nodes['powerline_Mat_0001'.replace(/(.*?)000(\d+)/, 'powerline_Mat_0001.$2')])?.geometry} material={(nodes['powerline_Mat_0001'] || nodes['powerline_Mat_0001'.replace(/(.*?)000(\d+)/, 'powerline_Mat_0001.$2')])?.material} position={[0, 0, 0]} />
-                  </group>
-                  <mesh name="powerbox_Mat_0001" geometry={(nodes['powerbox_Mat_0001'] || nodes['powerbox_Mat_0001'.replace(/(.*?)000(\d+)/, 'powerbox_Mat_0001.$2')])?.geometry} material={(nodes['powerbox_Mat_0001'] || nodes['powerbox_Mat_0001'.replace(/(.*?)000(\d+)/, 'powerbox_Mat_0001.$2')])?.material} />
-                </group>
-                <group name="roof001" position={[-49.294, 136.413, -47.696]}>
-                  <mesh name="roof_Mat_0001" geometry={(nodes['roof_Mat_0001'] || nodes['roof_Mat_0001'.replace(/(.*?)000(\d+)/, 'roof_Mat_0001.$2')])?.geometry} material={(nodes['roof_Mat_0001'] || nodes['roof_Mat_0001'.replace(/(.*?)000(\d+)/, 'roof_Mat_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="stairs001" position={[-18.302, -61.516, -171.16]}>
-                  <mesh name="stairs_Mat_0002" geometry={(nodes['stairs_Mat_0002'] || nodes['stairs_Mat_0002'.replace(/(.*?)000(\d+)/, 'stairs_Mat_0002.$2')])?.geometry} material={(nodes['stairs_Mat_0002'] || nodes['stairs_Mat_0002'.replace(/(.*?)000(\d+)/, 'stairs_Mat_0002.$2')])?.material} position={[0, 0.001, 0]} />
-                  <mesh name="stairs_Mat_0003" geometry={(nodes['stairs_Mat_0003'] || nodes['stairs_Mat_0003'.replace(/(.*?)000(\d+)/, 'stairs_Mat_0003.$2')])?.geometry} material={(nodes['stairs_Mat_0003'] || nodes['stairs_Mat_0003'.replace(/(.*?)000(\d+)/, 'stairs_Mat_0003.$2')])?.material} position={[0, 0.001, 0]} />
-                </group>
-                <group name="topcel001" position={[-49.294, 65.762, -47.696]}>
-                  <mesh name="topcel_Mat_0001" geometry={(nodes['topcel_Mat_0001'] || nodes['topcel_Mat_0001'.replace(/(.*?)000(\d+)/, 'topcel_Mat_0001.$2')])?.geometry} material={(nodes['topcel_Mat_0001'] || nodes['topcel_Mat_0001'.replace(/(.*?)000(\d+)/, 'topcel_Mat_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="trimin001" position={[35.194, 0.331, -203.633]}>
-                  <mesh name="trimin_Mat_0001" geometry={(nodes['trimin_Mat_0001'] || nodes['trimin_Mat_0001'.replace(/(.*?)000(\d+)/, 'trimin_Mat_0001.$2')])?.geometry} material={(nodes['trimin_Mat_0001'] || nodes['trimin_Mat_0001'.replace(/(.*?)000(\d+)/, 'trimin_Mat_0001.$2')])?.material} position={[0.002, 0.001, 0]} />
-                </group>
-                <group name="windows001" position={[92.901, 63.884, -209.48]}>
-                  <group name="Cube004" position={[8.828, 11.424, 2.15]}>
-                    <mesh name="Cube_Mat_0001" geometry={(nodes['Cube_Mat_0001'] || nodes['Cube_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_Mat_0001.$2')])?.geometry} material={(nodes['Cube_Mat_0001'] || nodes['Cube_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="Cube_2001" position={[-87.283, 11.424, 2.15]}>
-                    <mesh name="Cube_2_Mat_0001" geometry={(nodes['Cube_2_Mat_0001'] || nodes['Cube_2_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_2_Mat_0001.$2')])?.geometry} material={(nodes['Cube_2_Mat_0001'] || nodes['Cube_2_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_2_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="Cube_3001" position={[-231.437, 11.424, 2.15]}>
-                    <mesh name="Cube_3_Mat_0001" geometry={(nodes['Cube_3_Mat_0001'] || nodes['Cube_3_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_3_Mat_0001.$2')])?.geometry} material={(nodes['Cube_3_Mat_0001'] || nodes['Cube_3_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_3_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="Cube_4001" position={[-336.863, 11.424, 104.01]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Cube_4_Mat_0001" geometry={(nodes['Cube_4_Mat_0001'] || nodes['Cube_4_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_4_Mat_0001.$2')])?.geometry} material={(nodes['Cube_4_Mat_0001'] || nodes['Cube_4_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_4_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="Cube_5001" position={[-108.079, 12.307, 324.521]} rotation={[0.033, -0.015, -0.432]}>
-                    <mesh name="Cube_5_Mat_0001" geometry={(nodes['Cube_5_Mat_0001'] || nodes['Cube_5_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_5_Mat_0001.$2')])?.geometry} material={(nodes['Cube_5_Mat_0001'] || nodes['Cube_5_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_5_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="Cube_54001" position={[-11.741, 11.424, 2.15]}>
-                    <mesh name="Cube_54_Mat_0001" geometry={(nodes['Cube_54_Mat_0001'] || nodes['Cube_54_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_Mat_0001.$2')])?.geometry} material={(nodes['Cube_54_Mat_0001'] || nodes['Cube_54_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_Mat_0001.$2')])?.material} position={[0.001, 0, 0]} />
-                  </group>
-                  <group name="Cube_54_2001" position={[-252.007, 11.424, 2.15]}>
-                    <mesh name="Cube_54_2_Mat_0001" geometry={(nodes['Cube_54_2_Mat_0001'] || nodes['Cube_54_2_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_2_Mat_0001.$2')])?.geometry} material={(nodes['Cube_54_2_Mat_0001'] || nodes['Cube_54_2_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_2_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="Cube_54_3001" position={[-107.854, 11.424, 2.15]}>
-                    <mesh name="Cube_54_3_Mat_0001" geometry={(nodes['Cube_54_3_Mat_0001'] || nodes['Cube_54_3_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_3_Mat_0001.$2')])?.geometry} material={(nodes['Cube_54_3_Mat_0001'] || nodes['Cube_54_3_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_3_Mat_0001.$2')])?.material} position={[0.001, 0, 0]} />
-                  </group>
-                  <group name="Cube_54_4001" position={[-336.864, 11.424, 83.439]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Cube_54_4_Mat_0001" geometry={(nodes['Cube_54_4_Mat_0001'] || nodes['Cube_54_4_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_4_Mat_0001.$2')])?.geometry} material={(nodes['Cube_54_4_Mat_0001'] || nodes['Cube_54_4_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_4_Mat_0001.$2')])?.material} position={[0, 0, -0.001]} />
-                  </group>
-                  <group name="Cube_54_5001" position={[-151.888, 11.864, 328.406]} rotation={[0, -1.514, 0]}>
-                    <mesh name="Cube_54_5_Mat_0001" geometry={(nodes['Cube_54_5_Mat_0001'] || nodes['Cube_54_5_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_5_Mat_0001.$2')])?.geometry} material={(nodes['Cube_54_5_Mat_0001'] || nodes['Cube_54_5_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_5_Mat_0001.$2')])?.material} />
-                  </group>
-                  <group name="Cube_54_6001" position={[-341.8, 11.425, 199.918]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Cube_54_6_Mat_0001" geometry={(nodes['Cube_54_6_Mat_0001'] || nodes['Cube_54_6_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_6_Mat_0001.$2')])?.geometry} material={(nodes['Cube_54_6_Mat_0001'] || nodes['Cube_54_6_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_6_Mat_0001.$2')])?.material} position={[0, 0, -0.001]} />
-                  </group>
-                  <group name="Cube_54_7001" position={[-275.178, 11.864, 318.54]}>
-                    <mesh name="Cube_54_7_Mat_0001" geometry={(nodes['Cube_54_7_Mat_0001'] || nodes['Cube_54_7_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_7_Mat_0001.$2')])?.geometry} material={(nodes['Cube_54_7_Mat_0001'] || nodes['Cube_54_7_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_54_7_Mat_0001.$2')])?.material} position={[0, 0, 0]} />
-                  </group>
-                  <group name="Cube_6001" position={[-255.425, 11.864, 318.54]}>
-                    <mesh name="Cube_6_Mat_0001" geometry={(nodes['Cube_6_Mat_0001'] || nodes['Cube_6_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_6_Mat_0001.$2')])?.geometry} material={(nodes['Cube_6_Mat_0001'] || nodes['Cube_6_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_6_Mat_0001.$2')])?.material} position={[0, 0, 0]} />
-                  </group>
-                  <group name="Cube_7001" position={[-341.408, 11.424, 261.363]} rotation={[0, -1.571, 0]}>
-                    <mesh name="Cube_7_Mat_0001" geometry={(nodes['Cube_7_Mat_0001'] || nodes['Cube_7_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_7_Mat_0001.$2')])?.geometry} material={(nodes['Cube_7_Mat_0001'] || nodes['Cube_7_Mat_0001'.replace(/(.*?)000(\d+)/, 'Cube_7_Mat_0001.$2')])?.material} position={[0, 0, -0.001]} />
-                  </group>
-                  <group name="frame001" position={[-133.3, -56.268, 160.531]}>
-                    <mesh name="frame_Mat_0001" geometry={(nodes['frame_Mat_0001'] || nodes['frame_Mat_0001'.replace(/(.*?)000(\d+)/, 'frame_Mat_0001.$2')])?.geometry} material={(nodes['frame_Mat_0001'] || nodes['frame_Mat_0001'.replace(/(.*?)000(\d+)/, 'frame_Mat_0001.$2')])?.material} position={[0, 0, 0]} />
-                  </group>
-                  <group name="piece_29001" position={[66.386, 10.708, 216.628]} rotation={[0, 1.571, 0]}>
-                    <mesh name="piece_29_Mat_0001" geometry={(nodes['piece_29_Mat_0001'] || nodes['piece_29_Mat_0001'.replace(/(.*?)000(\d+)/, 'piece_29_Mat_0001.$2')])?.geometry} material={(nodes['piece_29_Mat_0001'] || nodes['piece_29_Mat_0001'.replace(/(.*?)000(\d+)/, 'piece_29_Mat_0001.$2')])?.material} position={[0, 0, 0.001]} />
-                  </group>
-                  <group name="piece_30001" position={[66.387, 10.708, 237.126]} rotation={[0, 1.571, 0]}>
-                    <mesh name="piece_30_Mat_0001" geometry={(nodes['piece_30_Mat_0001'] || nodes['piece_30_Mat_0001'.replace(/(.*?)000(\d+)/, 'piece_30_Mat_0001.$2')])?.geometry} material={(nodes['piece_30_Mat_0001'] || nodes['piece_30_Mat_0001'.replace(/(.*?)000(\d+)/, 'piece_30_Mat_0001.$2')])?.material} position={[0, 0, -0.001]} />
-                  </group>
-                </group>
-                <group name="woodbrackets001" position={[-51.215, 64.813, -18.381]}>
-                  <group name="woodcaps001" position={[18.954, -0.009, 148.111]}>
-                    <mesh name="woodcaps_Mat_0001" geometry={(nodes['woodcaps_Mat_0001'] || nodes['woodcaps_Mat_0001'.replace(/(.*?)000(\d+)/, 'woodcaps_Mat_0001.$2')])?.geometry} material={(nodes['woodcaps_Mat_0001'] || nodes['woodcaps_Mat_0001'.replace(/(.*?)000(\d+)/, 'woodcaps_Mat_0001.$2')])?.material} position={[0, 0, 0]} />
-                  </group>
-                  <mesh name="woodbrackets_Mat_0001" geometry={(nodes['woodbrackets_Mat_0001'] || nodes['woodbrackets_Mat_0001'.replace(/(.*?)000(\d+)/, 'woodbrackets_Mat_0001.$2')])?.geometry} material={(nodes['woodbrackets_Mat_0001'] || nodes['woodbrackets_Mat_0001'.replace(/(.*?)000(\d+)/, 'woodbrackets_Mat_0001.$2')])?.material} position={[0, 0.001, 0]} />
-                </group>
-              </group>
-            </group>
-          </group>
-        </group>
-        <group name="sss" position={[0, -0.62, 46.465]} rotation={[-Math.PI / 2, 0, 0]}>
-          <group name="4d836585acef4d31aa30346d207d12d7fbx" rotation={[Math.PI / 2, 0, 0]}>
-            <group name="RootNode032" position={[0, 0, -2.865]}>
-              <group name="0floor1" position={[21.188, 11.72, -1.812]}>
-                <mesh name="0floor1_71Mtl_0" geometry={(nodes['0floor1_71Mtl_0'] || nodes['0floor1_71Mtl_0'.replace(/(.*?)000(\d+)/, '0floor1_71Mtl_0.$2')])?.geometry} material={(nodes['0floor1_71Mtl_0'] || nodes['0floor1_71Mtl_0'.replace(/(.*?)000(\d+)/, '0floor1_71Mtl_0.$2')])?.material} />
-              </group>
-              <group name="0floor21" position={[21.188, 8.071, -1.812]}>
-                <mesh name="0floor21_21Mtl_0" geometry={(nodes['0floor21_21Mtl_0'] || nodes['0floor21_21Mtl_0'.replace(/(.*?)000(\d+)/, '0floor21_21Mtl_0.$2')])?.geometry} material={(nodes['0floor21_21Mtl_0'] || nodes['0floor21_21Mtl_0'.replace(/(.*?)000(\d+)/, '0floor21_21Mtl_0.$2')])?.material} />
-              </group>
-              <group name="0floor31" position={[21.189, 6.623, -1.794]}>
-                <mesh name="0floor31_0floor31Mtl_0" geometry={(nodes['0floor31_0floor31Mtl_0'] || nodes['0floor31_0floor31Mtl_0'.replace(/(.*?)000(\d+)/, '0floor31_0floor31Mtl_0.$2')])?.geometry} material={(nodes['0floor31_0floor31Mtl_0'] || nodes['0floor31_0floor31Mtl_0'.replace(/(.*?)000(\d+)/, '0floor31_0floor31Mtl_0.$2')])?.material} />
-              </group>
-              <group name="0floor41" position={[21.026, 5.632, 17.681]}>
-                <mesh name="0floor41_0floor41Mtl_0" geometry={(nodes['0floor41_0floor41Mtl_0'] || nodes['0floor41_0floor41Mtl_0'.replace(/(.*?)000(\d+)/, '0floor41_0floor41Mtl_0.$2')])?.geometry} material={(nodes['0floor41_0floor41Mtl_0'] || nodes['0floor41_0floor41Mtl_0'.replace(/(.*?)000(\d+)/, '0floor41_0floor41Mtl_0.$2')])?.material} />
-              </group>
-              <group name="0floor61" position={[21.188, 11.72, -1.812]}>
-                <mesh name="0floor61_81Mtl_0" geometry={(nodes['0floor61_81Mtl_0'] || nodes['0floor61_81Mtl_0'.replace(/(.*?)000(\d+)/, '0floor61_81Mtl_0.$2')])?.geometry} material={(nodes['0floor61_81Mtl_0'] || nodes['0floor61_81Mtl_0'.replace(/(.*?)000(\d+)/, '0floor61_81Mtl_0.$2')])?.material} />
-              </group>
-              <group name="11" position={[21.188, 144.001, -1.814]}>
-                <mesh name="11_71Mtl_0" geometry={(nodes['11_71Mtl_0'] || nodes['11_71Mtl_0'.replace(/(.*?)000(\d+)/, '11_71Mtl_0.$2')])?.geometry} material={(nodes['11_71Mtl_0'] || nodes['11_71Mtl_0'.replace(/(.*?)000(\d+)/, '11_71Mtl_0.$2')])?.material} />
-              </group>
-              <group name="12" position={[21.188, 101.377, -1.814]}>
-                <mesh name="12_71Mtl_0" geometry={(nodes['12_71Mtl_0'] || nodes['12_71Mtl_0'.replace(/(.*?)000(\d+)/, '12_71Mtl_0.$2')])?.geometry} material={(nodes['12_71Mtl_0'] || nodes['12_71Mtl_0'.replace(/(.*?)000(\d+)/, '12_71Mtl_0.$2')])?.material} />
-              </group>
-              <group name="13" position={[21.188, 58.753, -1.814]}>
-                <mesh name="13_71Mtl_0" geometry={(nodes['13_71Mtl_0'] || nodes['13_71Mtl_0'.replace(/(.*?)000(\d+)/, '13_71Mtl_0.$2')])?.geometry} material={(nodes['13_71Mtl_0'] || nodes['13_71Mtl_0'.replace(/(.*?)000(\d+)/, '13_71Mtl_0.$2')])?.material} />
-              </group>
-              <group name="21" position={[21.188, 128.896, -1.786]}>
-                <mesh name="21_21Mtl_0" geometry={(nodes['21_21Mtl_0'] || nodes['21_21Mtl_0'.replace(/(.*?)000(\d+)/, '21_21Mtl_0.$2')])?.geometry} material={(nodes['21_21Mtl_0'] || nodes['21_21Mtl_0'.replace(/(.*?)000(\d+)/, '21_21Mtl_0.$2')])?.material} />
-              </group>
-              <group name="22" position={[21.188, 86.272, -1.842]}>
-                <mesh name="22_21Mtl_0" geometry={(nodes['22_21Mtl_0'] || nodes['22_21Mtl_0'.replace(/(.*?)000(\d+)/, '22_21Mtl_0.$2')])?.geometry} material={(nodes['22_21Mtl_0'] || nodes['22_21Mtl_0'.replace(/(.*?)000(\d+)/, '22_21Mtl_0.$2')])?.material} />
-              </group>
-              <group name="23" position={[21.217, 43.648, -1.814]}>
-                <mesh name="23_21Mtl_0" geometry={(nodes['23_21Mtl_0'] || nodes['23_21Mtl_0'.replace(/(.*?)000(\d+)/, '23_21Mtl_0.$2')])?.geometry} material={(nodes['23_21Mtl_0'] || nodes['23_21Mtl_0'.replace(/(.*?)000(\d+)/, '23_21Mtl_0.$2')])?.material} />
-              </group>
-              <group name="31" position={[21.186, 129.067, -1.814]}>
-                <mesh name="31_51Mtl_0" geometry={(nodes['31_51Mtl_0'] || nodes['31_51Mtl_0'.replace(/(.*?)000(\d+)/, '31_51Mtl_0.$2')])?.geometry} material={(nodes['31_51Mtl_0'] || nodes['31_51Mtl_0'.replace(/(.*?)000(\d+)/, '31_51Mtl_0.$2')])?.material} />
-              </group>
-              <group name="32" position={[21.19, 86.444, -1.814]}>
-                <mesh name="32_51Mtl_0" geometry={(nodes['32_51Mtl_0'] || nodes['32_51Mtl_0'.replace(/(.*?)000(\d+)/, '32_51Mtl_0.$2')])?.geometry} material={(nodes['32_51Mtl_0'] || nodes['32_51Mtl_0'.replace(/(.*?)000(\d+)/, '32_51Mtl_0.$2')])?.material} />
-              </group>
-              <group name="33" position={[21.188, 43.82, -1.812]}>
-                <mesh name="33_51Mtl_0" geometry={(nodes['33_51Mtl_0'] || nodes['33_51Mtl_0'.replace(/(.*?)000(\d+)/, '33_51Mtl_0.$2')])?.geometry} material={(nodes['33_51Mtl_0'] || nodes['33_51Mtl_0'.replace(/(.*?)000(\d+)/, '33_51Mtl_0.$2')])?.material} />
-              </group>
-              <group name="41" position={[21.186, 126.293, -1.814]}>
-                <mesh name="41_51Mtl_0" geometry={(nodes['41_51Mtl_0'] || nodes['41_51Mtl_0'.replace(/(.*?)000(\d+)/, '41_51Mtl_0.$2')])?.geometry} material={(nodes['41_51Mtl_0'] || nodes['41_51Mtl_0'.replace(/(.*?)000(\d+)/, '41_51Mtl_0.$2')])?.material} />
-              </group>
-              <group name="42" position={[21.19, 83.669, -1.814]}>
-                <mesh name="42_51Mtl_0" geometry={(nodes['42_51Mtl_0'] || nodes['42_51Mtl_0'.replace(/(.*?)000(\d+)/, '42_51Mtl_0.$2')])?.geometry} material={(nodes['42_51Mtl_0'] || nodes['42_51Mtl_0'.replace(/(.*?)000(\d+)/, '42_51Mtl_0.$2')])?.material} />
-              </group>
-              <group name="43" position={[21.188, 41.045, -1.812]}>
-                <mesh name="43_51Mtl_0" geometry={(nodes['43_51Mtl_0'] || nodes['43_51Mtl_0'.replace(/(.*?)000(\d+)/, '43_51Mtl_0.$2')])?.geometry} material={(nodes['43_51Mtl_0'] || nodes['43_51Mtl_0'.replace(/(.*?)000(\d+)/, '43_51Mtl_0.$2')])?.material} />
-              </group>
-              <group name="51" position={[21.188, 149.999, -1.814]}>
-                <mesh name="51_51Mtl_0" geometry={(nodes['51_51Mtl_0'] || nodes['51_51Mtl_0'.replace(/(.*?)000(\d+)/, '51_51Mtl_0.$2')])?.geometry} material={(nodes['51_51Mtl_0'] || nodes['51_51Mtl_0'.replace(/(.*?)000(\d+)/, '51_51Mtl_0.$2')])?.material} />
-              </group>
-              <group name="52" position={[21.188, 107.375, -1.814]}>
-                <mesh name="52_51Mtl_0" geometry={(nodes['52_51Mtl_0'] || nodes['52_51Mtl_0'.replace(/(.*?)000(\d+)/, '52_51Mtl_0.$2')])?.geometry} material={(nodes['52_51Mtl_0'] || nodes['52_51Mtl_0'.replace(/(.*?)000(\d+)/, '52_51Mtl_0.$2')])?.material} />
-              </group>
-              <group name="53" position={[21.188, 64.752, -1.814]}>
-                <mesh name="53_51Mtl_0" geometry={(nodes['53_51Mtl_0'] || nodes['53_51Mtl_0'.replace(/(.*?)000(\d+)/, '53_51Mtl_0.$2')])?.geometry} material={(nodes['53_51Mtl_0'] || nodes['53_51Mtl_0'.replace(/(.*?)000(\d+)/, '53_51Mtl_0.$2')])?.material} />
-              </group>
-              <group name="61" position={[21.186, 136.635, -1.814]}>
-                <mesh name="61_81Mtl_0" geometry={(nodes['61_81Mtl_0'] || nodes['61_81Mtl_0'.replace(/(.*?)000(\d+)/, '61_81Mtl_0.$2')])?.geometry} material={(nodes['61_81Mtl_0'] || nodes['61_81Mtl_0'.replace(/(.*?)000(\d+)/, '61_81Mtl_0.$2')])?.material} />
-              </group>
-              <group name="62" position={[21.19, 94.011, -1.814]}>
-                <mesh name="62_81Mtl_0" geometry={(nodes['62_81Mtl_0'] || nodes['62_81Mtl_0'.replace(/(.*?)000(\d+)/, '62_81Mtl_0.$2')])?.geometry} material={(nodes['62_81Mtl_0'] || nodes['62_81Mtl_0'.replace(/(.*?)000(\d+)/, '62_81Mtl_0.$2')])?.material} />
-              </group>
-              <group name="63" position={[21.188, 51.387, -1.812]}>
-                <mesh name="63_81Mtl_0" geometry={(nodes['63_81Mtl_0'] || nodes['63_81Mtl_0'.replace(/(.*?)000(\d+)/, '63_81Mtl_0.$2')])?.geometry} material={(nodes['63_81Mtl_0'] || nodes['63_81Mtl_0'.replace(/(.*?)000(\d+)/, '63_81Mtl_0.$2')])?.material} />
-              </group>
-              <group name="71" position={[21.186, 122.129, -1.814]}>
-                <mesh name="71_71Mtl_0" geometry={(nodes['71_71Mtl_0'] || nodes['71_71Mtl_0'.replace(/(.*?)000(\d+)/, '71_71Mtl_0.$2')])?.geometry} material={(nodes['71_71Mtl_0'] || nodes['71_71Mtl_0'.replace(/(.*?)000(\d+)/, '71_71Mtl_0.$2')])?.material} />
-              </group>
-              <group name="72" position={[21.19, 79.505, -1.814]}>
-                <mesh name="72_71Mtl_0" geometry={(nodes['72_71Mtl_0'] || nodes['72_71Mtl_0'.replace(/(.*?)000(\d+)/, '72_71Mtl_0.$2')])?.geometry} material={(nodes['72_71Mtl_0'] || nodes['72_71Mtl_0'.replace(/(.*?)000(\d+)/, '72_71Mtl_0.$2')])?.material} />
-              </group>
-              <group name="73" position={[21.188, 36.881, -1.812]}>
-                <mesh name="73_71Mtl_0" geometry={(nodes['73_71Mtl_0'] || nodes['73_71Mtl_0'.replace(/(.*?)000(\d+)/, '73_71Mtl_0.$2')])?.geometry} material={(nodes['73_71Mtl_0'] || nodes['73_71Mtl_0'.replace(/(.*?)000(\d+)/, '73_71Mtl_0.$2')])?.material} />
-              </group>
-              <group name="81" position={[21.186, 116.202, -1.814]}>
-                <mesh name="81_81Mtl_0" geometry={(nodes['81_81Mtl_0'] || nodes['81_81Mtl_0'.replace(/(.*?)000(\d+)/, '81_81Mtl_0.$2')])?.geometry} material={(nodes['81_81Mtl_0'] || nodes['81_81Mtl_0'.replace(/(.*?)000(\d+)/, '81_81Mtl_0.$2')])?.material} />
-              </group>
-              <group name="82" position={[21.19, 73.578, -1.814]}>
-                <mesh name="82_81Mtl_0" geometry={(nodes['82_81Mtl_0'] || nodes['82_81Mtl_0'.replace(/(.*?)000(\d+)/, '82_81Mtl_0.$2')])?.geometry} material={(nodes['82_81Mtl_0'] || nodes['82_81Mtl_0'.replace(/(.*?)000(\d+)/, '82_81Mtl_0.$2')])?.material} />
-              </group>
-              <group name="83" position={[21.188, 30.954, -1.812]}>
-                <mesh name="83_81Mtl_0" geometry={(nodes['83_81Mtl_0'] || nodes['83_81Mtl_0'.replace(/(.*?)000(\d+)/, '83_81Mtl_0.$2')])?.geometry} material={(nodes['83_81Mtl_0'] || nodes['83_81Mtl_0'.replace(/(.*?)000(\d+)/, '83_81Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Dumpster1" position={[-19.55, 5.036, 12.301]}>
-                <mesh name="Dumpster1_Dumpster1Mtl_0" geometry={(nodes['Dumpster1_Dumpster1Mtl_0'] || nodes['Dumpster1_Dumpster1Mtl_0'.replace(/(.*?)000(\d+)/, 'Dumpster1_Dumpster1Mtl_0.$2')])?.geometry} material={(nodes['Dumpster1_Dumpster1Mtl_0'] || nodes['Dumpster1_Dumpster1Mtl_0'.replace(/(.*?)000(\d+)/, 'Dumpster1_Dumpster1Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Meshpart1" position={[34.424, 1.7, 9.5]}>
-                <mesh name="Meshpart1_Meshpart1Mtl_0" geometry={(nodes['Meshpart1_Meshpart1Mtl_0'] || nodes['Meshpart1_Meshpart1Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart1_Meshpart1Mtl_0.$2')])?.geometry} material={(nodes['Meshpart1_Meshpart1Mtl_0'] || nodes['Meshpart1_Meshpart1Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart1_Meshpart1Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Meshpart2" position={[34.87, 1.8, -1.798]}>
-                <mesh name="Meshpart2_Meshpart2Mtl_0" geometry={(nodes['Meshpart2_Meshpart2Mtl_0'] || nodes['Meshpart2_Meshpart2Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart2_Meshpart2Mtl_0.$2')])?.geometry} material={(nodes['Meshpart2_Meshpart2Mtl_0'] || nodes['Meshpart2_Meshpart2Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart2_Meshpart2Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Meshpart3" position={[-18.177, 2.716, 3.138]}>
-                <mesh name="Meshpart3_Meshpart3Mtl_0" geometry={(nodes['Meshpart3_Meshpart3Mtl_0'] || nodes['Meshpart3_Meshpart3Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart3_Meshpart3Mtl_0.$2')])?.geometry} material={(nodes['Meshpart3_Meshpart3Mtl_0'] || nodes['Meshpart3_Meshpart3Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart3_Meshpart3Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Meshpart4" position={[-17.719, 2.716, 0.281]}>
-                <mesh name="Meshpart4_Meshpart4Mtl_0" geometry={(nodes['Meshpart4_Meshpart4Mtl_0'] || nodes['Meshpart4_Meshpart4Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart4_Meshpart4Mtl_0.$2')])?.geometry} material={(nodes['Meshpart4_Meshpart4Mtl_0'] || nodes['Meshpart4_Meshpart4Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart4_Meshpart4Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Meshpart5" position={[-16.741, 0.394, 1.777]}>
-                <mesh name="Meshpart5_Meshpart5Mtl_0" geometry={(nodes['Meshpart5_Meshpart5Mtl_0'] || nodes['Meshpart5_Meshpart5Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart5_Meshpart5Mtl_0.$2')])?.geometry} material={(nodes['Meshpart5_Meshpart5Mtl_0'] || nodes['Meshpart5_Meshpart5Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart5_Meshpart5Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Meshpart6" position={[-14.888, 2.716, 0.334]}>
-                <mesh name="Meshpart6_Meshpart6Mtl_0" geometry={(nodes['Meshpart6_Meshpart6Mtl_0'] || nodes['Meshpart6_Meshpart6Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart6_Meshpart6Mtl_0.$2')])?.geometry} material={(nodes['Meshpart6_Meshpart6Mtl_0'] || nodes['Meshpart6_Meshpart6Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart6_Meshpart6Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Meshpart7" position={[-15.398, 2.716, 3.142]}>
-                <mesh name="Meshpart7_Meshpart7Mtl_0" geometry={(nodes['Meshpart7_Meshpart7Mtl_0'] || nodes['Meshpart7_Meshpart7Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart7_Meshpart7Mtl_0.$2')])?.geometry} material={(nodes['Meshpart7_Meshpart7Mtl_0'] || nodes['Meshpart7_Meshpart7Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart7_Meshpart7Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Meshpart8" position={[-6.749, 0.529, 15.926]}>
-                <mesh name="Meshpart8_Meshpart8Mtl_0" geometry={(nodes['Meshpart8_Meshpart8Mtl_0'] || nodes['Meshpart8_Meshpart8Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart8_Meshpart8Mtl_0.$2')])?.geometry} material={(nodes['Meshpart8_Meshpart8Mtl_0'] || nodes['Meshpart8_Meshpart8Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart8_Meshpart8Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Meshpart9" position={[-6.074, 2.108, 11.613]}>
-                <mesh name="Meshpart9_Meshpart9Mtl_0" geometry={(nodes['Meshpart9_Meshpart9Mtl_0'] || nodes['Meshpart9_Meshpart9Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart9_Meshpart9Mtl_0.$2')])?.geometry} material={(nodes['Meshpart9_Meshpart9Mtl_0'] || nodes['Meshpart9_Meshpart9Mtl_0'.replace(/(.*?)000(\d+)/, 'Meshpart9_Meshpart9Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1031" position={[52.714, 3.787, 4.869]}>
-                <mesh name="Polysurface1031_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1031_Polysurface1111Mtl_0'] || nodes['Polysurface1031_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1031_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1031_Polysurface1111Mtl_0'] || nodes['Polysurface1031_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1031_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1032" position={[52.714, 3.787, -18.131]}>
-                <mesh name="Polysurface1032_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1032_Polysurface1111Mtl_0'] || nodes['Polysurface1032_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1032_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1032_Polysurface1111Mtl_0'] || nodes['Polysurface1032_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1032_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1033" position={[22.869, 3.787, -32.714]}>
-                <mesh name="Polysurface1033_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1033_Polysurface1111Mtl_0'] || nodes['Polysurface1033_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1033_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1033_Polysurface1111Mtl_0'] || nodes['Polysurface1033_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1033_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1034" position={[-0.131, 3.787, -32.714]}>
-                <mesh name="Polysurface1034_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1034_Polysurface1111Mtl_0'] || nodes['Polysurface1034_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1034_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1034_Polysurface1111Mtl_0'] || nodes['Polysurface1034_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1034_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1035" position={[-11.714, 3.787, -20.869]}>
-                <mesh name="Polysurface1035_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1035_Polysurface1111Mtl_0'] || nodes['Polysurface1035_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1035_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1035_Polysurface1111Mtl_0'] || nodes['Polysurface1035_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1035_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1036" position={[-11.714, 3.787, 10.131]}>
-                <mesh name="Polysurface1036_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1036_Polysurface1111Mtl_0'] || nodes['Polysurface1036_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1036_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1036_Polysurface1111Mtl_0'] || nodes['Polysurface1036_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1036_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1041" position={[52.689, 3.787, 12.39]}>
-                <mesh name="Polysurface1041_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1041_Polysurface1111Mtl_0'] || nodes['Polysurface1041_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1041_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1041_Polysurface1111Mtl_0'] || nodes['Polysurface1041_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1041_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1042" position={[52.689, 3.787, -10.61]}>
-                <mesh name="Polysurface1042_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1042_Polysurface1111Mtl_0'] || nodes['Polysurface1042_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1042_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1042_Polysurface1111Mtl_0'] || nodes['Polysurface1042_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1042_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1043" position={[30.39, 3.787, -32.689]}>
-                <mesh name="Polysurface1043_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1043_Polysurface1111Mtl_0'] || nodes['Polysurface1043_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1043_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1043_Polysurface1111Mtl_0'] || nodes['Polysurface1043_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1043_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1044" position={[7.39, 3.787, -32.689]}>
-                <mesh name="Polysurface1044_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1044_Polysurface1111Mtl_0'] || nodes['Polysurface1044_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1044_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1044_Polysurface1111Mtl_0'] || nodes['Polysurface1044_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1044_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1045" position={[-11.689, 3.787, -28.39]}>
-                <mesh name="Polysurface1045_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1045_Polysurface1111Mtl_0'] || nodes['Polysurface1045_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1045_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1045_Polysurface1111Mtl_0'] || nodes['Polysurface1045_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1045_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1046" position={[-11.689, 3.787, 2.61]}>
-                <mesh name="Polysurface1046_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1046_Polysurface1111Mtl_0'] || nodes['Polysurface1046_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1046_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1046_Polysurface1111Mtl_0'] || nodes['Polysurface1046_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1046_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface11" position={[-6.289, 0.698, 17.856]}>
-                <mesh name="Polysurface11_Polysurface11Mtl_0" geometry={(nodes['Polysurface11_Polysurface11Mtl_0'] || nodes['Polysurface11_Polysurface11Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface11_Polysurface11Mtl_0.$2')])?.geometry} material={(nodes['Polysurface11_Polysurface11Mtl_0'] || nodes['Polysurface11_Polysurface11Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface11_Polysurface11Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1111" position={[52.769, 3.787, -2.793]}>
-                <mesh name="Polysurface1111_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1111_Polysurface1111Mtl_0'] || nodes['Polysurface1111_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1111_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1111_Polysurface1111Mtl_0'] || nodes['Polysurface1111_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1111_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1112" position={[52.769, 3.787, -25.793]}>
-                <mesh name="Polysurface1112_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1112_Polysurface1111Mtl_0'] || nodes['Polysurface1112_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1112_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1112_Polysurface1111Mtl_0'] || nodes['Polysurface1112_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1112_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1113" position={[15.207, 3.787, -32.769]}>
-                <mesh name="Polysurface1113_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1113_Polysurface1111Mtl_0'] || nodes['Polysurface1113_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1113_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1113_Polysurface1111Mtl_0'] || nodes['Polysurface1113_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1113_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1114" position={[-7.793, 3.787, -32.769]}>
-                <mesh name="Polysurface1114_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1114_Polysurface1111Mtl_0'] || nodes['Polysurface1114_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1114_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1114_Polysurface1111Mtl_0'] || nodes['Polysurface1114_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1114_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1115" position={[-11.769, 3.787, -13.207]}>
-                <mesh name="Polysurface1115_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1115_Polysurface1111Mtl_0'] || nodes['Polysurface1115_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1115_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1115_Polysurface1111Mtl_0'] || nodes['Polysurface1115_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1115_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1116" position={[-11.769, 3.787, 17.793]}>
-                <mesh name="Polysurface1116_Polysurface1111Mtl_0" geometry={(nodes['Polysurface1116_Polysurface1111Mtl_0'] || nodes['Polysurface1116_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1116_Polysurface1111Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1116_Polysurface1111Mtl_0'] || nodes['Polysurface1116_Polysurface1111Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1116_Polysurface1111Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface121" position={[20.772, 1.116, 27.228]}>
-                <mesh name="Polysurface121_Polysurface211Mtl_0" geometry={(nodes['Polysurface121_Polysurface211Mtl_0'] || nodes['Polysurface121_Polysurface211Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface121_Polysurface211Mtl_0.$2')])?.geometry} material={(nodes['Polysurface121_Polysurface211Mtl_0'] || nodes['Polysurface121_Polysurface211Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface121_Polysurface211Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1471" position={[5.869, 0.274, 22.619]}>
-                <mesh name="Polysurface1471_Polysurface1471Mtl_0" geometry={(nodes['Polysurface1471_Polysurface1471Mtl_0'] || nodes['Polysurface1471_Polysurface1471Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1471_Polysurface1471Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1471_Polysurface1471Mtl_0'] || nodes['Polysurface1471_Polysurface1471Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1471_Polysurface1471Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1481" position={[9.491, 0.265, 21.104]}>
-                <mesh name="Polysurface1481_Polysurface1471Mtl_0" geometry={(nodes['Polysurface1481_Polysurface1471Mtl_0'] || nodes['Polysurface1481_Polysurface1471Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1481_Polysurface1471Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1481_Polysurface1471Mtl_0'] || nodes['Polysurface1481_Polysurface1471Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1481_Polysurface1471Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface1501" position={[15.732, 0.798, 19.502]}>
-                <mesh name="Polysurface1501_Polysurface1471Mtl_0" geometry={(nodes['Polysurface1501_Polysurface1471Mtl_0'] || nodes['Polysurface1501_Polysurface1471Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1501_Polysurface1471Mtl_0.$2')])?.geometry} material={(nodes['Polysurface1501_Polysurface1471Mtl_0'] || nodes['Polysurface1501_Polysurface1471Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface1501_Polysurface1471Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface211" position={[-5.735, 1.157, 23.19]}>
-                <mesh name="Polysurface211_Polysurface211Mtl_0" geometry={(nodes['Polysurface211_Polysurface211Mtl_0'] || nodes['Polysurface211_Polysurface211Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface211_Polysurface211Mtl_0.$2')])?.geometry} material={(nodes['Polysurface211_Polysurface211Mtl_0'] || nodes['Polysurface211_Polysurface211Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface211_Polysurface211Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface281" position={[-10.5, 26.341, -18.354]}>
-                <mesh name="Polysurface281_Polysurface528Mtl_0" geometry={(nodes['Polysurface281_Polysurface528Mtl_0'] || nodes['Polysurface281_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface281_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface281_Polysurface528Mtl_0'] || nodes['Polysurface281_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface281_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface282" position={[-10.002, 52.94, 4.274]}>
-                <mesh name="Polysurface282_Polysurface528Mtl_0" geometry={(nodes['Polysurface282_Polysurface528Mtl_0'] || nodes['Polysurface282_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface282_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface282_Polysurface528Mtl_0'] || nodes['Polysurface282_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface282_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface283" position={[-10.519, 42.21, -17.368]}>
-                <mesh name="Polysurface283_Polysurface521Mtl_0" geometry={(nodes['Polysurface283_Polysurface521Mtl_0'] || nodes['Polysurface283_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface283_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface283_Polysurface521Mtl_0'] || nodes['Polysurface283_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface283_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface421" position={[-10.725, 21.314, 21.688]}>
-                <mesh name="Polysurface421_Polysurface528Mtl_0" geometry={(nodes['Polysurface421_Polysurface528Mtl_0'] || nodes['Polysurface421_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface421_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface421_Polysurface528Mtl_0'] || nodes['Polysurface421_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface421_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface422" position={[-10.95, 62.845, 17.436]}>
-                <mesh name="Polysurface422_Polysurface521Mtl_0" geometry={(nodes['Polysurface422_Polysurface521Mtl_0'] || nodes['Polysurface422_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface422_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface422_Polysurface521Mtl_0'] || nodes['Polysurface422_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface422_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface423" position={[-10.713, 24.266, 6.718]}>
-                <mesh name="Polysurface423_Polysurface528Mtl_0" geometry={(nodes['Polysurface423_Polysurface528Mtl_0'] || nodes['Polysurface423_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface423_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface423_Polysurface528Mtl_0'] || nodes['Polysurface423_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface423_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface4471" position={[-0.034, 0.408, 19.825]}>
-                <mesh name="Polysurface4471_Polysurface5371Mtl_0" geometry={(nodes['Polysurface4471_Polysurface5371Mtl_0'] || nodes['Polysurface4471_Polysurface5371Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface4471_Polysurface5371Mtl_0.$2')])?.geometry} material={(nodes['Polysurface4471_Polysurface5371Mtl_0'] || nodes['Polysurface4471_Polysurface5371Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface4471_Polysurface5371Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface461" position={[-11.217, 79.11, 0.178]}>
-                <mesh name="Polysurface461_Polysurface481Mtl_0" geometry={(nodes['Polysurface461_Polysurface481Mtl_0'] || nodes['Polysurface461_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface461_Polysurface481Mtl_0.$2')])?.geometry} material={(nodes['Polysurface461_Polysurface481Mtl_0'] || nodes['Polysurface461_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface461_Polysurface481Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface462" position={[-0.198, 13.647, -6.674]}>
-                <mesh name="Polysurface462_Polysurface481Mtl_0" geometry={(nodes['Polysurface462_Polysurface481Mtl_0'] || nodes['Polysurface462_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface462_Polysurface481Mtl_0.$2')])?.geometry} material={(nodes['Polysurface462_Polysurface481Mtl_0'] || nodes['Polysurface462_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface462_Polysurface481Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface463" position={[-11.217, 91.71, 9.178]}>
-                <mesh name="Polysurface463_Polysurface481Mtl_0" geometry={(nodes['Polysurface463_Polysurface481Mtl_0'] || nodes['Polysurface463_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface463_Polysurface481Mtl_0.$2')])?.geometry} material={(nodes['Polysurface463_Polysurface481Mtl_0'] || nodes['Polysurface463_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface463_Polysurface481Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface464" position={[-10.185, 21.258, 14.191]}>
-                <mesh name="Polysurface464_Polysurface481Mtl_0" geometry={(nodes['Polysurface464_Polysurface481Mtl_0'] || nodes['Polysurface464_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface464_Polysurface481Mtl_0.$2')])?.geometry} material={(nodes['Polysurface464_Polysurface481Mtl_0'] || nodes['Polysurface464_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface464_Polysurface481Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface481" position={[-10.771, 86.594, -20.669]}>
-                <mesh name="Polysurface481_Polysurface481Mtl_0" geometry={(nodes['Polysurface481_Polysurface481Mtl_0'] || nodes['Polysurface481_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface481_Polysurface481Mtl_0.$2')])?.geometry} material={(nodes['Polysurface481_Polysurface481Mtl_0'] || nodes['Polysurface481_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface481_Polysurface481Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface482" position={[-11.812, 66.338, 26.915]}>
-                <mesh name="Polysurface482_Polysurface481Mtl_0" geometry={(nodes['Polysurface482_Polysurface481Mtl_0'] || nodes['Polysurface482_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface482_Polysurface481Mtl_0.$2')])?.geometry} material={(nodes['Polysurface482_Polysurface481Mtl_0'] || nodes['Polysurface482_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface482_Polysurface481Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface483" position={[-0.365, 12.275, 9.252]}>
-                <mesh name="Polysurface483_Polysurface481Mtl_0" geometry={(nodes['Polysurface483_Polysurface481Mtl_0'] || nodes['Polysurface483_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface483_Polysurface481Mtl_0.$2')])?.geometry} material={(nodes['Polysurface483_Polysurface481Mtl_0'] || nodes['Polysurface483_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface483_Polysurface481Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface484" position={[-10.581, 34.595, -23.88]}>
-                <mesh name="Polysurface484_Polysurface481Mtl_0" geometry={(nodes['Polysurface484_Polysurface481Mtl_0'] || nodes['Polysurface484_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface484_Polysurface481Mtl_0.$2')])?.geometry} material={(nodes['Polysurface484_Polysurface481Mtl_0'] || nodes['Polysurface484_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface484_Polysurface481Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface485" position={[-10.581, 34.595, 0.12]}>
-                <mesh name="Polysurface485_Polysurface481Mtl_0" geometry={(nodes['Polysurface485_Polysurface481Mtl_0'] || nodes['Polysurface485_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface485_Polysurface481Mtl_0.$2')])?.geometry} material={(nodes['Polysurface485_Polysurface481Mtl_0'] || nodes['Polysurface485_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface485_Polysurface481Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface486" position={[-11.581, 86.594, 0.12]}>
-                <mesh name="Polysurface486_Polysurface481Mtl_0" geometry={(nodes['Polysurface486_Polysurface481Mtl_0'] || nodes['Polysurface486_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface486_Polysurface481Mtl_0.$2')])?.geometry} material={(nodes['Polysurface486_Polysurface481Mtl_0'] || nodes['Polysurface486_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface486_Polysurface481Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface487" position={[-11.581, 86.594, -17.88]}>
-                <mesh name="Polysurface487_Polysurface481Mtl_0" geometry={(nodes['Polysurface487_Polysurface481Mtl_0'] || nodes['Polysurface487_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface487_Polysurface481Mtl_0.$2')])?.geometry} material={(nodes['Polysurface487_Polysurface481Mtl_0'] || nodes['Polysurface487_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface487_Polysurface481Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface4871" position={[13.421, 0.216, 22.871]}>
-                <mesh name="Polysurface4871_Polysurface5371Mtl_0" geometry={(nodes['Polysurface4871_Polysurface5371Mtl_0'] || nodes['Polysurface4871_Polysurface5371Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface4871_Polysurface5371Mtl_0.$2')])?.geometry} material={(nodes['Polysurface4871_Polysurface5371Mtl_0'] || nodes['Polysurface4871_Polysurface5371Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface4871_Polysurface5371Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface488" position={[6.804, 115.594, 32.161]}>
-                <mesh name="Polysurface488_Polysurface481Mtl_0" geometry={(nodes['Polysurface488_Polysurface481Mtl_0'] || nodes['Polysurface488_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface488_Polysurface481Mtl_0.$2')])?.geometry} material={(nodes['Polysurface488_Polysurface481Mtl_0'] || nodes['Polysurface488_Polysurface481Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface488_Polysurface481Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface4891" position={[19.502, 0.197, 24.803]}>
-                <mesh name="Polysurface4891_Polysurface5371Mtl_0" geometry={(nodes['Polysurface4891_Polysurface5371Mtl_0'] || nodes['Polysurface4891_Polysurface5371Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface4891_Polysurface5371Mtl_0.$2')])?.geometry} material={(nodes['Polysurface4891_Polysurface5371Mtl_0'] || nodes['Polysurface4891_Polysurface5371Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface4891_Polysurface5371Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface501" position={[-11.185, 76.055, 12.293]}>
-                <mesh name="Polysurface501_Polysurface528Mtl_0" geometry={(nodes['Polysurface501_Polysurface528Mtl_0'] || nodes['Polysurface501_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface501_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface501_Polysurface528Mtl_0'] || nodes['Polysurface501_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface501_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5010" position={[40.768, 63.265, 27.577]}>
-                <mesh name="Polysurface5010_Polysurface528Mtl_0" geometry={(nodes['Polysurface5010_Polysurface528Mtl_0'] || nodes['Polysurface5010_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5010_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5010_Polysurface528Mtl_0'] || nodes['Polysurface5010_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5010_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5011" position={[39.766, 105.054, 29.575]}>
-                <mesh name="Polysurface5011_Polysurface528Mtl_0" geometry={(nodes['Polysurface5011_Polysurface528Mtl_0'] || nodes['Polysurface5011_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5011_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5011_Polysurface528Mtl_0'] || nodes['Polysurface5011_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5011_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5012" position={[-0.232, 63.265, 27.577]}>
-                <mesh name="Polysurface5012_Polysurface528Mtl_0" geometry={(nodes['Polysurface5012_Polysurface528Mtl_0'] || nodes['Polysurface5012_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5012_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5012_Polysurface528Mtl_0'] || nodes['Polysurface5012_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5012_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface502" position={[-11.185, 48.055, -9.707]}>
-                <mesh name="Polysurface502_Polysurface528Mtl_0" geometry={(nodes['Polysurface502_Polysurface528Mtl_0'] || nodes['Polysurface502_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface502_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface502_Polysurface528Mtl_0'] || nodes['Polysurface502_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface502_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface503" position={[-9.187, 34.265, 13.295]}>
-                <mesh name="Polysurface503_Polysurface528Mtl_0" geometry={(nodes['Polysurface503_Polysurface528Mtl_0'] || nodes['Polysurface503_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface503_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface503_Polysurface528Mtl_0'] || nodes['Polysurface503_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface503_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface504" position={[-9.187, 34.265, -27.705]}>
-                <mesh name="Polysurface504_Polysurface528Mtl_0" geometry={(nodes['Polysurface504_Polysurface528Mtl_0'] || nodes['Polysurface504_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface504_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface504_Polysurface528Mtl_0'] || nodes['Polysurface504_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface504_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface505" position={[-11.185, 77.055, -9.707]}>
-                <mesh name="Polysurface505_Polysurface528Mtl_0" geometry={(nodes['Polysurface505_Polysurface528Mtl_0'] || nodes['Polysurface505_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface505_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface505_Polysurface528Mtl_0'] || nodes['Polysurface505_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface505_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface506" position={[-11.225, 75.726, -23.228]}>
-                <mesh name="Polysurface506_Polysurface521Mtl_0" geometry={(nodes['Polysurface506_Polysurface521Mtl_0'] || nodes['Polysurface506_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface506_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface506_Polysurface521Mtl_0'] || nodes['Polysurface506_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface506_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface507" position={[17.766, 77.055, 29.575]}>
-                <mesh name="Polysurface507_Polysurface528Mtl_0" geometry={(nodes['Polysurface507_Polysurface528Mtl_0'] || nodes['Polysurface507_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface507_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface507_Polysurface528Mtl_0'] || nodes['Polysurface507_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface507_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface508" position={[17.766, 106.054, 29.575]}>
-                <mesh name="Polysurface508_Polysurface528Mtl_0" geometry={(nodes['Polysurface508_Polysurface528Mtl_0'] || nodes['Polysurface508_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface508_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface508_Polysurface528Mtl_0'] || nodes['Polysurface508_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface508_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface509" position={[4.245, 104.726, 29.615]}>
-                <mesh name="Polysurface509_Polysurface521Mtl_0" geometry={(nodes['Polysurface509_Polysurface521Mtl_0'] || nodes['Polysurface509_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface509_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface509_Polysurface521Mtl_0'] || nodes['Polysurface509_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface509_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface521" position={[1.76, 129.437, 29.255]}>
-                <mesh name="Polysurface521_Polysurface521Mtl_0" geometry={(nodes['Polysurface521_Polysurface521Mtl_0'] || nodes['Polysurface521_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface521_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface521_Polysurface521Mtl_0'] || nodes['Polysurface521_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface521_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5210" position={[48.31, 78.038, 29.053]}>
-                <mesh name="Polysurface5210_Polysurface528Mtl_0" geometry={(nodes['Polysurface5210_Polysurface528Mtl_0'] || nodes['Polysurface5210_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5210_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5210_Polysurface528Mtl_0'] || nodes['Polysurface5210_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5210_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5211" position={[42.634, 16.439, 30.787]}>
-                <mesh name="Polysurface5211_Polysurface521Mtl_0" geometry={(nodes['Polysurface5211_Polysurface521Mtl_0'] || nodes['Polysurface5211_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5211_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5211_Polysurface521Mtl_0'] || nodes['Polysurface5211_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5211_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5212" position={[7.635, 16.439, 30.787]}>
-                <mesh name="Polysurface5212_Polysurface521Mtl_0" geometry={(nodes['Polysurface5212_Polysurface521Mtl_0'] || nodes['Polysurface5212_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5212_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5212_Polysurface521Mtl_0'] || nodes['Polysurface5212_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5212_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5213" position={[-0.365, 100.437, 30.787]}>
-                <mesh name="Polysurface5213_Polysurface521Mtl_0" geometry={(nodes['Polysurface5213_Polysurface521Mtl_0'] || nodes['Polysurface5213_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5213_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5213_Polysurface521Mtl_0'] || nodes['Polysurface5213_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5213_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5214" position={[26.634, 100.437, 30.787]}>
-                <mesh name="Polysurface5214_Polysurface521Mtl_0" geometry={(nodes['Polysurface5214_Polysurface521Mtl_0'] || nodes['Polysurface5214_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5214_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5214_Polysurface521Mtl_0'] || nodes['Polysurface5214_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5214_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5215" position={[-0.365, 16.439, 30.787]}>
-                <mesh name="Polysurface5215_Polysurface521Mtl_0" geometry={(nodes['Polysurface5215_Polysurface521Mtl_0'] || nodes['Polysurface5215_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5215_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5215_Polysurface521Mtl_0'] || nodes['Polysurface5215_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5215_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5216" position={[26.634, 16.439, 30.787]}>
-                <mesh name="Polysurface5216_Polysurface521Mtl_0" geometry={(nodes['Polysurface5216_Polysurface521Mtl_0'] || nodes['Polysurface5216_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5216_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5216_Polysurface521Mtl_0'] || nodes['Polysurface5216_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5216_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5217" position={[26.634, 59.438, 30.787]}>
-                <mesh name="Polysurface5217_Polysurface521Mtl_0" geometry={(nodes['Polysurface5217_Polysurface521Mtl_0'] || nodes['Polysurface5217_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5217_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5217_Polysurface521Mtl_0'] || nodes['Polysurface5217_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5217_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5218" position={[-0.365, 59.438, 30.787]}>
-                <mesh name="Polysurface5218_Polysurface521Mtl_0" geometry={(nodes['Polysurface5218_Polysurface521Mtl_0'] || nodes['Polysurface5218_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5218_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5218_Polysurface521Mtl_0'] || nodes['Polysurface5218_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5218_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5219" position={[7.635, 59.438, 30.787]}>
-                <mesh name="Polysurface5219_Polysurface521Mtl_0" geometry={(nodes['Polysurface5219_Polysurface521Mtl_0'] || nodes['Polysurface5219_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5219_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5219_Polysurface521Mtl_0'] || nodes['Polysurface5219_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5219_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface522" position={[9.76, 129.437, 29.255]}>
-                <mesh name="Polysurface522_Polysurface521Mtl_0" geometry={(nodes['Polysurface522_Polysurface521Mtl_0'] || nodes['Polysurface522_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface522_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface522_Polysurface521Mtl_0'] || nodes['Polysurface522_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface522_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5220" position={[7.635, 100.437, 30.787]}>
-                <mesh name="Polysurface5220_Polysurface521Mtl_0" geometry={(nodes['Polysurface5220_Polysurface521Mtl_0'] || nodes['Polysurface5220_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5220_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5220_Polysurface521Mtl_0'] || nodes['Polysurface5220_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5220_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5221" position={[53.135, 100.438, 3.287]}>
-                <mesh name="Polysurface5221_Polysurface521Mtl_0" geometry={(nodes['Polysurface5221_Polysurface521Mtl_0'] || nodes['Polysurface5221_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5221_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5221_Polysurface521Mtl_0'] || nodes['Polysurface5221_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5221_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5222" position={[53.135, 59.438, 3.287]}>
-                <mesh name="Polysurface5222_Polysurface521Mtl_0" geometry={(nodes['Polysurface5222_Polysurface521Mtl_0'] || nodes['Polysurface5222_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5222_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5222_Polysurface521Mtl_0'] || nodes['Polysurface5222_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5222_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5223" position={[53.135, 100.438, -15.713]}>
-                <mesh name="Polysurface5223_Polysurface521Mtl_0" geometry={(nodes['Polysurface5223_Polysurface521Mtl_0'] || nodes['Polysurface5223_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5223_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5223_Polysurface521Mtl_0'] || nodes['Polysurface5223_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5223_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5224" position={[53.135, 59.438, -15.713]}>
-                <mesh name="Polysurface5224_Polysurface521Mtl_0" geometry={(nodes['Polysurface5224_Polysurface521Mtl_0'] || nodes['Polysurface5224_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5224_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5224_Polysurface521Mtl_0'] || nodes['Polysurface5224_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5224_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5225" position={[53.135, 59.438, 11.287]}>
-                <mesh name="Polysurface5225_Polysurface521Mtl_0" geometry={(nodes['Polysurface5225_Polysurface521Mtl_0'] || nodes['Polysurface5225_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5225_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5225_Polysurface521Mtl_0'] || nodes['Polysurface5225_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5225_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5226" position={[53.135, 16.439, 11.287]}>
-                <mesh name="Polysurface5226_Polysurface521Mtl_0" geometry={(nodes['Polysurface5226_Polysurface521Mtl_0'] || nodes['Polysurface5226_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5226_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5226_Polysurface521Mtl_0'] || nodes['Polysurface5226_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5226_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5227" position={[53.135, 100.438, 11.287]}>
-                <mesh name="Polysurface5227_Polysurface521Mtl_0" geometry={(nodes['Polysurface5227_Polysurface521Mtl_0'] || nodes['Polysurface5227_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5227_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5227_Polysurface521Mtl_0'] || nodes['Polysurface5227_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5227_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5228" position={[53.135, 16.439, 3.287]}>
-                <mesh name="Polysurface5228_Polysurface521Mtl_0" geometry={(nodes['Polysurface5228_Polysurface521Mtl_0'] || nodes['Polysurface5228_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5228_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5228_Polysurface521Mtl_0'] || nodes['Polysurface5228_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5228_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5229" position={[53.135, 16.439, -15.713]}>
-                <mesh name="Polysurface5229_Polysurface521Mtl_0" geometry={(nodes['Polysurface5229_Polysurface521Mtl_0'] || nodes['Polysurface5229_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5229_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5229_Polysurface521Mtl_0'] || nodes['Polysurface5229_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5229_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface523" position={[1.76, 45.438, 29.255]}>
-                <mesh name="Polysurface523_Polysurface521Mtl_0" geometry={(nodes['Polysurface523_Polysurface521Mtl_0'] || nodes['Polysurface523_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface523_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface523_Polysurface521Mtl_0'] || nodes['Polysurface523_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface523_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5230" position={[13.635, 59.438, -34.213]}>
-                <mesh name="Polysurface5230_Polysurface521Mtl_0" geometry={(nodes['Polysurface5230_Polysurface521Mtl_0'] || nodes['Polysurface5230_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5230_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5230_Polysurface521Mtl_0'] || nodes['Polysurface5230_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5230_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5231" position={[40.635, 100.438, -34.213]}>
-                <mesh name="Polysurface5231_Polysurface521Mtl_0" geometry={(nodes['Polysurface5231_Polysurface521Mtl_0'] || nodes['Polysurface5231_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5231_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5231_Polysurface521Mtl_0'] || nodes['Polysurface5231_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5231_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5232" position={[32.635, 100.438, -34.213]}>
-                <mesh name="Polysurface5232_Polysurface521Mtl_0" geometry={(nodes['Polysurface5232_Polysurface521Mtl_0'] || nodes['Polysurface5232_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5232_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5232_Polysurface521Mtl_0'] || nodes['Polysurface5232_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5232_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5233" position={[13.635, 100.438, -34.213]}>
-                <mesh name="Polysurface5233_Polysurface521Mtl_0" geometry={(nodes['Polysurface5233_Polysurface521Mtl_0'] || nodes['Polysurface5233_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5233_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5233_Polysurface521Mtl_0'] || nodes['Polysurface5233_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5233_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5234" position={[40.635, 16.438, -34.213]}>
-                <mesh name="Polysurface5234_Polysurface521Mtl_0" geometry={(nodes['Polysurface5234_Polysurface521Mtl_0'] || nodes['Polysurface5234_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5234_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5234_Polysurface521Mtl_0'] || nodes['Polysurface5234_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5234_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5235" position={[32.635, 16.438, -34.213]}>
-                <mesh name="Polysurface5235_Polysurface521Mtl_0" geometry={(nodes['Polysurface5235_Polysurface521Mtl_0'] || nodes['Polysurface5235_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5235_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5235_Polysurface521Mtl_0'] || nodes['Polysurface5235_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5235_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5236" position={[32.635, 59.438, -34.213]}>
-                <mesh name="Polysurface5236_Polysurface521Mtl_0" geometry={(nodes['Polysurface5236_Polysurface521Mtl_0'] || nodes['Polysurface5236_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5236_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5236_Polysurface521Mtl_0'] || nodes['Polysurface5236_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5236_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5237" position={[40.635, 59.438, -34.213]}>
-                <mesh name="Polysurface5237_Polysurface521Mtl_0" geometry={(nodes['Polysurface5237_Polysurface521Mtl_0'] || nodes['Polysurface5237_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5237_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5237_Polysurface521Mtl_0'] || nodes['Polysurface5237_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5237_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5238" position={[13.635, 16.438, -34.213]}>
-                <mesh name="Polysurface5238_Polysurface521Mtl_0" geometry={(nodes['Polysurface5238_Polysurface521Mtl_0'] || nodes['Polysurface5238_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5238_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5238_Polysurface521Mtl_0'] || nodes['Polysurface5238_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5238_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5239" position={[-10.865, 100.438, 1.287]}>
-                <mesh name="Polysurface5239_Polysurface521Mtl_0" geometry={(nodes['Polysurface5239_Polysurface521Mtl_0'] || nodes['Polysurface5239_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5239_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5239_Polysurface521Mtl_0'] || nodes['Polysurface5239_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5239_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface524" position={[9.76, 45.438, 29.255]}>
-                <mesh name="Polysurface524_Polysurface521Mtl_0" geometry={(nodes['Polysurface524_Polysurface521Mtl_0'] || nodes['Polysurface524_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface524_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface524_Polysurface521Mtl_0'] || nodes['Polysurface524_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface524_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5240" position={[-10.865, 100.438, -25.713]}>
-                <mesh name="Polysurface5240_Polysurface521Mtl_0" geometry={(nodes['Polysurface5240_Polysurface521Mtl_0'] || nodes['Polysurface5240_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5240_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5240_Polysurface521Mtl_0'] || nodes['Polysurface5240_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5240_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5241" position={[-10.865, 100.438, -17.713]}>
-                <mesh name="Polysurface5241_Polysurface521Mtl_0" geometry={(nodes['Polysurface5241_Polysurface521Mtl_0'] || nodes['Polysurface5241_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5241_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5241_Polysurface521Mtl_0'] || nodes['Polysurface5241_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5241_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5242" position={[-10.865, 16.438, -25.713]}>
-                <mesh name="Polysurface5242_Polysurface521Mtl_0" geometry={(nodes['Polysurface5242_Polysurface521Mtl_0'] || nodes['Polysurface5242_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5242_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5242_Polysurface521Mtl_0'] || nodes['Polysurface5242_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5242_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5243" position={[-10.865, 16.438, -17.713]}>
-                <mesh name="Polysurface5243_Polysurface521Mtl_0" geometry={(nodes['Polysurface5243_Polysurface521Mtl_0'] || nodes['Polysurface5243_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5243_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5243_Polysurface521Mtl_0'] || nodes['Polysurface5243_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5243_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5244" position={[-10.865, 16.438, 1.287]}>
-                <mesh name="Polysurface5244_Polysurface521Mtl_0" geometry={(nodes['Polysurface5244_Polysurface521Mtl_0'] || nodes['Polysurface5244_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5244_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5244_Polysurface521Mtl_0'] || nodes['Polysurface5244_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5244_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5245" position={[-10.865, 59.438, 1.287]}>
-                <mesh name="Polysurface5245_Polysurface521Mtl_0" geometry={(nodes['Polysurface5245_Polysurface521Mtl_0'] || nodes['Polysurface5245_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5245_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5245_Polysurface521Mtl_0'] || nodes['Polysurface5245_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5245_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5246" position={[-10.865, 59.438, -17.713]}>
-                <mesh name="Polysurface5246_Polysurface521Mtl_0" geometry={(nodes['Polysurface5246_Polysurface521Mtl_0'] || nodes['Polysurface5246_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5246_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5246_Polysurface521Mtl_0'] || nodes['Polysurface5246_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5246_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5247" position={[-0.945, 12.43, -5.839]}>
-                <mesh name="Polysurface5247_Polysurface528Mtl_0" geometry={(nodes['Polysurface5247_Polysurface528Mtl_0'] || nodes['Polysurface5247_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5247_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5247_Polysurface528Mtl_0'] || nodes['Polysurface5247_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5247_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5248" position={[-10.865, 59.438, -25.713]}>
-                <mesh name="Polysurface5248_Polysurface521Mtl_0" geometry={(nodes['Polysurface5248_Polysurface521Mtl_0'] || nodes['Polysurface5248_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5248_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5248_Polysurface521Mtl_0'] || nodes['Polysurface5248_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5248_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5249" position={[-10.663, 49.038, 20.837]}>
-                <mesh name="Polysurface5249_Polysurface528Mtl_0" geometry={(nodes['Polysurface5249_Polysurface528Mtl_0'] || nodes['Polysurface5249_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5249_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5249_Polysurface528Mtl_0'] || nodes['Polysurface5249_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5249_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface525" position={[28.76, 45.438, 29.255]}>
-                <mesh name="Polysurface525_Polysurface521Mtl_0" geometry={(nodes['Polysurface525_Polysurface521Mtl_0'] || nodes['Polysurface525_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface525_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface525_Polysurface521Mtl_0'] || nodes['Polysurface525_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface525_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface526" position={[28.76, 88.438, 29.255]}>
-                <mesh name="Polysurface526_Polysurface521Mtl_0" geometry={(nodes['Polysurface526_Polysurface521Mtl_0'] || nodes['Polysurface526_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface526_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface526_Polysurface521Mtl_0'] || nodes['Polysurface526_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface526_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface527" position={[9.76, 88.438, 29.255]}>
-                <mesh name="Polysurface527_Polysurface521Mtl_0" geometry={(nodes['Polysurface527_Polysurface521Mtl_0'] || nodes['Polysurface527_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface527_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface527_Polysurface521Mtl_0'] || nodes['Polysurface527_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface527_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface528" position={[21.634, 41.431, 19.335]}>
-                <mesh name="Polysurface528_Polysurface528Mtl_0" geometry={(nodes['Polysurface528_Polysurface528Mtl_0'] || nodes['Polysurface528_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface528_Polysurface528Mtl_0.$2')])?.geometry} material={(nodes['Polysurface528_Polysurface528Mtl_0'] || nodes['Polysurface528_Polysurface528Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface528_Polysurface528Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface529" position={[1.76, 88.438, 29.255]}>
-                <mesh name="Polysurface529_Polysurface521Mtl_0" geometry={(nodes['Polysurface529_Polysurface521Mtl_0'] || nodes['Polysurface529_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface529_Polysurface521Mtl_0.$2')])?.geometry} material={(nodes['Polysurface529_Polysurface521Mtl_0'] || nodes['Polysurface529_Polysurface521Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface529_Polysurface521Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5371" position={[26.528, 0.221, 25.668]}>
-                <mesh name="Polysurface5371_Polysurface5371Mtl_0" geometry={(nodes['Polysurface5371_Polysurface5371Mtl_0'] || nodes['Polysurface5371_Polysurface5371Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5371_Polysurface5371Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5371_Polysurface5371Mtl_0'] || nodes['Polysurface5371_Polysurface5371Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5371_Polysurface5371Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface5381" position={[23.535, 0.23, 20.546]}>
-                <mesh name="Polysurface5381_Polysurface5371Mtl_0" geometry={(nodes['Polysurface5381_Polysurface5371Mtl_0'] || nodes['Polysurface5381_Polysurface5371Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5381_Polysurface5371Mtl_0.$2')])?.geometry} material={(nodes['Polysurface5381_Polysurface5371Mtl_0'] || nodes['Polysurface5381_Polysurface5371Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface5381_Polysurface5371Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface6341" position={[-22.476, 12.368, 29.658]}>
-                <mesh name="Polysurface6341_Polysurface6341Mtl_0" geometry={(nodes['Polysurface6341_Polysurface6341Mtl_0'] || nodes['Polysurface6341_Polysurface6341Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface6341_Polysurface6341Mtl_0.$2')])?.geometry} material={(nodes['Polysurface6341_Polysurface6341Mtl_0'] || nodes['Polysurface6341_Polysurface6341Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface6341_Polysurface6341Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Polysurface71" position={[-15.816, 1.785, 21.773]}>
-                <mesh name="Polysurface71_Polysurface71Mtl_0" geometry={(nodes['Polysurface71_Polysurface71Mtl_0'] || nodes['Polysurface71_Polysurface71Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface71_Polysurface71Mtl_0.$2')])?.geometry} material={(nodes['Polysurface71_Polysurface71Mtl_0'] || nodes['Polysurface71_Polysurface71Mtl_0'.replace(/(.*?)000(\d+)/, 'Polysurface71_Polysurface71Mtl_0.$2')])?.material} />
-              </group>
-              <group name="Powerboxeslppolysurface751" position={[13.395, 2.663, 11.196]}>
-                <mesh name="Powerboxeslppolysurface751_Powerboxeslppolysurface751Mtl_0" geometry={(nodes['Powerboxeslppolysurface751_Powerboxeslppolysurface751Mtl_0'] || nodes['Powerboxeslppolysurface751_Powerboxeslppolysurface751Mtl_0'.replace(/(.*?)000(\d+)/, 'Powerboxeslppolysurface751_Powerboxeslppolysurface751Mtl_0.$2')])?.geometry} material={(nodes['Powerboxeslppolysurface751_Powerboxeslppolysurface751Mtl_0'] || nodes['Powerboxeslppolysurface751_Powerboxeslppolysurface751Mtl_0'.replace(/(.*?)000(\d+)/, 'Powerboxeslppolysurface751_Powerboxeslppolysurface751Mtl_0.$2')])?.material} />
-              </group>
-            </group>
-          </group>
+          <skinnedMesh name="bodypart2" geometry={nodes.bodypart2?.geometry} material={nodes.bodypart2?.material} skeleton={nodes.bodypart2.skeleton} />
+          <skinnedMesh name="pant2" geometry={nodes.pant2?.geometry} material={nodes.pant2?.material} skeleton={nodes.pant2.skeleton} />
+          <skinnedMesh name="shirt2" geometry={nodes.shirt2?.geometry} material={nodes.shirt2?.material} skeleton={nodes.shirt2.skeleton} />
+          <skinnedMesh name="shoe2" geometry={nodes.shoe2?.geometry} material={nodes.shoe2?.material} skeleton={nodes.shoe2.skeleton} />
         </group>
         <group name="Sketchfab_model027" position={[1139.166, 500.036, -20.928]} rotation={[-3.139, -1.568, -3.141]} scale={14.801}>
           <group name="db5d60574b034ae3b1cb695b85afa2adfbx" position={[2.396, 0.298, 3.786]} rotation={[Math.PI / 2, 0, 0]} scale={0.356}>
             <group name="RootNode026" position={[2.627, 3.805, -0.648]} scale={0.356}>
               <group name="column_module_002" position={[-40.367, 23.585, 19.973]} rotation={[-Math.PI / 2, 0, -2.169]}>
-                <mesh name="column_module_002_column_0" geometry={(nodes['column_module_002_column_0'] || nodes['column_module_002_column_0'.replace(/(.*?)000(\d+)/, 'column_module_002_column_0.$2')])?.geometry} material={(nodes['column_module_002_column_0'] || nodes['column_module_002_column_0'.replace(/(.*?)000(\d+)/, 'column_module_002_column_0.$2')])?.material} position={[-5.918, 1.931, -0.014]} rotation={[0, 0, -0.029]} />
-                <mesh name="column_module_002_column_0001" geometry={(nodes['column_module_002_column_0001'] || nodes['column_module_002_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_002_column_0001.$2')])?.geometry} material={(nodes['column_module_002_column_0001'] || nodes['column_module_002_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_002_column_0001.$2')])?.material} position={[52.707, 42.036, -0.014]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_002_column_0" geometry={nodes.column_module_002_column_0?.geometry} material={materials.column} position={[-5.918, 1.931, -0.014]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_002_column_0001" geometry={nodes.column_module_002_column_0001?.geometry} material={materials.column} position={[52.707, 42.036, -0.014]} rotation={[0, 0, -0.029]} />
               </group>
               <group name="column_module_004" position={[-33.685, 12.075, -23.322]} rotation={[-1.571, 0, 1.542]}>
-                <mesh name="column_module_004_column_0" geometry={(nodes['column_module_004_column_0'] || nodes['column_module_004_column_0'.replace(/(.*?)000(\d+)/, 'column_module_004_column_0.$2')])?.geometry} material={(nodes['column_module_004_column_0'] || nodes['column_module_004_column_0'.replace(/(.*?)000(\d+)/, 'column_module_004_column_0.$2')])?.material} />
-                <mesh name="column_module_004_column_0001" geometry={(nodes['column_module_004_column_0001'] || nodes['column_module_004_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_004_column_0001.$2')])?.geometry} material={(nodes['column_module_004_column_0001'] || nodes['column_module_004_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_004_column_0001.$2')])?.material} position={[-70.996, -2.209, -0.006]} />
+                <mesh name="column_module_004_column_0" geometry={nodes.column_module_004_column_0?.geometry} material={materials.column} />
+                <mesh name="column_module_004_column_0001" geometry={nodes.column_module_004_column_0001?.geometry} material={materials.column} position={[-70.996, -2.209, -0.006]} />
               </group>
               <group name="column_module_005" position={[2.215, 23.573, -19.522]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
-                <mesh name="column_module_005_column_0" geometry={(nodes['column_module_005_column_0'] || nodes['column_module_005_column_0'.replace(/(.*?)000(\d+)/, 'column_module_005_column_0.$2')])?.geometry} material={(nodes['column_module_005_column_0'] || nodes['column_module_005_column_0'.replace(/(.*?)000(\d+)/, 'column_module_005_column_0.$2')])?.material} position={[2.551, -6.057, -0.017]} rotation={[0, 0, -0.029]} />
-                <mesh name="column_module_005_column_0001" geometry={(nodes['column_module_005_column_0001'] || nodes['column_module_005_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_005_column_0001.$2')])?.geometry} material={(nodes['column_module_005_column_0001'] || nodes['column_module_005_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_005_column_0001.$2')])?.material} position={[-68.48, -6.203, -0.017]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_005_column_0" geometry={nodes.column_module_005_column_0?.geometry} material={materials.column} position={[2.551, -6.057, -0.017]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_005_column_0001" geometry={nodes.column_module_005_column_0001?.geometry} material={materials.column} position={[-68.48, -6.203, -0.017]} rotation={[0, 0, -0.029]} />
               </group>
               <group name="column_module_006" position={[2.661, 23.541, 18.282]} rotation={[-Math.PI / 2, 0, -1.197]}>
-                <mesh name="column_module_006_column_0" geometry={(nodes['column_module_006_column_0'] || nodes['column_module_006_column_0'.replace(/(.*?)000(\d+)/, 'column_module_006_column_0.$2')])?.geometry} material={(nodes['column_module_006_column_0'] || nodes['column_module_006_column_0'.replace(/(.*?)000(\d+)/, 'column_module_006_column_0.$2')])?.material} position={[-0.566, 5.548, -0.014]} rotation={[0, 0, -0.029]} />
-                <mesh name="column_module_006_column_0001" geometry={(nodes['column_module_006_column_0001'] || nodes['column_module_006_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_006_column_0001.$2')])?.geometry} material={(nodes['column_module_006_column_0001'] || nodes['column_module_006_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_006_column_0001.$2')])?.material} position={[65.611, -20.254, -0.014]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_006_column_0" geometry={nodes.column_module_006_column_0?.geometry} material={materials.column} position={[-0.566, 5.548, -0.014]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_006_column_0001" geometry={nodes.column_module_006_column_0001?.geometry} material={materials.column} position={[65.611, -20.254, -0.014]} rotation={[0, 0, -0.029]} />
               </group>
               <group name="column_module_007" position={[-33.684, 2.213, -23.34]} rotation={[-1.571, 0, 1.542]}>
-                <mesh name="column_module_007_column_0" geometry={(nodes['column_module_007_column_0'] || nodes['column_module_007_column_0'.replace(/(.*?)000(\d+)/, 'column_module_007_column_0.$2')])?.geometry} material={(nodes['column_module_007_column_0'] || nodes['column_module_007_column_0'.replace(/(.*?)000(\d+)/, 'column_module_007_column_0.$2')])?.material} />
-                <mesh name="column_module_007_column_0001" geometry={(nodes['column_module_007_column_0001'] || nodes['column_module_007_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_007_column_0001.$2')])?.geometry} material={(nodes['column_module_007_column_0001'] || nodes['column_module_007_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_007_column_0001.$2')])?.material} position={[-70.996, -2.209, -0.006]} />
+                <mesh name="column_module_007_column_0" geometry={nodes.column_module_007_column_0?.geometry} material={materials.column} />
+                <mesh name="column_module_007_column_0001" geometry={nodes.column_module_007_column_0001?.geometry} material={materials.column} position={[-70.996, -2.209, -0.006]} />
               </group>
               <group name="column_module_008" position={[-36.33, 0.029, -20.83]} rotation={[-1.571, 0, 1.542]}>
-                <mesh name="column_module_008_column_0" geometry={(nodes['column_module_008_column_0'] || nodes['column_module_008_column_0'.replace(/(.*?)000(\d+)/, 'column_module_008_column_0.$2')])?.geometry} material={(nodes['column_module_008_column_0'] || nodes['column_module_008_column_0'.replace(/(.*?)000(\d+)/, 'column_module_008_column_0.$2')])?.material} />
-                <mesh name="column_module_008_column_0001" geometry={(nodes['column_module_008_column_0001'] || nodes['column_module_008_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_008_column_0001.$2')])?.geometry} material={(nodes['column_module_008_column_0001'] || nodes['column_module_008_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_008_column_0001.$2')])?.material} position={[-70.996, -2.209, -0.006]} />
+                <mesh name="column_module_008_column_0" geometry={nodes.column_module_008_column_0?.geometry} material={materials.column} />
+                <mesh name="column_module_008_column_0001" geometry={nodes.column_module_008_column_0001?.geometry} material={materials.column} position={[-70.996, -2.209, -0.006]} />
               </group>
               <group name="column_module_009" position={[-33.684, 6.558, -23.339]} rotation={[-1.571, 0, 1.542]}>
-                <mesh name="column_module_009_column_0" geometry={(nodes['column_module_009_column_0'] || nodes['column_module_009_column_0'.replace(/(.*?)000(\d+)/, 'column_module_009_column_0.$2')])?.geometry} material={(nodes['column_module_009_column_0'] || nodes['column_module_009_column_0'.replace(/(.*?)000(\d+)/, 'column_module_009_column_0.$2')])?.material} />
-                <mesh name="column_module_009_column_0001" geometry={(nodes['column_module_009_column_0001'] || nodes['column_module_009_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_009_column_0001.$2')])?.geometry} material={(nodes['column_module_009_column_0001'] || nodes['column_module_009_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_009_column_0001.$2')])?.material} position={[-70.996, -2.209, -0.006]} />
+                <mesh name="column_module_009_column_0" geometry={nodes.column_module_009_column_0?.geometry} material={materials.column} />
+                <mesh name="column_module_009_column_0001" geometry={nodes.column_module_009_column_0001?.geometry} material={materials.column} position={[-70.996, -2.209, -0.006]} />
               </group>
               <group name="column_module_010" position={[2.149, 12.633, -19.561]} rotation={[-Math.PI / 2, 0, 0.772]}>
-                <mesh name="column_module_010_column_0" geometry={(nodes['column_module_010_column_0'] || nodes['column_module_010_column_0'.replace(/(.*?)000(\d+)/, 'column_module_010_column_0.$2')])?.geometry} material={(nodes['column_module_010_column_0'] || nodes['column_module_010_column_0'.replace(/(.*?)000(\d+)/, 'column_module_010_column_0.$2')])?.material} position={[6.12, -2.4, -0.017]} rotation={[0, 0, -0.029]} />
-                <mesh name="column_module_010_column_0001" geometry={(nodes['column_module_010_column_0001'] || nodes['column_module_010_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_010_column_0001.$2')])?.geometry} material={(nodes['column_module_010_column_0001'] || nodes['column_module_010_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_010_column_0001.$2')])?.material} position={[-43.342, -53.379, -0.017]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_010_column_0" geometry={nodes.column_module_010_column_0?.geometry} material={materials.column} position={[6.12, -2.4, -0.017]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_010_column_0001" geometry={nodes.column_module_010_column_0001?.geometry} material={materials.column} position={[-43.342, -53.379, -0.017]} rotation={[0, 0, -0.029]} />
               </group>
               <group name="column_module_011" position={[-35.439, 2.834, 16.171]} rotation={[-1.571, 0, 1.542]}>
-                <mesh name="column_module_011_column_0" geometry={(nodes['column_module_011_column_0'] || nodes['column_module_011_column_0'.replace(/(.*?)000(\d+)/, 'column_module_011_column_0.$2')])?.geometry} material={(nodes['column_module_011_column_0'] || nodes['column_module_011_column_0'.replace(/(.*?)000(\d+)/, 'column_module_011_column_0.$2')])?.material} />
-                <mesh name="column_module_011_column_0001" geometry={(nodes['column_module_011_column_0001'] || nodes['column_module_011_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_011_column_0001.$2')])?.geometry} material={(nodes['column_module_011_column_0001'] || nodes['column_module_011_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_011_column_0001.$2')])?.material} position={[-70.996, -2.209, -0.006]} />
+                <mesh name="column_module_011_column_0" geometry={nodes.column_module_011_column_0?.geometry} material={materials.column} />
+                <mesh name="column_module_011_column_0001" geometry={nodes.column_module_011_column_0001?.geometry} material={materials.column} position={[-70.996, -2.209, -0.006]} />
               </group>
               <group name="column_module_012" position={[-38.085, 0.032, 18.681]} rotation={[-1.571, 0, 1.542]}>
-                <mesh name="column_module_012_column_0" geometry={(nodes['column_module_012_column_0'] || nodes['column_module_012_column_0'.replace(/(.*?)000(\d+)/, 'column_module_012_column_0.$2')])?.geometry} material={(nodes['column_module_012_column_0'] || nodes['column_module_012_column_0'.replace(/(.*?)000(\d+)/, 'column_module_012_column_0.$2')])?.material} />
-                <mesh name="column_module_012_column_0001" geometry={(nodes['column_module_012_column_0001'] || nodes['column_module_012_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_012_column_0001.$2')])?.geometry} material={(nodes['column_module_012_column_0001'] || nodes['column_module_012_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_012_column_0001.$2')])?.material} position={[-70.996, -2.209, -0.006]} />
+                <mesh name="column_module_012_column_0" geometry={nodes.column_module_012_column_0?.geometry} material={materials.column} />
+                <mesh name="column_module_012_column_0001" geometry={nodes.column_module_012_column_0001?.geometry} material={materials.column} position={[-70.996, -2.209, -0.006]} />
               </group>
               <group name="column_module_013" position={[-35.538, 7.178, 16.17]} rotation={[-1.571, 0, 1.542]}>
-                <mesh name="column_module_013_column_0" geometry={(nodes['column_module_013_column_0'] || nodes['column_module_013_column_0'.replace(/(.*?)000(\d+)/, 'column_module_013_column_0.$2')])?.geometry} material={(nodes['column_module_013_column_0'] || nodes['column_module_013_column_0'.replace(/(.*?)000(\d+)/, 'column_module_013_column_0.$2')])?.material} />
-                <mesh name="column_module_013_column_0001" geometry={(nodes['column_module_013_column_0001'] || nodes['column_module_013_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_013_column_0001.$2')])?.geometry} material={(nodes['column_module_013_column_0001'] || nodes['column_module_013_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_013_column_0001.$2')])?.material} position={[-70.996, -2.209, -0.006]} />
+                <mesh name="column_module_013_column_0" geometry={nodes.column_module_013_column_0?.geometry} material={materials.column} />
+                <mesh name="column_module_013_column_0001" geometry={nodes.column_module_013_column_0001?.geometry} material={materials.column} position={[-70.996, -2.209, -0.006]} />
               </group>
               <group name="column_module_014" position={[-35.436, 12.703, 16.176]} rotation={[-1.571, 0, 3.058]}>
-                <mesh name="column_module_014_column_0" geometry={(nodes['column_module_014_column_0'] || nodes['column_module_014_column_0'.replace(/(.*?)000(\d+)/, 'column_module_014_column_0.$2')])?.geometry} material={(nodes['column_module_014_column_0'] || nodes['column_module_014_column_0'.replace(/(.*?)000(\d+)/, 'column_module_014_column_0.$2')])?.material} />
-                <mesh name="column_module_014_column_0001" geometry={(nodes['column_module_014_column_0001'] || nodes['column_module_014_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_014_column_0001.$2')])?.geometry} material={(nodes['column_module_014_column_0001'] || nodes['column_module_014_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_014_column_0001.$2')])?.material} position={[-6.093, 70.768, -0.006]} />
+                <mesh name="column_module_014_column_0" geometry={nodes.column_module_014_column_0?.geometry} material={materials.column} />
+                <mesh name="column_module_014_column_0001" geometry={nodes.column_module_014_column_0001?.geometry} material={materials.column} position={[-6.093, 70.768, -0.006]} />
               </group>
               <group name="column_module_015" position={[-35.373, 18.102, 16.174]} rotation={[-1.571, 0, 1.542]}>
-                <mesh name="column_module_015_column_0" geometry={(nodes['column_module_015_column_0'] || nodes['column_module_015_column_0'.replace(/(.*?)000(\d+)/, 'column_module_015_column_0.$2')])?.geometry} material={(nodes['column_module_015_column_0'] || nodes['column_module_015_column_0'.replace(/(.*?)000(\d+)/, 'column_module_015_column_0.$2')])?.material} />
-                <mesh name="column_module_015_column_0001" geometry={(nodes['column_module_015_column_0001'] || nodes['column_module_015_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_015_column_0001.$2')])?.geometry} material={(nodes['column_module_015_column_0001'] || nodes['column_module_015_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_015_column_0001.$2')])?.material} position={[-70.996, -2.209, -0.006]} />
+                <mesh name="column_module_015_column_0" geometry={nodes.column_module_015_column_0?.geometry} material={materials.column} />
+                <mesh name="column_module_015_column_0001" geometry={nodes.column_module_015_column_0001?.geometry} material={materials.column} position={[-70.996, -2.209, -0.006]} />
               </group>
               <group name="column_module_016" position={[2.295, 18.171, -19.729]} rotation={[-Math.PI / 2, 0, 0.772]}>
-                <mesh name="column_module_016_column_0" geometry={(nodes['column_module_016_column_0'] || nodes['column_module_016_column_0'.replace(/(.*?)000(\d+)/, 'column_module_016_column_0.$2')])?.geometry} material={(nodes['column_module_016_column_0'] || nodes['column_module_016_column_0'.replace(/(.*?)000(\d+)/, 'column_module_016_column_0.$2')])?.material} position={[6.12, -2.406, -0.017]} rotation={[0, 0, -0.029]} />
-                <mesh name="column_module_016_column_0001" geometry={(nodes['column_module_016_column_0001'] || nodes['column_module_016_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_016_column_0001.$2')])?.geometry} material={(nodes['column_module_016_column_0001'] || nodes['column_module_016_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_016_column_0001.$2')])?.material} position={[-43.341, -53.385, -0.017]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_016_column_0" geometry={nodes.column_module_016_column_0?.geometry} material={materials.column} position={[6.12, -2.406, -0.017]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_016_column_0001" geometry={nodes.column_module_016_column_0001?.geometry} material={materials.column} position={[-43.341, -53.385, -0.017]} rotation={[0, 0, -0.029]} />
               </group>
               <group name="column_module_017" position={[2.236, 2.847, -19.521]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
-                <mesh name="column_module_017_column_0" geometry={(nodes['column_module_017_column_0'] || nodes['column_module_017_column_0'.replace(/(.*?)000(\d+)/, 'column_module_017_column_0.$2')])?.geometry} material={(nodes['column_module_017_column_0'] || nodes['column_module_017_column_0'.replace(/(.*?)000(\d+)/, 'column_module_017_column_0.$2')])?.material} position={[2.548, -6.057, -0.017]} rotation={[0, 0, -0.029]} />
-                <mesh name="column_module_017_column_0001" geometry={(nodes['column_module_017_column_0001'] || nodes['column_module_017_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_017_column_0001.$2')])?.geometry} material={(nodes['column_module_017_column_0001'] || nodes['column_module_017_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_017_column_0001.$2')])?.material} position={[-68.482, -6.203, -0.017]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_017_column_0" geometry={nodes.column_module_017_column_0?.geometry} material={materials.column} position={[2.548, -6.057, -0.017]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_017_column_0001" geometry={nodes.column_module_017_column_0001?.geometry} material={materials.column} position={[-68.482, -6.203, -0.017]} rotation={[0, 0, -0.029]} />
               </group>
               <group name="column_module_018" position={[-0.336, 0.045, -16.936]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
-                <mesh name="column_module_018_column_0" geometry={(nodes['column_module_018_column_0'] || nodes['column_module_018_column_0'.replace(/(.*?)000(\d+)/, 'column_module_018_column_0.$2')])?.geometry} material={(nodes['column_module_018_column_0'] || nodes['column_module_018_column_0'.replace(/(.*?)000(\d+)/, 'column_module_018_column_0.$2')])?.material} position={[2.624, -5.983, -0.016]} rotation={[0, 0, -0.029]} />
-                <mesh name="column_module_018_column_0001" geometry={(nodes['column_module_018_column_0001'] || nodes['column_module_018_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_018_column_0001.$2')])?.geometry} material={(nodes['column_module_018_column_0001'] || nodes['column_module_018_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_018_column_0001.$2')])?.material} position={[-68.406, -6.129, -0.017]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_018_column_0" geometry={nodes.column_module_018_column_0?.geometry} material={materials.column} position={[2.624, -5.983, -0.016]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_018_column_0001" geometry={nodes.column_module_018_column_0001?.geometry} material={materials.column} position={[-68.406, -6.129, -0.017]} rotation={[0, 0, -0.029]} />
               </group>
               <group name="column_module_020" position={[2.159, 7.237, -19.52]} rotation={[-Math.PI / 2, 0, 0.772]}>
-                <mesh name="column_module_020_column_0" geometry={(nodes['column_module_020_column_0'] || nodes['column_module_020_column_0'.replace(/(.*?)000(\d+)/, 'column_module_020_column_0.$2')])?.geometry} material={(nodes['column_module_020_column_0'] || nodes['column_module_020_column_0'.replace(/(.*?)000(\d+)/, 'column_module_020_column_0.$2')])?.material} position={[6.118, -2.399, -0.017]} rotation={[0, 0, -0.029]} />
-                <mesh name="column_module_020_column_0001" geometry={(nodes['column_module_020_column_0001'] || nodes['column_module_020_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_020_column_0001.$2')])?.geometry} material={(nodes['column_module_020_column_0001'] || nodes['column_module_020_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_020_column_0001.$2')])?.material} position={[-43.343, -53.379, -0.017]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_020_column_0" geometry={nodes.column_module_020_column_0?.geometry} material={materials.column} position={[6.118, -2.399, -0.017]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_020_column_0001" geometry={nodes.column_module_020_column_0001?.geometry} material={materials.column} position={[-43.343, -53.379, -0.017]} rotation={[0, 0, -0.029]} />
               </group>
               <group name="column_module_021" position={[2.658, 7.192, 18.267]} rotation={[-Math.PI / 2, 0, 1.583]}>
-                <mesh name="column_module_021_column_0" geometry={(nodes['column_module_021_column_0'] || nodes['column_module_021_column_0'.replace(/(.*?)000(\d+)/, 'column_module_021_column_0.$2')])?.geometry} material={(nodes['column_module_021_column_0'] || nodes['column_module_021_column_0'.replace(/(.*?)000(\d+)/, 'column_module_021_column_0.$2')])?.material} position={[2.491, -4.99, -0.014]} rotation={[0, 0, -0.029]} />
-                <mesh name="column_module_021_column_0001" geometry={(nodes['column_module_021_column_0001'] || nodes['column_module_021_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_021_column_0001.$2')])?.geometry} material={(nodes['column_module_021_column_0001'] || nodes['column_module_021_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_021_column_0001.$2')])?.material} position={[-68.536, -4.258, -0.014]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_021_column_0" geometry={nodes.column_module_021_column_0?.geometry} material={materials.column} position={[2.491, -4.99, -0.014]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_021_column_0001" geometry={nodes.column_module_021_column_0001?.geometry} material={materials.column} position={[-68.536, -4.258, -0.014]} rotation={[0, 0, -0.029]} />
               </group>
               <group name="column_module_023" position={[2.662, 2.848, 18.283]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
-                <mesh name="column_module_023_column_0" geometry={(nodes['column_module_023_column_0'] || nodes['column_module_023_column_0'.replace(/(.*?)000(\d+)/, 'column_module_023_column_0.$2')])?.geometry} material={(nodes['column_module_023_column_0'] || nodes['column_module_023_column_0'.replace(/(.*?)000(\d+)/, 'column_module_023_column_0.$2')])?.material} position={[2.552, -4.958, -0.014]} rotation={[0, 0, -0.029]} />
-                <mesh name="column_module_023_column_0001" geometry={(nodes['column_module_023_column_0001'] || nodes['column_module_023_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_023_column_0001.$2')])?.geometry} material={(nodes['column_module_023_column_0001'] || nodes['column_module_023_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_023_column_0001.$2')])?.material} position={[-68.478, -5.105, -0.014]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_023_column_0" geometry={nodes.column_module_023_column_0?.geometry} material={materials.column} position={[2.552, -4.958, -0.014]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_023_column_0001" geometry={nodes.column_module_023_column_0001?.geometry} material={materials.column} position={[-68.478, -5.105, -0.014]} rotation={[0, 0, -0.029]} />
               </group>
               <group name="column_module_025" position={[2.64, 12.617, 18.285]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
-                <mesh name="column_module_025_column_0" geometry={(nodes['column_module_025_column_0'] || nodes['column_module_025_column_0'.replace(/(.*?)000(\d+)/, 'column_module_025_column_0.$2')])?.geometry} material={(nodes['column_module_025_column_0'] || nodes['column_module_025_column_0'.replace(/(.*?)000(\d+)/, 'column_module_025_column_0.$2')])?.material} position={[2.553, -4.958, -0.014]} rotation={[0, 0, -0.029]} />
-                <mesh name="column_module_025_column_0001" geometry={(nodes['column_module_025_column_0001'] || nodes['column_module_025_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_025_column_0001.$2')])?.geometry} material={(nodes['column_module_025_column_0001'] || nodes['column_module_025_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_025_column_0001.$2')])?.material} position={[-68.477, -5.105, -0.014]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_025_column_0" geometry={nodes.column_module_025_column_0?.geometry} material={materials.column} position={[2.553, -4.958, -0.014]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_025_column_0001" geometry={nodes.column_module_025_column_0001?.geometry} material={materials.column} position={[-68.477, -5.105, -0.014]} rotation={[0, 0, -0.029]} />
               </group>
               <group name="column_module_026" position={[2.64, 18.138, 18.289]} rotation={[-Math.PI / 2, 0, 0.036]}>
-                <mesh name="column_module_026_column_0" geometry={(nodes['column_module_026_column_0'] || nodes['column_module_026_column_0'.replace(/(.*?)000(\d+)/, 'column_module_026_column_0.$2')])?.geometry} material={(nodes['column_module_026_column_0'] || nodes['column_module_026_column_0'.replace(/(.*?)000(\d+)/, 'column_module_026_column_0.$2')])?.material} position={[5.047, 2.373, -0.014]} rotation={[0, 0, -0.029]} />
-                <mesh name="column_module_026_column_0001" geometry={(nodes['column_module_026_column_0001'] || nodes['column_module_026_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_026_column_0001.$2')])?.geometry} material={(nodes['column_module_026_column_0001'] || nodes['column_module_026_column_0001'.replace(/(.*?)000(\d+)/, 'column_module_026_column_0001.$2')])?.material} position={[2.628, -68.616, -0.014]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_026_column_0" geometry={nodes.column_module_026_column_0?.geometry} material={materials.column} position={[5.047, 2.373, -0.014]} rotation={[0, 0, -0.029]} />
+                <mesh name="column_module_026_column_0001" geometry={nodes.column_module_026_column_0001?.geometry} material={materials.column} position={[2.628, -68.616, -0.014]} rotation={[0, 0, -0.029]} />
               </group>
             </group>
           </group>
@@ -2342,49 +456,58 @@ export function Model(props: React.ComponentPropsWithoutRef<'group'>) {
           <group name="d797136721004ce9a6921b2a59a1a437fbx" rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
             <group name="RootNode028">
               <group name="Pillar" position={[-27.478, -0.024, 15.177]} rotation={[0, 0.003, 0]}>
-                <mesh name="Pillar_M_Marble_0" geometry={(nodes['Pillar_M_Marble_0'] || nodes['Pillar_M_Marble_0'.replace(/(.*?)000(\d+)/, 'Pillar_M_Marble_0.$2')])?.geometry} material={(nodes['Pillar_M_Marble_0'] || nodes['Pillar_M_Marble_0'.replace(/(.*?)000(\d+)/, 'Pillar_M_Marble_0.$2')])?.material} position={[23.485, -0.065, -1.31]} rotation={[0, -0.028, 0]} />
-                <mesh name="Pillar_M_trimsheet_0" geometry={(nodes['Pillar_M_trimsheet_0'] || nodes['Pillar_M_trimsheet_0'.replace(/(.*?)000(\d+)/, 'Pillar_M_trimsheet_0.$2')])?.geometry} material={(nodes['Pillar_M_trimsheet_0'] || nodes['Pillar_M_trimsheet_0'.replace(/(.*?)000(\d+)/, 'Pillar_M_trimsheet_0.$2')])?.material} position={[23.485, -0.065, -1.31]} rotation={[0, -0.028, 0]} />
+                <mesh name="Pillar_M_Marble_0" geometry={nodes.Pillar_M_Marble_0?.geometry} material={materials.M_Marble} position={[23.485, -0.065, -1.31]} rotation={[0, -0.028, 0]} />
+                <mesh name="Pillar_M_trimsheet_0" geometry={nodes.Pillar_M_trimsheet_0?.geometry} material={materials.M_trimsheet} position={[23.485, -0.065, -1.31]} rotation={[0, -0.028, 0]} />
               </group>
               <group name="Tall_pillar" position={[-23.767, -0.024, 15.165]} rotation={[0, 0.003, 0]}>
-                <mesh name="Tall_pillar_M_Marble_0" geometry={(nodes['Tall_pillar_M_Marble_0'] || nodes['Tall_pillar_M_Marble_0'.replace(/(.*?)000(\d+)/, 'Tall_pillar_M_Marble_0.$2')])?.geometry} material={(nodes['Tall_pillar_M_Marble_0'] || nodes['Tall_pillar_M_Marble_0'.replace(/(.*?)000(\d+)/, 'Tall_pillar_M_Marble_0.$2')])?.material} position={[23.483, -0.065, -1.205]} rotation={[0, -0.028, 0]} />
-                <mesh name="Tall_pillar_M_trimsheet_0" geometry={(nodes['Tall_pillar_M_trimsheet_0'] || nodes['Tall_pillar_M_trimsheet_0'.replace(/(.*?)000(\d+)/, 'Tall_pillar_M_trimsheet_0.$2')])?.geometry} material={(nodes['Tall_pillar_M_trimsheet_0'] || nodes['Tall_pillar_M_trimsheet_0'.replace(/(.*?)000(\d+)/, 'Tall_pillar_M_trimsheet_0.$2')])?.material} position={[23.483, -0.065, -1.205]} rotation={[0, -0.028, 0]} />
+                <mesh name="Tall_pillar_M_Marble_0" geometry={nodes.Tall_pillar_M_Marble_0?.geometry} material={materials.M_Marble} position={[23.483, -0.065, -1.205]} rotation={[0, -0.028, 0]} />
+                <mesh name="Tall_pillar_M_trimsheet_0" geometry={nodes.Tall_pillar_M_trimsheet_0?.geometry} material={materials.M_trimsheet} position={[23.483, -0.065, -1.205]} rotation={[0, -0.028, 0]} />
               </group>
             </group>
           </group>
         </group>
-        <PerspectiveCamera name="Camera" makeDefault={true} far={1000} near={0.1} fov={53.702} position={[-65.934, 15.031, -5.523]} rotation={[0, -Math.PI / 2, 0]} />
-        <mesh name="Object_7" geometry={(nodes['Object_7'] || nodes['Object_7'.replace(/(.*?)000(\d+)/, 'Object_7.$2')])?.geometry} material={(nodes['Object_7'] || nodes['Object_7'.replace(/(.*?)000(\d+)/, 'Object_7.$2')])?.material} position={[0, 6.052, 0]} scale={1.233} />
-        <mesh name="Plane006" geometry={(nodes['Plane006'] || nodes['Plane006'.replace(/(.*?)000(\d+)/, 'Plane006.$2')])?.geometry} material={(nodes['Plane006'] || nodes['Plane006'.replace(/(.*?)000(\d+)/, 'Plane006.$2')])?.material} position={[106.776, 26.445, 28.721]} rotation={[1.641, 0, 0]} />
-        <mesh name="Object_4001" geometry={(nodes['Object_4001'] || nodes['Object_4001'.replace(/(.*?)000(\d+)/, 'Object_4001.$2')])?.geometry} material={(nodes['Object_4001'] || nodes['Object_4001'.replace(/(.*?)000(\d+)/, 'Object_4001.$2')])?.material} position={[531.427, 2.927, -5.733]} rotation={[-Math.PI, 0, -Math.PI]} scale={[-12.89, -0.601, -12.89]} />
-        <mesh name="Object_5001" geometry={(nodes['Object_5001'] || nodes['Object_5001'.replace(/(.*?)000(\d+)/, 'Object_5001.$2')])?.geometry} material={(nodes['Object_5001'] || nodes['Object_5001'.replace(/(.*?)000(\d+)/, 'Object_5001.$2')])?.material} position={[531.427, 2.927, -5.733]} rotation={[-Math.PI, 0, -Math.PI]} scale={[-12.89, -0.601, -12.89]} />
-        <mesh name="Cube005" geometry={(nodes['Cube005'] || nodes['Cube005'.replace(/(.*?)000(\d+)/, 'Cube005.$2')])?.geometry} material={(nodes['Cube005'] || nodes['Cube005'.replace(/(.*?)000(\d+)/, 'Cube005.$2')])?.material} position={[1038.454, 398.157, 2.997]} scale={6.447} />
-        <mesh name="Cylinder" geometry={(nodes['Cylinder'] || nodes['Cylinder'.replace(/(.*?)000(\d+)/, 'Cylinder.$2')])?.geometry} material={(nodes['Cylinder'] || nodes['Cylinder'.replace(/(.*?)000(\d+)/, 'Cylinder.$2')])?.material} position={[1061.365, 398.112, 2.746]} rotation={[0, 0, 1.592]} scale={[-16.95, -1.241, -16.954]} />
-        <mesh name="Cylinder001" geometry={(nodes['Cylinder001'] || nodes['Cylinder001'.replace(/(.*?)000(\d+)/, 'Cylinder001.$2')])?.geometry} material={(nodes['Cylinder001'] || nodes['Cylinder001'.replace(/(.*?)000(\d+)/, 'Cylinder001.$2')])?.material} position={[1060.979, 398.112, 2.746]} rotation={[0, 0, 1.592]} scale={[-14.6, -1.068, -14.603]} />
-        <mesh name="10805_Moai_L3mb" geometry={(nodes['10805_Moai_L3mb'] || nodes['10805_Moai_L3mb'.replace(/(.*?)000(\d+)/, '10805_Moai_L3mb.$2')])?.geometry} material={(nodes['10805_Moai_L3mb'] || nodes['10805_Moai_L3mb'.replace(/(.*?)000(\d+)/, '10805_Moai_L3mb.$2')])?.material} position={[567.447, 0.168, 22.464]} rotation={[0.061, 1.163, 3.033]} scale={-0.025} />
-        <mesh name="FootballBall_Black_0" geometry={(nodes['FootballBall_Black_0'] || nodes['FootballBall_Black_0'.replace(/(.*?)000(\d+)/, 'FootballBall_Black_0.$2')])?.geometry} material={(nodes['FootballBall_Black_0'] || nodes['FootballBall_Black_0'.replace(/(.*?)000(\d+)/, 'FootballBall_Black_0.$2')])?.material} position={[4.801, -4.641, -6.002]} scale={0.168} />
-        <mesh name="Residential_Buildings_004_Cube009" geometry={(nodes['Residential_Buildings_004_Cube009'] || nodes['Residential_Buildings_004_Cube009'.replace(/(.*?)000(\d+)/, 'Residential_Buildings_004_Cube009.$2')])?.geometry} material={(nodes['Residential_Buildings_004_Cube009'] || nodes['Residential_Buildings_004_Cube009'.replace(/(.*?)000(\d+)/, 'Residential_Buildings_004_Cube009.$2')])?.material} position={[411.097, 0.885, -38.777]} rotation={[Math.PI / 2, 0, -1.596]} scale={2.165} />
-        <mesh name="Spheres_Portal_0" geometry={(nodes['Spheres_Portal_0'] || nodes['Spheres_Portal_0'.replace(/(.*?)000(\d+)/, 'Spheres_Portal_0.$2')])?.geometry} material={(nodes['Spheres_Portal_0'] || nodes['Spheres_Portal_0'.replace(/(.*?)000(\d+)/, 'Spheres_Portal_0.$2')])?.material} position={[679.755, 513.219, 1.673]} rotation={[-2.32, 0.784, -1.018]} scale={0.932} />
-        <mesh name="BlueRing_4_Portal_0" geometry={(nodes['BlueRing_4_Portal_0'] || nodes['BlueRing_4_Portal_0'.replace(/(.*?)000(\d+)/, 'BlueRing_4_Portal_0.$2')])?.geometry} material={(nodes['BlueRing_4_Portal_0'] || nodes['BlueRing_4_Portal_0'.replace(/(.*?)000(\d+)/, 'BlueRing_4_Portal_0.$2')])?.material} position={[834.77, 630.78, 4.522]} rotation={[-2.042, -0.509, 0.259]} scale={0.885} />
-        <mesh name="BlueRing_1_Portal_0" geometry={(nodes['BlueRing_1_Portal_0'] || nodes['BlueRing_1_Portal_0'.replace(/(.*?)000(\d+)/, 'BlueRing_1_Portal_0.$2')])?.geometry} material={(nodes['BlueRing_1_Portal_0'] || nodes['BlueRing_1_Portal_0'.replace(/(.*?)000(\d+)/, 'BlueRing_1_Portal_0.$2')])?.material} position={[741.537, 565.48, -42.517]} rotation={[2.77, 1.182, 0.969]} />
-        <mesh name="Portal3_Portal_0" geometry={(nodes['Portal3_Portal_0'] || nodes['Portal3_Portal_0'.replace(/(.*?)000(\d+)/, 'Portal3_Portal_0.$2')])?.geometry} material={(nodes['Portal3_Portal_0'] || nodes['Portal3_Portal_0'.replace(/(.*?)000(\d+)/, 'Portal3_Portal_0.$2')])?.material} position={[679.744, 517.476, 1.614]} rotation={[0.08, 0, 0]} scale={0.896} />
-        <mesh name="BlueRing_2_Portal_0" geometry={(nodes['BlueRing_2_Portal_0'] || nodes['BlueRing_2_Portal_0'.replace(/(.*?)000(\d+)/, 'BlueRing_2_Portal_0.$2')])?.geometry} material={(nodes['BlueRing_2_Portal_0'] || nodes['BlueRing_2_Portal_0'.replace(/(.*?)000(\d+)/, 'BlueRing_2_Portal_0.$2')])?.material} position={[659.94, 539.398, 61.018]} rotation={[-2.161, -0.901, 0]} />
-        <mesh name="WhiteRing_Portal_0" geometry={(nodes['WhiteRing_Portal_0'] || nodes['WhiteRing_Portal_0'.replace(/(.*?)000(\d+)/, 'WhiteRing_Portal_0.$2')])?.geometry} material={(nodes['WhiteRing_Portal_0'] || nodes['WhiteRing_Portal_0'.replace(/(.*?)000(\d+)/, 'WhiteRing_Portal_0.$2')])?.material} position={[541.34, 486.356, 50.411]} rotation={[-2.282, 1.192, 0.986]} />
-        <mesh name="WhiteRing_Portal_0001" geometry={(nodes['WhiteRing_Portal_0001'] || nodes['WhiteRing_Portal_0001'.replace(/(.*?)000(\d+)/, 'WhiteRing_Portal_0001.$2')])?.geometry} material={(nodes['WhiteRing_Portal_0001'] || nodes['WhiteRing_Portal_0001'.replace(/(.*?)000(\d+)/, 'WhiteRing_Portal_0001.$2')])?.material} position={[787.516, 490.253, 89.057]} rotation={[1.839, -0.193, -2.289]} />
-        <mesh name="BlueRing_3_Portal_0001" geometry={(nodes['BlueRing_3_Portal_0001'] || nodes['BlueRing_3_Portal_0001'.replace(/(.*?)000(\d+)/, 'BlueRing_3_Portal_0001.$2')])?.geometry} material={(nodes['BlueRing_3_Portal_0001'] || nodes['BlueRing_3_Portal_0001'.replace(/(.*?)000(\d+)/, 'BlueRing_3_Portal_0001.$2')])?.material} position={[802.667, 537.517, -95.613]} rotation={[0.669, -0.937, -3.123]} />
-        <mesh name="Object_5008" geometry={(nodes['Object_5008'] || nodes['Object_5008'.replace(/(.*?)000(\d+)/, 'Object_5008.$2')])?.geometry} material={(nodes['Object_5008'] || nodes['Object_5008'.replace(/(.*?)000(\d+)/, 'Object_5008.$2')])?.material} position={[561.38, 0.58, -16.98]} rotation={[3.13, 1.103, -0.008]} scale={2.449} />
-        <mesh name="Object_4006" geometry={(nodes['Object_4006'] || nodes['Object_4006'.replace(/(.*?)000(\d+)/, 'Object_4006.$2')])?.geometry} material={(nodes['Object_4006'] || nodes['Object_4006'.replace(/(.*?)000(\d+)/, 'Object_4006.$2')])?.material} position={[560.081, -2.251, -22.343]} rotation={[0.07, 1.265, 3.077]} scale={107.287} />
-        <mesh name="Object_5009" geometry={(nodes['Object_5009'] || nodes['Object_5009'.replace(/(.*?)000(\d+)/, 'Object_5009.$2')])?.geometry} material={(nodes['Object_5009'] || nodes['Object_5009'.replace(/(.*?)000(\d+)/, 'Object_5009.$2')])?.material} position={[588.187, 0.085, 8.784]} rotation={[0.042, 0.772, 3.089]} scale={[1.505, 0.278, 1.505]} />
-        <mesh name="GS_Grass_Clump_01_gs_grass_01002_0" geometry={(nodes['GS_Grass_Clump_01_gs_grass_01002_0'] || nodes['GS_Grass_Clump_01_gs_grass_01002_0'.replace(/(.*?)000(\d+)/, 'GS_Grass_Clump_01_gs_grass_01002_0.$2')])?.geometry} material={(nodes['GS_Grass_Clump_01_gs_grass_01002_0'] || nodes['GS_Grass_Clump_01_gs_grass_01002_0'.replace(/(.*?)000(\d+)/, 'GS_Grass_Clump_01_gs_grass_01002_0.$2')])?.material} position={[1062.272, 449.041, -3.579]} rotation={[1.435, -1.281, 3.002]} scale={20.073} />
-        <mesh name="GS_Grass_Clump_01_gs_grass_01002_0001" geometry={(nodes['GS_Grass_Clump_01_gs_grass_01002_0001'] || nodes['GS_Grass_Clump_01_gs_grass_01002_0001'.replace(/(.*?)000(\d+)/, 'GS_Grass_Clump_01_gs_grass_01002_0001.$2')])?.geometry} material={(nodes['GS_Grass_Clump_01_gs_grass_01002_0001'] || nodes['GS_Grass_Clump_01_gs_grass_01002_0001'.replace(/(.*?)000(\d+)/, 'GS_Grass_Clump_01_gs_grass_01002_0001.$2')])?.material} position={[1062.272, 417.661, 15.158]} rotation={[1.435, -1.281, 3.002]} scale={20.073} />
-        <mesh name="GS_type_E_clump_big_gs_type_e002_0" geometry={(nodes['GS_type_E_clump_big_gs_type_e002_0'] || nodes['GS_type_E_clump_big_gs_type_e002_0'.replace(/(.*?)000(\d+)/, 'GS_type_E_clump_big_gs_type_e002_0.$2')])?.geometry} material={(nodes['GS_type_E_clump_big_gs_type_e002_0'] || nodes['GS_type_E_clump_big_gs_type_e002_0'.replace(/(.*?)000(\d+)/, 'GS_type_E_clump_big_gs_type_e002_0.$2')])?.material} position={[1058.943, 490.423, 29.539]} rotation={[2.23, -1.5, -0.939]} scale={38.653} />
-        <mesh name="GS_type_E_clump_big_gs_type_e002_0001" geometry={(nodes['GS_type_E_clump_big_gs_type_e002_0001'] || nodes['GS_type_E_clump_big_gs_type_e002_0001'.replace(/(.*?)000(\d+)/, 'GS_type_E_clump_big_gs_type_e002_0001.$2')])?.geometry} material={(nodes['GS_type_E_clump_big_gs_type_e002_0001'] || nodes['GS_type_E_clump_big_gs_type_e002_0001'.replace(/(.*?)000(\d+)/, 'GS_type_E_clump_big_gs_type_e002_0001.$2')])?.material} position={[1062.505, 500.593, -25.329]} rotation={[2.23, -1.5, -0.939]} scale={21.394} />
-        <mesh name="GS_type_E_clump_big_gs_type_e002_0002" geometry={(nodes['GS_type_E_clump_big_gs_type_e002_0002'] || nodes['GS_type_E_clump_big_gs_type_e002_0002'.replace(/(.*?)000(\d+)/, 'GS_type_E_clump_big_gs_type_e002_0002.$2')])?.geometry} material={(nodes['GS_type_E_clump_big_gs_type_e002_0002'] || nodes['GS_type_E_clump_big_gs_type_e002_0002'.replace(/(.*?)000(\d+)/, 'GS_type_E_clump_big_gs_type_e002_0002.$2')])?.material} position={[1062.505, 377.751, -36.417]} rotation={[2.23, -1.5, -0.939]} scale={31.387} />
-        <mesh name="QUARTZ1_quartz1_0" geometry={(nodes['QUARTZ1_quartz1_0'] || nodes['QUARTZ1_quartz1_0'.replace(/(.*?)000(\d+)/, 'QUARTZ1_quartz1_0.$2')])?.geometry} material={(nodes['QUARTZ1_quartz1_0'] || nodes['QUARTZ1_quartz1_0'.replace(/(.*?)000(\d+)/, 'QUARTZ1_quartz1_0.$2')])?.material} position={[1253.084, 470.016, 126.236]} rotation={[1.093, -1.567, -3.141]} scale={142.359} />
-        <mesh name="QUARTZ4_quartz4_0" geometry={(nodes['QUARTZ4_quartz4_0'] || nodes['QUARTZ4_quartz4_0'.replace(/(.*?)000(\d+)/, 'QUARTZ4_quartz4_0.$2')])?.geometry} material={(nodes['QUARTZ4_quartz4_0'] || nodes['QUARTZ4_quartz4_0'.replace(/(.*?)000(\d+)/, 'QUARTZ4_quartz4_0.$2')])?.material} position={[1251.758, 436.163, 17.477]} rotation={[-0.393, -1.525, -0.728]} scale={142.359} />
-        <mesh name="QUARTZ5_quartz5_0" geometry={(nodes['QUARTZ5_quartz5_0'] || nodes['QUARTZ5_quartz5_0'.replace(/(.*?)000(\d+)/, 'QUARTZ5_quartz5_0.$2')])?.geometry} material={(nodes['QUARTZ5_quartz5_0'] || nodes['QUARTZ5_quartz5_0'.replace(/(.*?)000(\d+)/, 'QUARTZ5_quartz5_0.$2')])?.material} position={[1275.656, 424.515, 31.759]} rotation={[1.571, -1.567, -3.141]} scale={142.359} />
-        <mesh name="QUARTZ3_quartz3_0001" geometry={(nodes['QUARTZ3_quartz3_0001'] || nodes['QUARTZ3_quartz3_0001'.replace(/(.*?)000(\d+)/, 'QUARTZ3_quartz3_0001.$2')])?.geometry} material={(nodes['QUARTZ3_quartz3_0001'] || nodes['QUARTZ3_quartz3_0001'.replace(/(.*?)000(\d+)/, 'QUARTZ3_quartz3_0001.$2')])?.material} position={[1210.913, 647.104, -28.43]} rotation={[-2.889, -1.567, -3.141]} scale={130.567} />
-        <mesh name="Ring__0001" geometry={(nodes['Ring__0001'] || nodes['Ring__0001'.replace(/(.*?)000(\d+)/, 'Ring__0001.$2')])?.geometry} material={(nodes['Ring__0001'] || nodes['Ring__0001'.replace(/(.*?)000(\d+)/, 'Ring__0001.$2')])?.material} position={[834.732, 513.671, 1.606]} rotation={[1.571, -1.557, 3.142]} scale={2.365} />
-        <mesh name="floor" geometry={(nodes['floor'] || nodes['floor'.replace(/(.*?)000(\d+)/, 'floor.$2')])?.geometry} material={(nodes['floor'] || nodes['floor'.replace(/(.*?)000(\d+)/, 'floor.$2')])?.material} position={[1061.66, 546.995, 4.165]} rotation={[1.573, 0, 1.574]} scale={[226.335, 226.335, 237.993]} />
+        <PerspectiveCamera name="Camera" makeDefault={true} far={1541.7} near={0.1} fov={53.702} position={[-65.934, 15.031, -5.523]} rotation={[0, -Math.PI / 2, 0]} />
+        <mesh name="Object_4001" geometry={nodes.Object_4001?.geometry} material={nodes.Object_4001?.material} position={[531.427, 2.927, -5.733]} rotation={[-Math.PI, 0, -Math.PI]} scale={[-12.89, -0.601, -12.89]} />
+        <mesh name="Object_5001" geometry={nodes.Object_5001?.geometry} material={materials?.['Material.007']} position={[531.427, 2.927, -5.733]} rotation={[-Math.PI, 0, -Math.PI]} scale={[-12.89, -0.601, -12.89]} />
+        <mesh name="traffic_cone_traffic_cone_0002" geometry={nodes.traffic_cone_traffic_cone_0002?.geometry} material={nodes.traffic_cone_traffic_cone_0002?.material} position={[437.963, -14.357, -25.532]} rotation={[-Math.PI / 2, 0, 0]} />
+        <mesh name="Object_5006" geometry={nodes.Object_5006?.geometry} material={materials.Black} position={[-675467.5, 784952.313, 4511500]} rotation={[0.012, 0.864, -0.184]} scale={0.593} />
+        <mesh name="Object_6002" geometry={nodes.Object_6002?.geometry} material={materials.Black} position={[-675467.5, 784952.313, 4511500]} rotation={[0.012, 0.864, -0.184]} scale={0.593} />
+        <mesh name="Cube005" geometry={nodes.Cube005?.geometry} material={nodes.Cube005?.material} position={[1038.454, 398.157, 2.997]} scale={6.447} />
+        <mesh name="Cylinder" geometry={nodes.Cylinder?.geometry} material={nodes.Cylinder?.material} position={[1061.365, 398.112, 2.746]} rotation={[0, 0, 1.592]} scale={[-16.95, -1.241, -16.954]} />
+        <mesh name="Cylinder001" geometry={nodes.Cylinder001?.geometry} material={nodes.Cylinder001?.material} position={[1060.979, 398.112, 2.746]} rotation={[0, 0, 1.592]} scale={[-14.6, -1.068, -14.603]} />
+        <mesh name="Plane" geometry={nodes.Plane?.geometry} material={materials?.['Material.009']} position={[291.321, 0.2, 2.643]} scale={[1116.197, 113.804, 626.747]} />
+        <mesh name="Blossom01_jabami_mesh_Jabami_blossom_mat_0" geometry={nodes.Blossom01_jabami_mesh_Jabami_blossom_mat_0?.geometry} material={materials.Jabami_blossom_mat} position={[3571.271, 951.955, 0]} scale={1.812} />
+        <mesh name="AncientRuins_Shell_M_AncientRuins_Props_0" geometry={nodes.AncientRuins_Shell_M_AncientRuins_Props_0?.geometry} material={materials.M_AncientRuins_Props} position={[646.086, 20.853, -17.614]} rotation={[-Math.PI / 2, 0, -1.171]} scale={0.163} />
+        <mesh name="AncientRuins_Rock2_M_AncientRuins_Rocks_0" geometry={nodes.AncientRuins_Rock2_M_AncientRuins_Rocks_0?.geometry} material={materials.M_AncientRuins_Rocks} position={[459.268, 0, 141.591]} scale={0.632} />
+        <mesh name="AncientRuins_Rock4_M_AncientRuins_Rocks_0" geometry={nodes.AncientRuins_Rock4_M_AncientRuins_Rocks_0?.geometry} material={materials.M_AncientRuins_Rocks} position={[385.129, 0, 79.58]} scale={0.327} />
+        <mesh name="AncientRuins_Rock3_M_AncientRuins_Rocks_0" geometry={nodes.AncientRuins_Rock3_M_AncientRuins_Rocks_0?.geometry} material={materials.M_AncientRuins_Rocks} position={[622.542, -0.886, -98.947]} rotation={[-1.492, 0, 0]} scale={1.241} />
+        <mesh name="AncientRuins_Rock1_M_AncientRuins_Rocks_0" geometry={nodes.AncientRuins_Rock1_M_AncientRuins_Rocks_0?.geometry} material={materials.M_AncientRuins_Rocks} position={[232.813, 0, -53.696]} scale={0.327} />
+        <mesh name="10805_Moai_L3mb" geometry={nodes['10805_Moai_L3mb']?.geometry} material={nodes['10805_Moai_L3mb']?.material} position={[567.447, 0.168, 22.464]} rotation={[0.061, 1.163, 3.033]} scale={-0.025} />
+        <mesh name="Spheres_Portal_0" geometry={nodes.Spheres_Portal_0?.geometry} material={materials?.['lambert1.001']} position={[679.755, 513.219, 1.673]} rotation={[-2.32, 0.784, -1.018]} scale={0.932} />
+        <mesh name="BlueRing_4_Portal_0" geometry={nodes.BlueRing_4_Portal_0?.geometry} material={materials?.['lambert1.001']} position={[834.77, 630.78, 4.522]} rotation={[-2.042, -0.509, 0.259]} scale={0.885} />
+        <mesh name="BlueRing_1_Portal_0" geometry={nodes.BlueRing_1_Portal_0?.geometry} material={materials?.['lambert1.001']} position={[741.537, 565.48, -42.517]} rotation={[2.77, 1.182, 0.969]} />
+        <mesh name="Portal3_Portal_0" geometry={nodes.Portal3_Portal_0?.geometry} material={materials?.['lambert1.001']} position={[679.744, 517.476, 1.614]} rotation={[0.08, 0, 0]} scale={0.896} />
+        <mesh name="BlueRing_2_Portal_0" geometry={nodes.BlueRing_2_Portal_0?.geometry} material={materials?.['lambert1.001']} position={[659.94, 539.398, 61.018]} rotation={[-2.161, -0.901, 0]} />
+        <mesh name="WhiteRing_Portal_0" geometry={nodes.WhiteRing_Portal_0?.geometry} material={materials?.['lambert1.001']} position={[541.34, 486.356, 50.411]} rotation={[-2.282, 1.192, 0.986]} />
+        <mesh name="BlueRing_3_Portal_0" geometry={nodes.BlueRing_3_Portal_0?.geometry} material={materials?.['lambert1.001']} position={[534.463, 538.773, -56.729]} rotation={[-2.129, 0.606, -0.326]} />
+        <mesh name="WhiteRing_Portal_0001" geometry={nodes.WhiteRing_Portal_0001?.geometry} material={materials?.['lambert1.001']} position={[787.516, 490.253, 89.057]} rotation={[1.839, -0.193, -2.289]} />
+        <mesh name="BlueRing_3_Portal_0001" geometry={nodes.BlueRing_3_Portal_0001?.geometry} material={materials?.['lambert1.001']} position={[802.667, 537.517, -95.613]} rotation={[0.669, -0.937, -3.123]} />
+        <mesh name="Ring__0" geometry={nodes.Ring__0?.geometry} material={nodes.Ring__0?.material} position={[496.26, -39.617, -338.229]} rotation={[-2.565, 0.335, 0.19]} scale={0.944} />
+        <mesh name="Ring__0001" geometry={nodes.Ring__0001?.geometry} material={nodes.Ring__0001?.material} position={[834.732, 513.671, 1.606]} rotation={[1.571, -1.557, 3.142]} scale={2.365} />
+        <mesh name="Object_5008" geometry={nodes.Object_5008?.geometry} material={materials?.['glossy_putih.001']} position={[561.38, 0.58, -16.98]} rotation={[3.13, 1.103, -0.008]} scale={2.449} />
+        <mesh name="Object_4006" geometry={nodes.Object_4006?.geometry} material={materials?.['glossy_putih.001']} position={[560.081, -2.251, -22.343]} rotation={[0.07, 1.265, 3.077]} scale={107.287} />
+        <mesh name="Object_5009" geometry={nodes.Object_5009?.geometry} material={materials?.['Material.007']} position={[588.187, 0.085, 8.784]} rotation={[0.042, 0.772, 3.089]} scale={[1.505, 0.278, 1.505]} />
+        <mesh name="GS_Grass_Clump_01_gs_grass_01002_0" geometry={nodes.GS_Grass_Clump_01_gs_grass_01002_0?.geometry} material={materials?.['.gs_grass_01.002']} position={[1062.272, 449.041, -3.579]} rotation={[1.435, -1.281, 3.002]} scale={20.073} />
+        <mesh name="GS_Grass_Clump_01_gs_grass_01002_0001" geometry={nodes.GS_Grass_Clump_01_gs_grass_01002_0001?.geometry} material={materials?.['.gs_grass_01.002']} position={[1062.272, 417.661, 15.158]} rotation={[1.435, -1.281, 3.002]} scale={20.073} />
+        <mesh name="GS_type_E_clump_big_gs_type_e002_0" geometry={nodes.GS_type_E_clump_big_gs_type_e002_0?.geometry} material={materials?.['.gs_type_e.002']} position={[1058.943, 490.423, 29.539]} rotation={[2.23, -1.5, -0.939]} scale={38.653} />
+        <mesh name="GS_type_E_clump_big_gs_type_e002_0001" geometry={nodes.GS_type_E_clump_big_gs_type_e002_0001?.geometry} material={materials?.['.gs_type_e.002']} position={[1062.505, 500.593, -25.329]} rotation={[2.23, -1.5, -0.939]} scale={21.394} />
+        <mesh name="GS_type_E_clump_big_gs_type_e002_0002" geometry={nodes.GS_type_E_clump_big_gs_type_e002_0002?.geometry} material={materials?.['.gs_type_e.002']} position={[1062.505, 377.751, -36.417]} rotation={[2.23, -1.5, -0.939]} scale={31.387} />
+        <mesh name="QUARTZ1_quartz1_0" geometry={nodes.QUARTZ1_quartz1_0?.geometry} material={materials.quartz1} position={[1253.084, 470.016, 126.236]} rotation={[1.093, -1.567, -3.141]} scale={142.359} />
+        <mesh name="QUARTZ4_quartz4_0" geometry={nodes.QUARTZ4_quartz4_0?.geometry} material={materials.quartz4} position={[1251.758, 436.163, 17.477]} rotation={[-0.393, -1.525, -0.728]} scale={142.359} />
+        <mesh name="QUARTZ5_quartz5_0" geometry={nodes.QUARTZ5_quartz5_0?.geometry} material={materials.quartz5} position={[1275.656, 424.515, 31.759]} rotation={[1.571, -1.567, -3.141]} scale={142.359} />
+        <mesh name="QUARTZ3_quartz3_0001" geometry={nodes.QUARTZ3_quartz3_0001?.geometry} material={materials.quartz3} position={[1210.913, 647.104, -28.43]} rotation={[-2.889, -1.567, -3.141]} scale={130.567} />
+        <mesh name="10805_Moai_L3mb004" geometry={nodes['10805_Moai_L3mb004']?.geometry} material={materials?.['Material.012']} position={[137.459, 20.878, -281.382]} rotation={[0.036, 1.291, -1.697]} scale={-0.382} />
+        <mesh name="floor" geometry={nodes.floor?.geometry} material={nodes.floor?.material} position={[1061.66, 546.995, 4.165]} rotation={[1.573, 0, 1.574]} scale={[226.335, 226.335, 237.993]} />
       </group>
     </group>
   )

@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
 import { GhibliGrassField } from "./ghibli/GhibliGrassField";
 import { GhibliFlowers } from "./ghibli/GhibliFlowers";
 import { GhibliTrees } from "./ghibli/GhibliTrees";
 import { GHIBLI_PALETTES } from "@/shaders/ghibliShader";
+import { patchMaterialWithAtmosphere } from "@/lib/patchAtmosphere";
+import { deriveFogColorHex, useAtmosphere } from "@/lib/atmosphere";
 
 interface GridFloorProps {
   projectionBounds?: { min: number; max: number };
@@ -14,18 +16,27 @@ interface GridFloorProps {
 
 export const GridFloor: React.FC<GridFloorProps> = () => {
   const { settings } = useSimulation();
+  const groundMatRef = useRef<THREE.MeshStandardMaterial>(null);
+  const atmoConfig = useAtmosphere();
 
-  // Active Ghibli palette & light vector
+  const derivedFogHex = deriveFogColorHex(atmoConfig);
+
   const palette = useMemo(() => {
-    return GHIBLI_PALETTES[settings.ghibliPaletteKey as keyof typeof GHIBLI_PALETTES] || GHIBLI_PALETTES.realistic;
+    return GHIBLI_PALETTES[settings.ghibliPaletteKey as keyof typeof GHIBLI_PALETTES] || GHIBLI_PALETTES.crimson;
   }, [settings.ghibliPaletteKey]);
 
   const lightVec = useMemo(() => new THREE.Vector3(15, 20, 15), []);
 
+  useEffect(() => {
+    if (groundMatRef.current) {
+      patchMaterialWithAtmosphere(groundMatRef.current);
+    }
+  }, []);
+
   return (
     <group>
       {/* Visual Base Ground Plane Mesh covering the full city ground */}
-      {(settings.groundOpacity ?? 1.0) > 0.001 && (
+      {settings.showGridFloor && (settings.groundOpacity ?? 1.0) > 0.001 && (
         <mesh
           position={[0, settings.gridFloorY - 0.02, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
@@ -33,11 +44,12 @@ export const GridFloor: React.FC<GridFloorProps> = () => {
         >
           <planeGeometry args={[2000, 2000]} />
           <meshStandardMaterial
-            color={settings.groundColor || palette.ground}
+            ref={groundMatRef}
+            color={derivedFogHex}
             transparent={(settings.groundOpacity ?? 1.0) < 0.99}
             opacity={settings.groundOpacity ?? 1.0}
-            roughness={0.85}
-            metalness={0.15}
+            roughness={0.9}
+            metalness={0.0}
             side={THREE.DoubleSide}
           />
         </mesh>
@@ -126,4 +138,3 @@ export const GridFloor: React.FC<GridFloorProps> = () => {
     </group>
   );
 };
-

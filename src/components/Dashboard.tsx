@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useSimulation } from "@/context/SimulationContext";
+import { useAtmosphere } from "@/lib/atmosphere";
+import { AtmospherePanel } from "./atmosphere/AtmospherePanel";
 import {
   Sliders,
   Sparkles,
@@ -11,34 +13,93 @@ import {
   Copy,
   Check,
   Upload,
-  Trees
+  Trees,
+  Sun
 } from "lucide-react";
 import Link from "next/link";
 import { GHIBLI_PALETTES } from "@/shaders/ghibliShader";
 
 export const Dashboard: React.FC = () => {
   const { settings, updateSetting, updateSettings } = useSimulation();
+  const atmoState = useAtmosphere();
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [activeTab, setActiveTab] = useState<"visuals" | "camera">("visuals");
+  const [activeTab, setActiveTab] = useState<"atmosphere" | "visuals" | "camera">("atmosphere");
   const [copied, setCopied] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importText, setImportText] = useState("");
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
-  const handleCopySettings = () => {
-    const jsonString = JSON.stringify(settings, null, 2);
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(jsonString).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      });
+  const copyToClipboard = (text: string) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
     } else {
       const textArea = document.createElement("textarea");
-      textArea.value = jsonString;
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
       document.body.appendChild(textArea);
+      textArea.focus();
       textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
+      return new Promise<void>((resolve, reject) => {
+        const successful = document.execCommand("copy");
+        document.body.removeChild(textArea);
+        if (successful) resolve();
+        else reject(new Error("execCommand failed"));
+      });
+    }
+  };
+
+  const handleCopySettings = async () => {
+    const rawAtmo = useAtmosphere.getState();
+    const cleanAtmo = {
+      horizonColor: rawAtmo.horizonColor,
+      zenithColor: rawAtmo.zenithColor,
+      glowColor: rawAtmo.glowColor,
+      decoupleFog: rawAtmo.decoupleFog,
+      fogColorOverride: rawAtmo.fogColorOverride,
+      fogEnabled: rawAtmo.fogEnabled,
+      fogDensity: rawAtmo.fogDensity,
+      fogHeightFalloff: rawAtmo.fogHeightFalloff,
+      fogHeightBase: rawAtmo.fogHeightBase,
+      skyEnabled: rawAtmo.skyEnabled,
+      skyExposure: rawAtmo.skyExposure,
+      glowStrength: rawAtmo.glowStrength,
+      glowMode: rawAtmo.glowMode,
+      glowDirection: rawAtmo.glowDirection,
+      cloudScale: rawAtmo.cloudScale,
+      cloudSpeed: rawAtmo.cloudSpeed,
+      cloudContrast: rawAtmo.cloudContrast,
+      cloudCoverage: rawAtmo.cloudCoverage,
+      ambientIntensity: rawAtmo.ambientIntensity,
+      rimIntensity: rawAtmo.rimIntensity,
+      rimWhiteMix: rawAtmo.rimWhiteMix,
+      keyFillIntensity: rawAtmo.keyFillIntensity,
+      topGlowIntensity: rawAtmo.topGlowIntensity,
+      bloomIntensity: rawAtmo.bloomIntensity,
+      bloomThreshold: rawAtmo.bloomThreshold,
+      bloomRadius: rawAtmo.bloomRadius,
+      vignetteStrength: rawAtmo.vignetteStrength,
+      vignetteOffset: rawAtmo.vignetteOffset,
+      grainAmount: rawAtmo.grainAmount,
+      godRays: rawAtmo.godRays,
+      quality: rawAtmo.quality,
+    };
+
+    const { atmosphere: _pollutedAtmo, ...cleanSimSettings } = settings as any;
+
+    const exportData = {
+      ...cleanSimSettings,
+      atmosphere: cleanAtmo,
+    };
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+
+    try {
+      await copyToClipboard(jsonString);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -51,7 +112,16 @@ export const Dashboard: React.FC = () => {
         setImportStatus("Invalid JSON structure.");
         return;
       }
-      updateSettings(parsed);
+
+      if (parsed.atmosphere && typeof parsed.atmosphere === "object") {
+        atmoState.applyPreset(parsed.atmosphere);
+      } else if (parsed.horizonColor || parsed.fogDensity || parsed.skyExposure) {
+        atmoState.applyPreset(parsed);
+      }
+
+      const { atmosphere: _atmo, set: _set, applyPreset: _applyPreset, ...simSettings } = parsed;
+      updateSettings(simSettings);
+
       setImportStatus("Settings applied successfully!");
       setTimeout(() => {
         setImportStatus(null);
@@ -97,25 +167,36 @@ export const Dashboard: React.FC = () => {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <span className="text-xs font-bold tracking-wider uppercase text-emerald-400 flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-emerald-400" /> Anime Scene Controls
+              <Sparkles className="w-4 h-4 text-emerald-400" /> Crimson Scene Controls
             </span>
           </div>
 
           {/* Tab Navigation */}
-          <div className="grid grid-cols-2 gap-1 bg-slate-900/80 p-1 rounded-xl border border-white/5 text-xs font-medium text-slate-400">
+          <div className="grid grid-cols-3 gap-1 bg-slate-900/80 p-1 rounded-xl border border-white/5 text-[10px] font-medium text-slate-400">
+            <button
+              onClick={() => setActiveTab("atmosphere")}
+              className={`py-1.5 rounded-lg cursor-pointer transition-all flex items-center justify-center gap-1 ${
+                activeTab === "atmosphere" ? "bg-red-700 text-white font-semibold shadow" : "hover:text-slate-200"
+              }`}
+            >
+              <Sun className="w-3 h-3" />
+              <span>Atmosphere</span>
+            </button>
             <button
               onClick={() => setActiveTab("visuals")}
-              className={`py-1.5 rounded-lg cursor-pointer transition-all ${activeTab === "visuals" ? "bg-emerald-600 text-white font-semibold shadow" : "hover:text-slate-200"
-                }`}
+              className={`py-1.5 rounded-lg cursor-pointer transition-all ${
+                activeTab === "visuals" ? "bg-emerald-600 text-white font-semibold shadow" : "hover:text-slate-200"
+              }`}
             >
               Visuals & Grass
             </button>
             <button
               onClick={() => setActiveTab("camera")}
-              className={`py-1.5 rounded-lg cursor-pointer transition-all ${activeTab === "camera" ? "bg-emerald-600 text-white font-semibold shadow" : "hover:text-slate-200"
-                }`}
+              className={`py-1.5 rounded-lg cursor-pointer transition-all ${
+                activeTab === "camera" ? "bg-emerald-600 text-white font-semibold shadow" : "hover:text-slate-200"
+              }`}
             >
-              Camera & Fog
+              Camera
             </button>
           </div>
 
@@ -204,382 +285,406 @@ export const Dashboard: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 1: VISUALS & GHIBLI GRASS */}
+          {/* TAB 1: ATMOSPHERE CONTROL PANEL */}
+          {activeTab === "atmosphere" && <AtmospherePanel />}
+
+          {/* TAB 2: VISUALS & GHIBLI GRASS */}
           {activeTab === "visuals" && (
             <div className="flex flex-col gap-4 text-xs">
               {/* GHIBLI GRASS & FOLIAGE */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-emerald-400 tracking-wider mb-1">
-                <Trees className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Ghibli Grass & Foliage</span>
-              </div>
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-emerald-400 tracking-wider">
+                  <Trees className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Ghibli Grass & Foliage</span>
+                </div>
 
-              {/* Toggle: Show Ghibli Grass */}
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-400 font-mono text-[10px]">SHOW GHIBLI GRASS</span>
-                <button
-                  onClick={() => updateSetting("showGhibliGrass", !settings.showGhibliGrass)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showGhibliGrass ? "bg-emerald-600" : "bg-slate-800"
-                    }`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showGhibliGrass ? "translate-x-4" : "translate-x-0"
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">SHOW GHIBLI GRASS</span>
+                  <button
+                    onClick={() => updateSetting("showGhibliGrass", !settings.showGhibliGrass)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showGhibliGrass ? "bg-emerald-600" : "bg-slate-800"
                       }`}
-                  />
-                </button>
-              </div>
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.showGhibliGrass ? "translate-x-4" : "translate-x-0"
+                        }`}
+                    />
+                  </button>
+                </div>
 
-              {/* Toggle: Realistic vs Ghibli Shading */}
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-400 font-mono text-[10px]">REALISTIC MEADOW SHADING</span>
-                <button
-                  onClick={() => updateSetting("useRealisticGrass", !settings.useRealisticGrass)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.useRealisticGrass ? "bg-emerald-600" : "bg-slate-800"
-                    }`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.useRealisticGrass ? "translate-x-4" : "translate-x-0"
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">REALISTIC MEADOW SHADING</span>
+                  <button
+                    onClick={() => updateSetting("useRealisticGrass", !settings.useRealisticGrass)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.useRealisticGrass ? "bg-emerald-600" : "bg-slate-800"
                       }`}
-                  />
-                </button>
-              </div>
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.useRealisticGrass ? "translate-x-4" : "translate-x-0"
+                        }`}
+                    />
+                  </button>
+                </div>
 
-              {/* Toggle: Show Meadow Flowers */}
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-400 font-mono text-[10px]">SHOW MEADOW FLOWERS</span>
-                <button
-                  onClick={() => updateSetting("showGhibliFlowers", !settings.showGhibliFlowers)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showGhibliFlowers ? "bg-emerald-600" : "bg-slate-800"
-                    }`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showGhibliFlowers ? "translate-x-4" : "translate-x-0"
-                      }`}
-                  />
-                </button>
-              </div>
-
-              {/* Toggle: Show Ghibli Trees */}
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-400 font-mono text-[10px]">SHOW GHIBLI TREES</span>
-                <button
-                  onClick={() => updateSetting("showGhibliTrees", !settings.showGhibliTrees)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showGhibliTrees ? "bg-emerald-600" : "bg-slate-800"
-                    }`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showGhibliTrees ? "translate-x-4" : "translate-x-0"
-                      }`}
-                  />
-                </button>
-              </div>
-
-              {/* Slider: Meadow Flower Density */}
-              {settings.showGhibliFlowers && (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-0.5">
                   <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">MEADOW FLOWER DENSITY</span>
-                    <span className="text-pink-300">{(settings.ghibliFlowerCount ?? 12000).toLocaleString()}</span>
+                    <span className="text-slate-400">GRASS DENSITY / COUNT</span>
+                    <span className="text-emerald-300">{(settings.ghibliGrassCount / 1000).toFixed(0)}k</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="50000"
+                    max="1000000"
+                    step="10000"
+                    value={settings.ghibliGrassCount}
+                    onChange={(e) => updateSetting("ghibliGrassCount", parseInt(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">GRASS HEIGHT</span>
+                    <span className="text-emerald-300">{settings.ghibliGrassHeight.toFixed(1)}u</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="4.0"
+                    step="0.1"
+                    value={settings.ghibliGrassHeight}
+                    onChange={(e) => updateSetting("ghibliGrassHeight", parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">GRASS WIDTH</span>
+                    <span className="text-emerald-300">{settings.ghibliGrassWidth.toFixed(2)}u</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="1.0"
+                    step="0.05"
+                    value={settings.ghibliGrassWidth}
+                    onChange={(e) => updateSetting("ghibliGrassWidth", parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">FIELD RADIUS</span>
+                    <span className="text-emerald-300">{settings.ghibliGrassRadius}u</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="10"
+                    max="200"
+                    step="5"
+                    value={settings.ghibliGrassRadius}
+                    onChange={(e) => updateSetting("ghibliGrassRadius", parseInt(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">WIND SPEED</span>
+                    <span className="text-emerald-300">{settings.ghibliGrassWindSpeed.toFixed(1)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="5.0"
+                    step="0.1"
+                    value={settings.ghibliGrassWindSpeed}
+                    onChange={(e) => updateSetting("ghibliGrassWindSpeed", parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">WIND STRENGTH</span>
+                    <span className="text-emerald-300">{settings.ghibliGrassWindStrength.toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.05"
+                    max="1.5"
+                    step="0.05"
+                    value={settings.ghibliGrassWindStrength}
+                    onChange={(e) => updateSetting("ghibliGrassWindStrength", parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">REVEAL DISTANCE</span>
+                    <span className="text-emerald-300">{settings.ghibliGrassRevealDistance}u</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="50"
+                    max="1500"
+                    step="10"
+                    value={settings.ghibliGrassRevealDistance}
+                    onChange={(e) => updateSetting("ghibliGrassRevealDistance", parseInt(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">REVEAL SOFTNESS</span>
+                    <span className="text-emerald-300">{settings.ghibliGrassRevealSoftness}u</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="10"
+                    max="300"
+                    step="5"
+                    value={settings.ghibliGrassRevealSoftness}
+                    onChange={(e) => updateSetting("ghibliGrassRevealSoftness", parseInt(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">REVEAL OFFSET</span>
+                    <span className="text-emerald-300">{settings.ghibliGrassRevealOffset}u</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="-100"
+                    max="200"
+                    step="5"
+                    value={settings.ghibliGrassRevealOffset}
+                    onChange={(e) => updateSetting("ghibliGrassRevealOffset", parseInt(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* MEADOW FLOWERS */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-emerald-400 tracking-wider">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Meadow Flowers</span>
+                  </div>
+                  <button
+                    onClick={() => updateSetting("showGhibliFlowers", !settings.showGhibliFlowers)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showGhibliFlowers ? "bg-emerald-600" : "bg-slate-800"
+                      }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.showGhibliFlowers ? "translate-x-4" : "translate-x-0"
+                        }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">FLOWER COUNT</span>
+                    <span className="text-emerald-300">{(settings.ghibliFlowerCount / 1000).toFixed(0)}k</span>
                   </div>
                   <input
                     type="range"
                     min="1000"
                     max="50000"
                     step="1000"
-                    value={settings.ghibliFlowerCount ?? 12000}
+                    value={settings.ghibliFlowerCount}
                     onChange={(e) => updateSetting("ghibliFlowerCount", parseInt(e.target.value))}
-                    className="w-full accent-pink-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
                 </div>
-              )}
 
-              {/* Slider: Meadow Flower Scale */}
-              {settings.showGhibliFlowers && (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-0.5">
                   <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">MEADOW FLOWER SCALE</span>
-                    <span className="text-pink-300">{(settings.ghibliFlowerScale ?? 1.2).toFixed(1)}x</span>
+                    <span className="text-slate-400">FLOWER SCALE</span>
+                    <span className="text-emerald-300">{settings.ghibliFlowerScale.toFixed(1)}x</span>
                   </div>
                   <input
                     type="range"
-                    min="0.4"
-                    max="3.5"
+                    min="0.2"
+                    max="3.0"
                     step="0.1"
-                    value={settings.ghibliFlowerScale ?? 1.2}
+                    value={settings.ghibliFlowerScale}
                     onChange={(e) => updateSetting("ghibliFlowerScale", parseFloat(e.target.value))}
-                    className="w-full accent-pink-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
                 </div>
-              )}
-
-              {/* Slider: Grass Blade Count */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-400">GRASS BLADE DENSITY</span>
-                  <span className="text-emerald-300">{(settings.ghibliGrassCount ?? 500000).toLocaleString()}</span>
-                </div>
-                <input
-                  type="range"
-                  min="500000"
-                  max="2000000"
-                  step="25000"
-                  value={settings.ghibliGrassCount ?? 500000}
-                  onChange={(e) => updateSetting("ghibliGrassCount", parseInt(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
               </div>
 
-              {/* Slider: Grass Blade Height (Length) */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-400">GRASS HEIGHT (LENGTH)</span>
-                  <span className="text-emerald-300">{(settings.ghibliGrassHeight ?? 1.7).toFixed(1)}x</span>
-                </div>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="6.0"
-                  step="0.1"
-                  value={settings.ghibliGrassHeight ?? 1.7}
-                  onChange={(e) => updateSetting("ghibliGrassHeight", parseFloat(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Grass Blade Thickness (Width) */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-400">GRASS THICKNESS (WIDTH)</span>
-                  <span className="text-emerald-300">{(settings.ghibliGrassWidth ?? 0.3).toFixed(1)}x</span>
-                </div>
-                <input
-                  type="range"
-                  min="0.2"
-                  max="6.0"
-                  step="0.1"
-                  value={settings.ghibliGrassWidth ?? 0.3}
-                  onChange={(e) => updateSetting("ghibliGrassWidth", parseFloat(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Grass Wind Speed */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-400">GRASS WIND SPEED</span>
-                  <span className="text-emerald-300">{(settings.ghibliGrassWindSpeed ?? 1.2).toFixed(1)}x</span>
-                </div>
-                <input
-                  type="range"
-                  min="0.0"
-                  max="3.0"
-                  step="0.1"
-                  value={settings.ghibliGrassWindSpeed ?? 1.2}
-                  onChange={(e) => updateSetting("ghibliGrassWindSpeed", parseFloat(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Grass Reveal Distance */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-400">REVEAL WAVE DISTANCE</span>
-                  <span className="text-emerald-300">{(settings.ghibliGrassRevealDistance ?? 710).toFixed(0)}u</span>
-                </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="1200"
-                  step="20"
-                  value={settings.ghibliGrassRevealDistance ?? 710}
-                  onChange={(e) => updateSetting("ghibliGrassRevealDistance", parseFloat(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Grass Reveal Softness */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-400">REVEAL WAVE SOFTNESS</span>
-                  <span className="text-slate-300">{(settings.ghibliGrassRevealSoftness ?? 100).toFixed(0)}u</span>
-                </div>
-                <input
-                  type="range"
-                  min="5"
-                  max="200"
-                  step="5"
-                  value={settings.ghibliGrassRevealSoftness ?? 100}
-                  onChange={(e) => updateSetting("ghibliGrassRevealSoftness", parseFloat(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Grass Reveal Offset */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-400">REVEAL START OFFSET</span>
-                  <span className="text-slate-300">{(settings.ghibliGrassRevealOffset ?? 0).toFixed(0)}u</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="600"
-                  step="10"
-                  value={settings.ghibliGrassRevealOffset ?? 0}
-                  onChange={(e) => updateSetting("ghibliGrassRevealOffset", parseFloat(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Palette Selector */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Color Palette</span>
-                <div className="grid grid-cols-3 gap-1">
-                  {(["realistic", "summer", "sunset", "sakura", "autumn", "night"] as const).map((key) => (
-                    <button
-                      key={key}
-                      onClick={() => {
-                        updateSetting("ghibliPaletteKey", key);
-                        const pal = GHIBLI_PALETTES[key as keyof typeof GHIBLI_PALETTES];
-                        if (pal && pal.ground) {
-                          updateSetting("groundColor", pal.ground);
-                        }
-                      }}
-                      className={`py-1 rounded border text-center font-mono capitalize cursor-pointer transition-all text-[10px] ${settings.ghibliPaletteKey === key
-                          ? "bg-emerald-950/60 border-emerald-500 text-emerald-300 font-bold"
-                          : "bg-slate-900/50 border-white/5 text-slate-400 hover:text-slate-200"
+              {/* TREES & COLOR PALETTE */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">SHOW GHIBLI TREES</span>
+                  <button
+                    onClick={() => updateSetting("showGhibliTrees", !settings.showGhibliTrees)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showGhibliTrees ? "bg-emerald-600" : "bg-slate-800"
+                      }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.showGhibliTrees ? "translate-x-4" : "translate-x-0"
                         }`}
-                    >
-                      {key}
-                    </button>
-                  ))}
+                    />
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Color Palette</span>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(["crimson", "realistic", "summer", "sunset", "sakura", "autumn"] as const).map((key) => (
+                      <button
+                        key={key}
+                        onClick={() => {
+                          updateSetting("ghibliPaletteKey", key);
+                          const pal = GHIBLI_PALETTES[key as keyof typeof GHIBLI_PALETTES];
+                          if (pal && pal.ground) {
+                            updateSetting("groundColor", pal.ground);
+                          }
+                        }}
+                        className={`py-1 rounded border text-center font-mono capitalize cursor-pointer transition-all text-[10px] ${settings.ghibliPaletteKey === key
+                            ? "bg-emerald-950/60 border-emerald-500 text-emerald-300 font-bold"
+                            : "bg-slate-900/50 border-white/5 text-slate-400 hover:text-slate-200"
+                          }`}
+                      >
+                        {key}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Ground Plane Controls */}
-              <div className="flex flex-col gap-1.5 mt-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
-                <span className="text-[10px] uppercase text-emerald-400 font-semibold tracking-wider">Ground Plane Controls</span>
-                
-                {/* Slider: Ground Plane Opacity */}
-                <div className="flex flex-col gap-1 mt-1">
+              {/* GROUND PLANE */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-mono text-[10px]">GROUND COLOR</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-5 h-5 rounded border border-white/20 relative overflow-hidden"
+                      style={{ backgroundColor: settings.groundColor }}
+                    >
+                      <input
+                        type="color"
+                        value={settings.groundColor}
+                        onChange={(e) => updateSetting("groundColor", e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-300 font-mono w-14">{settings.groundColor}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
                   <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">GROUND PLANE OPACITY</span>
-                    <span className="text-emerald-300">{((settings.groundOpacity ?? 1.0) * 100).toFixed(0)}%</span>
+                    <span className="text-slate-400">GROUND OPACITY</span>
+                    <span className="text-emerald-300">{(settings.groundOpacity * 100).toFixed(0)}%</span>
                   </div>
                   <input
                     type="range"
                     min="0.0"
                     max="1.0"
                     step="0.05"
-                    value={settings.groundOpacity ?? 1.0}
+                    value={settings.groundOpacity}
                     onChange={(e) => updateSetting("groundOpacity", parseFloat(e.target.value))}
                     className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
                 </div>
-
-                {/* Color: Ground Plane Color */}
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">GROUND BASE COLOR</span>
-                    <span className="text-emerald-300">{settings.groundColor || "#1c3d18"}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={settings.groundColor || "#1c3d18"}
-                      onChange={(e) => updateSetting("groundColor", e.target.value)}
-                      className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
-                    />
-                    <span className="text-[10px] text-slate-400 font-mono">Select ground color</span>
-                  </div>
-                </div>
               </div>
 
               {/* CHARACTER GLOW & BLOOM */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-emerald-400 tracking-wider mt-4 mb-1">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Character Glow & Bloom</span>
-              </div>
-
-              {/* Slider: Simon Glow Intensity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-400">GLOW INTENSITY</span>
-                  <span className="text-emerald-300">{(settings.simonGlowIntensity ?? 1.2).toFixed(2)}x</span>
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-emerald-400 tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Character Glow & Bloom</span>
                 </div>
-                <input
-                  type="range"
-                  min="0.0"
-                  max="5.0"
-                  step="0.1"
-                  value={settings.simonGlowIntensity ?? 1.2}
-                  onChange={(e) => updateSetting("simonGlowIntensity", parseFloat(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
 
-              {/* Slider: Outfit Base Opacity */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-400">OUTFIT BASE OPACITY</span>
-                  <span className="text-emerald-300">{((settings.simonGlowOpacity ?? 0.4) * 100).toFixed(0)}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="0.05"
-                  max="1.0"
-                  step="0.05"
-                  value={settings.simonGlowOpacity ?? 0.4}
-                  onChange={(e) => updateSetting("simonGlowOpacity", parseFloat(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Slider: Bloom Strength */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-400">BLOOM STRENGTH</span>
-                  <span className="text-emerald-300">{(settings.simonBloomIntensity ?? 0.4).toFixed(2)}x</span>
-                </div>
-                <input
-                  type="range"
-                  min="0.0"
-                  max="3.0"
-                  step="0.05"
-                  value={settings.simonBloomIntensity ?? 0.4}
-                  onChange={(e) => updateSetting("simonBloomIntensity", parseFloat(e.target.value))}
-                  className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Color: Glow Color */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between font-mono text-[10px]">
-                  <span className="text-slate-400">GLOW COLOR</span>
-                  <span className="text-emerald-300">{settings.simonGlowColor || "#ffffff"}</span>
-                </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">CHARACTER GLOW INTENSITY</span>
+                    <span className="text-emerald-300">{settings.simonGlowIntensity.toFixed(1)}</span>
+                  </div>
                   <input
-                    type="color"
-                    value={settings.simonGlowColor || "#ffffff"}
-                    onChange={(e) => updateSetting("simonGlowColor", e.target.value)}
-                    className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                    type="range"
+                    min="0.0"
+                    max="5.0"
+                    step="0.1"
+                    value={settings.simonGlowIntensity}
+                    onChange={(e) => updateSetting("simonGlowIntensity", parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
-                  <span className="text-[10px] text-slate-400 font-mono">Select glow color</span>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">CHARACTER BLOOM INTENSITY</span>
+                    <span className="text-emerald-300">{settings.simonBloomIntensity.toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="2.0"
+                    step="0.05"
+                    value={settings.simonBloomIntensity}
+                    onChange={(e) => updateSetting("simonBloomIntensity", parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">GLOW COLOR</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-5 h-5 rounded border border-white/20 relative overflow-hidden"
+                      style={{ backgroundColor: settings.simonGlowColor }}
+                    >
+                      <input
+                        type="color"
+                        value={settings.simonGlowColor}
+                        onChange={(e) => updateSetting("simonGlowColor", e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-300 font-mono w-14">{settings.simonGlowColor}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">GLOW OPACITY</span>
+                    <span className="text-emerald-300">{(settings.simonGlowOpacity * 100).toFixed(0)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="1.0"
+                    step="0.05"
+                    value={settings.simonGlowOpacity}
+                    onChange={(e) => updateSetting("simonGlowOpacity", parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB 2: CAMERA & FOG */}
+          {/* TAB 3: CAMERA & SCROLL */}
           {activeTab === "camera" && (
             <div className="flex flex-col gap-4 text-xs">
-              {/* SCROLL CONTROLS */}
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-emerald-400 tracking-wider mb-1">
                 <Sliders className="w-3.5 h-3.5" />
                 <span>Scroll & Glide</span>
               </div>
 
-              {/* Slider: Scroll Speed */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
                   <span className="text-slate-400">SCROLL SPEED</span>
@@ -596,7 +701,6 @@ export const Dashboard: React.FC = () => {
                 />
               </div>
 
-              {/* Slider: Scroll Damping */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between font-mono text-[10px]">
                   <span className="text-slate-400">SCROLL DAMPING</span>
@@ -613,7 +717,6 @@ export const Dashboard: React.FC = () => {
                 />
               </div>
 
-              {/* Toggle: Scroll Snapping */}
               <div className="flex justify-between items-center py-1">
                 <span className="text-slate-400 font-mono text-[10px]">ENABLE SCROLL SNAPPING</span>
                 <button
@@ -627,149 +730,11 @@ export const Dashboard: React.FC = () => {
                   />
                 </button>
               </div>
-
-              {/* SKY ATMOSPHERE */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-emerald-400 tracking-wider mt-4 mb-1">
-                <Camera className="w-3.5 h-3.5" />
-                <span>Sky Atmosphere</span>
-              </div>
-
-              {/* Toggle: Sky Dome */}
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-400 font-mono text-[10px]">SHOW GLOWING SKY</span>
-                <button
-                  onClick={() => updateSetting("showSky", !settings.showSky)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showSky ? "bg-emerald-600" : "bg-slate-800"
-                    }`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showSky ? "translate-x-4" : "translate-x-0"
-                      }`}
-                  />
-                </button>
-              </div>
-
-              {/* Slider: Sky Exposure */}
-              {settings.showSky && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">SKY EXPOSURE</span>
-                    <span className="text-emerald-300">{settings.skyExposure.toFixed(2)}x</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.0"
-                    max="4.0"
-                    step="0.05"
-                    value={settings.skyExposure}
-                    onChange={(e) => updateSetting("skyExposure", parseFloat(e.target.value))}
-                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Color: Sky Color */}
-              {settings.showSky && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">SKY GLOW COLOR</span>
-                    <span className="text-emerald-300">{settings.skyColor}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={settings.skyColor}
-                      onChange={(e) => updateSetting("skyColor", e.target.value)}
-                      className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
-                    />
-                    <span className="text-[10px] text-slate-400 font-mono">Select color</span>
-                  </div>
-                </div>
-              )}
-
-              {/* ENVIRONMENTAL FOG */}
-              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase text-emerald-400 tracking-wider mt-4 mb-1">
-                <Camera className="w-3.5 h-3.5" />
-                <span>Environmental Fog</span>
-              </div>
-
-              {/* Toggle: Show Fog */}
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-400 font-mono text-[10px]">SHOW DISTANT FOG</span>
-                <button
-                  onClick={() => updateSetting("showFog", !settings.showFog)}
-                  className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.showFog ? "bg-emerald-600" : "bg-slate-800"
-                    }`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${settings.showFog ? "translate-x-4" : "translate-x-0"
-                      }`}
-                  />
-                </button>
-              </div>
-
-              {/* Slider: Fog Near */}
-              {settings.showFog && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">FOG NEAR DISTANCE</span>
-                    <span className="text-emerald-300">{settings.fogNear.toFixed(1)}u</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="5.0"
-                    max="500.0"
-                    step="5.0"
-                    value={settings.fogNear}
-                    onChange={(e) => updateSetting("fogNear", parseFloat(e.target.value))}
-                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Slider: Fog Far */}
-              {settings.showFog && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">FOG FAR DISTANCE</span>
-                    <span className="text-emerald-300">{settings.fogFar.toFixed(0)}u</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="50.0"
-                    max="1500.0"
-                    step="10.0"
-                    value={settings.fogFar}
-                    onChange={(e) => updateSetting("fogFar", parseFloat(e.target.value))}
-                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              )}
-
-              {/* Color: Fog Color */}
-              {settings.showFog && (
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">FOG MIST COLOR</span>
-                    <span className="text-emerald-300">{settings.fogColor}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={settings.fogColor}
-                      onChange={(e) => updateSetting("fogColor", e.target.value)}
-                      className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
-                    />
-                    <span className="text-[10px] text-slate-400 font-mono">Select color</span>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
       </main>
 
-      {/* Fixed Position Grass Reveal Debugger HUD */}
       <GrassDebugBadge />
     </div>
   );
@@ -807,4 +772,3 @@ const GrassDebugBadge: React.FC = () => {
     </div>
   );
 };
-

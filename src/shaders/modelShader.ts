@@ -1,8 +1,7 @@
-// GLSL Shaders for the 3D Model Particle System
+import { atmosphereParsGLSL } from "./atmosphericFog.glsl";
 
 export const ModelParticleShader = {
   vertexShader: `
-    // Simplex 3D Noise by Stefan Gustavson
     vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
     vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
     
@@ -70,12 +69,10 @@ export const ModelParticleShader = {
     uniform float uScrollProgress;
     uniform float uSpiralSuppression;
 
-    // Focus settings
     uniform float uFocusDepth;
     uniform float uFocusRange;
     uniform float uBokehScale;
 
-    // Color attribute (from vertex colors or computed)
     attribute vec3 aColor;
     attribute float aScatter;
     attribute vec3 aNormal;
@@ -90,25 +87,20 @@ export const ModelParticleShader = {
     varying float vCameraDist;
     varying float vGpuScatter;
 
-    // 2D hash for block grid randomization
     float hash2D(vec2 p, float seed) {
       return fract(sin(dot(p, vec2(127.1, 311.7)) + seed) * 43758.5453);
     }
 
-    // Curl noise using snoise — divergence-free flow field on the GPU
     vec3 curlNoise(vec3 p) {
       float e = 0.1;
-      // Partial derivatives via finite differences of snoise
       float nx = snoise(p + vec3(e, 0.0, 0.0)) - snoise(p - vec3(e, 0.0, 0.0));
       float ny = snoise(p + vec3(0.0, e, 0.0)) - snoise(p - vec3(0.0, e, 0.0));
       float nz = snoise(p + vec3(0.0, 0.0, e)) - snoise(p - vec3(0.0, 0.0, e));
 
-      // Use offset noise fields for each curl component
       float nx2 = snoise(p + vec3(e, 0.0, 100.0)) - snoise(p - vec3(e, 0.0, 100.0));
       float ny2 = snoise(p + vec3(0.0, e, 200.0)) - snoise(p - vec3(0.0, e, 200.0));
       float nz2 = snoise(p + vec3(0.0, 0.0, e) + vec3(300.0)) - snoise(p - vec3(0.0, 0.0, e) + vec3(300.0));
 
-      // curl(F) = (dFz/dy - dFy/dz, dFx/dz - dFz/dx, dFy/dx - dFx/dy)
       return vec3(
         ny2 - nz,
         nz2 - nx,
@@ -119,23 +111,16 @@ export const ModelParticleShader = {
     void main() {
       vec3 pos = position;
 
-      // Pass through the per-vertex color
       vColor = aColor;
-
-      // Pass raw local Y for vertical effects
       vPosY = pos.y;
 
-      // ── Curl noise flow displacement (water-like flowing motion) ──
-      // Driven by both time and scroll progress for responsive scrolling ripples
       vec3 flowInput = pos * uFlowFrequency + vec3(0.0, 0.0, uTime * uFlowSpeed + uScrollProgress * 8.0);
       vec3 flow = curlNoise(flowInput);
       
-      // Low-frequency noise mask for organic uneven clumping
       vec3 maskInput = position * (uFlowFrequency * 0.4) + vec3(0.0, 0.0, uTime * uFlowSpeed * 0.3);
       float flowMask = smoothstep(-0.3, 0.5, snoise(maskInput));
       float clumpingMask = mix(1.0, flowMask, uFlowClumping);
 
-      // Suppress background spiral noise when particle is actively dragged
       float dragFactor = smoothstep(0.01, 0.35, aScatter);
       float activeFlowStrength = mix(uFlowStrength, uFlowStrength * (1.0 - uSpiralSuppression), dragFactor);
 
@@ -153,14 +138,11 @@ export const ModelParticleShader = {
       vec4 worldPos = modelMatrix * vec4(pos, 1.0);
       vWorldPosition = worldPos.xyz;
 
-      // Perturb Y world coordinate using simplex noise for cloudy transition
       float yPerturb = snoise(vec3(worldPos.xz * 0.12, uTime * 0.2));
       vWorldPosition.y += yPerturb * 6.0;
 
-      // Use the Y coordinate as a normalized depth for coloring effects
       vDepth = clamp((pos.y + 5.0) / 10.0, 0.0, 1.0);
 
-      // Apply 3D simplex noise for organic atmospheric jitter
       vec3 noiseInput = vec3(pos.x * 0.5, pos.y * 0.5, uTime * uNoiseSpeed);
       float noiseVal = snoise(noiseInput);
       pos += vec3(
@@ -169,38 +151,25 @@ export const ModelParticleShader = {
         (noiseVal * 1.2) * uNoiseStrength
       );
 
-
-      // The distance the particle was displaced on the GPU
       vGpuScatter = distance(pos, position);
 
-      // Standard view/projection transform
       vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
 
-      // Pass screen position for fragment shader
       vScreenPos = gl_Position.xy / gl_Position.w;
 
-      // Depth from camera
       float cameraDist = -mvPosition.z;
       vCameraDist = cameraDist;
 
-      // Focus/blur
       float distFromFocus = abs(cameraDist - uFocusDepth);
       vBlur = clamp((distFromFocus - uFocusRange) / max(uFocusRange, 0.1), 0.0, 1.0);
 
-      // Point size (uniform to avoid uneven sizes)
       gl_PointSize = uPointSize;
-
-      // Pass scatter to fragment
       vScatter = aScatter;
 
-      // ─── SCREEN-SPACE GLITCH (applied AFTER projection) ───
-      // This stays fixed in camera/screen space regardless of model rotation.
       if (uGlitchStrength > 0.01) {
-        // Get normalized device coordinates (-1 to 1)
         vec2 ndc = gl_Position.xy / gl_Position.w;
 
-        // ── Layer 1: Large block displacement ──
         vec2 blockL = floor(ndc * vec2(3.0, 5.0) + uGlitchSeed * 0.37);
         float hL = hash2D(blockL, uGlitchSeed);
         float dx = 0.0;
@@ -210,7 +179,6 @@ export const ModelParticleShader = {
           dx += (hL - 0.5) * 2.8;
         }
 
-        // ── Layer 2: Medium block displacement ──
         vec2 blockM = floor(ndc * vec2(7.0, 11.0) + uGlitchSeed * 1.13);
         float hM = hash2D(blockM, uGlitchSeed * 1.7);
 
@@ -219,7 +187,6 @@ export const ModelParticleShader = {
           dy += (hM - 0.65) * 0.8;
         }
 
-        // ── Layer 3: Fine scan-line jitter ──
         float scanLine = floor(ndc.y * 35.0 + uGlitchSeed * 2.7);
         float hScan = fract(sin(scanLine * 437.585 + uGlitchSeed * 3.1) * 43758.5453);
 
@@ -227,18 +194,15 @@ export const ModelParticleShader = {
           dx += (hScan - 0.5) * 0.7;
         }
 
-        // ── Layer 4: Random rectangular block shifts ──
         vec2 blockR = floor(ndc * vec2(5.0, 8.0) + uGlitchSeed * 0.83);
         float hR = hash2D(blockR, uGlitchSeed * 2.9);
         float hR2 = hash2D(blockR + vec2(17.0, 31.0), uGlitchSeed * 3.7);
 
         if (hR > 0.72) {
-          // Shift entire block diagonally
           dx += (hR2 - 0.5) * 2.0;
           dy += (hR - 0.72) * 3.0;
         }
 
-        // Apply displacement in clip space (multiply by w for correct NDC offset)
         gl_Position.x += dx * uGlitchStrength * gl_Position.w * 0.12;
         gl_Position.y += dy * uGlitchStrength * gl_Position.w * 0.08;
       }
@@ -271,12 +235,6 @@ export const ModelParticleShader = {
     varying float vGpuScatter;
     uniform float uScatterColorScale;
 
-    uniform float uShowFog;
-    uniform vec3 uFogColor;
-    uniform float uFogNear;
-    uniform float uFogFar;
-    uniform float uFogAmount;
-
     uniform vec3 uBurnColorPrimary;
     uniform vec3 uBurnColorSecondary;
     uniform float uBurnSensitivity;
@@ -285,13 +243,13 @@ export const ModelParticleShader = {
     uniform float uBurnMidThreshold;
     uniform float uBurnMaxThreshold;
 
-    // Simple hash for sparkle noise
+    ${atmosphereParsGLSL}
+
     float hash(vec2 p) {
       return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
     }
 
     void main() {
-      // Vertical Wipe clipping with soft opacity transition
       float alphaWipe = 1.0;
       float feather = 12.0;
       if (uClipSide > 0.5) {
@@ -301,36 +259,18 @@ export const ModelParticleShader = {
       }
       if (alphaWipe < 0.01) discard;
 
-      // Circular particle shape
       vec2 center = gl_PointCoord - vec2(0.5);
       float dist = length(center);
       if (dist > 0.5) discard;
 
-      // Soft edge falloff
       float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
 
-      // Apply default color if vertex has no color (sentinel value of < 0.0)
       vec3 baseColor = vColor.r < 0.0 ? uParticleDefaultColor : vColor;
-
-      // Apply tint
       vec3 color = mix(baseColor, uTint, uTintMix);
 
-      // Apply particle glow multiplier (bloom trigger)
       color *= uGlowIntensity;
 
-      // Blend with thick white cloud/fog color at the boundary
-      vec3 cloudColor = mix(uHazeColor, vec3(0.95, 0.95, 0.98), 0.4);
-      color = mix(cloudColor, color, alphaWipe);
-
-      // Apply atmospheric haze based on blur (distance from focus)
-      color = mix(color, uHazeColor, vBlur * uHazeDensity);
-
-      // --- Thermal Scatter Burn Glow (Driven strictly by Drag Distance from Rest) ---
-      // 3-Stage Distance Color Transformation:
-      // 1. Low Distance  (0.00 -> mid): Stays Default Particle Color (NO early primary color catching)
-      // 2. Middle Distance (mid -> max): Transforms to Primary Burn Color (uBurnColorPrimary)
-      // 3. Far Distance   (max -> 1.0): Transforms to Core Glow Color (uBurnColorSecondary) & Fully Burned White
-      float dragDistance = vScatter; // CPU distance displaced from model rest position
+      float dragDistance = vScatter;
       float normDistance = clamp((dragDistance - uBurnThreshold) * uBurnSensitivity, 0.0, 1.0);
       float s = max(pow(normDistance, max(uBurnExponent, 0.1)), uBurnProgress);
 
@@ -341,10 +281,7 @@ export const ModelParticleShader = {
         float midRamp = smoothstep(midStart * 0.5, maxStart, s);
         float maxRamp = smoothstep(maxStart, 1.0, s);
 
-        // Stage 1: Default Base Color -> Primary Burn Color (at middle distance)
         vec3 burnStage1 = mix(color, uBurnColorPrimary, midRamp);
-
-        // Stage 2: Primary Burn Color -> Core Glow Color -> Fully Burned Hot White (at max distance)
         vec3 burnStage2 = mix(burnStage1, uBurnColorSecondary, maxRamp * 0.7);
         vec3 fullyBurnedWhite = mix(burnStage2, vec3(1.6, 1.6, 1.7), maxRamp);
 
@@ -352,25 +289,17 @@ export const ModelParticleShader = {
         alpha = min(1.0, alpha + s * 0.5);
       }
 
-
-
-      // Sparkle noise effect
       float sparkle = hash(gl_FragCoord.xy + uTime * 3.0);
       float sparkleMask = step(0.97, sparkle);
       color += sparkleMask * 0.4;
 
-      // Density control: reduce opacity of out-of-focus particles
       float focusAlpha = mix(1.0, 1.0 - vBlur, uDensityControl);
-
       alpha *= uOpacity * focusAlpha * uParticleOpacity * alphaWipe;
 
-      // Apply environmental fog (depth-based fading for model particles)
-      float fogFactor = clamp((uFogFar - vCameraDist) / max(uFogFar - uFogNear, 0.0001), 0.0, 1.0);
-      float fogMix = uShowFog * uFogAmount * (1.0 - fogFactor);
-      color = mix(color, uFogColor, fogMix);
-      alpha = mix(alpha, 0.0, fogMix);
+      #ifdef USE_ATMOSPHERE
+        color = applyAtmosphereAdditive(color, vCameraDist, vWorldPosition);
+      #endif
 
-      // Drop fully transparent particles
       if (alpha < 0.01) discard;
 
       gl_FragColor = vec4(color, alpha);

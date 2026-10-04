@@ -4,24 +4,19 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
-import { CityXRayMeshSystem } from "./CityXRayMeshSystem";
 import { SimonGlowSystem } from "./SimonGlowSystem";
 import { GridFloorMeshSystem } from "./GridFloorMeshSystem";
 import { TargetOverlayBridge } from "./callouts/TargetOverlayBridge";
 import { InteractiveSceneParticleSystem } from "./InteractiveSceneParticleSystem";
 import { CALLOUT_TARGETS } from "@/config/targetConfig";
 import { useSimulation } from "@/context/SimulationContext";
+import { patchMaterialWithAtmosphere } from "@/lib/patchAtmosphere";
 
 const CAMERA_NAME = "Camera";
 const TARGET_NAME = "body";
 const BLENDER_START_FRAME = -492;
 
-/**
- * Visual properties each scene can customize.
- * Any property left undefined falls back to the global SimulationSettings.
- */
 export interface SceneVisualOverrides {
-  hazeColor?: string | THREE.Color;
   xrayFillOpacity?: number;
   xrayOutlineColor?: string | THREE.Color;
   xrayBaseColor?: string | THREE.Color;
@@ -33,23 +28,15 @@ export interface SceneVisualOverrides {
   xrayBorderRevealDepth?: number;
   xraySolidRevealDepth?: number;
   xrayHoverRadius?: number;
-  skyColor?: string | THREE.Color;
-  skyHorizonRange?: number;
-  showSky?: boolean;
   showGridFloor?: boolean;
   gridFloorOpacity?: number;
   gridFloorY?: number;
-  showFog?: boolean;
-  fogColor?: string | THREE.Color;
-  fogNear?: number;
-  fogFar?: number;
-  fogAmount?: number;
 }
 
 export interface SceneConfig {
   path: string;
   hasParticleTarget: boolean;
-  activeAnimationName?: string; // Optional: specify the exact animation to play (e.g. "Action" for static posed action)
+  activeAnimationName?: string;
   visuals?: SceneVisualOverrides;
 }
 
@@ -60,14 +47,6 @@ interface SceneSlotProps {
   onCameraReady: (cam: THREE.PerspectiveCamera) => void;
 }
 
-/**
- * SceneSlot
- *
- * Self-contained component that manages one GLB scene:
- * - Loads GLB, extracts meshes, finds/creates camera
- * - Sets up animations, drives them from gl.userData.sceneScrollNorms[sceneIndex]
- * - Renders <primitive> + <CityXRayMeshSystem> + <SimonGlitchSystem>
- */
 export const SceneSlot: React.FC<SceneSlotProps> = ({
   config,
   sceneIndex,
@@ -97,12 +76,10 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
   }, [mixer]);
 
   const cameraReadyRef = useRef(false);
-  const baseFovRef = useRef<number>(0); // Original FOV from Blender camera, for responsive scaling
+  const baseFovRef = useRef<number>(0);
 
-  // Track original properties of Simon's bodypart materials to restore on unmount
   const originalBodypartPropsRef = useRef<Map<THREE.Material, { transparent: boolean; opacity: number }>>(new Map());
 
-  // Find the active mixamo action names (supports multiple characters)
   const activeMixamoActionNames = useMemo(() => {
     const names = gltf.animations.map((clip) => clip.name);
     const mixamoNames = names.filter((name) => name.toLowerCase().includes("mixamo"));
@@ -113,7 +90,6 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       active.push(config.activeAnimationName);
     }
 
-    // Automatically pick up the newest/last mixamo animation for the second character
     if (mixamoNames.length > 0) {
       const last = mixamoNames[mixamoNames.length - 1];
       if (!active.includes(last)) {
@@ -123,7 +99,6 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     return active;
   }, [gltf.animations, config.activeAnimationName]);
 
-  // Compute max animation duration for this scene
   const maxDuration = useMemo(() => {
     let max = 0;
     gltf.animations.forEach((clip) => {
@@ -134,7 +109,6 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     return max || 1;
   }, [gltf.animations, activeMixamoActionNames]);
 
-  // Separate meshes: city meshes, target meshes, Simon glowing meshes, Simon bodypart meshes, and floor meshes
   const { cityMeshes, targetMeshes, simonGlowMeshes, simonBodypartMeshes, floorMeshes } = useMemo(() => {
     const city: THREE.Mesh[] = [];
     const target: THREE.Mesh[] = [];
@@ -149,22 +123,18 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       }
 
       if (child instanceof THREE.Mesh) {
-        // Hide Cube005 positioning target mesh
         if (child.name === "Cube005" || child.name === "Cube.005") {
           child.visible = false;
           return;
         }
 
-        // Callout target meshes: hide or show based on the per-target meshVisible flag.
-        // Build a lookup from id → meshVisible on first access (pattern: /^target\d+/).
         if (/^target\d+/.test(child.name)) {
           const targetCfg = CALLOUT_TARGETS.find((t) => t.id === child.name);
           const shouldShow = targetCfg?.meshVisible === true;
           child.visible = shouldShow;
-          if (!shouldShow) return; // skip further categorization for hidden helpers
-          // If meshVisible=true, fall through so it's treated as a regular city mesh.
+          if (!shouldShow) return;
         }
-        // Exclude meshes under the "wing" node or matching the new wing mesh names from general rendering
+
         let isWing = false;
         let pNode: THREE.Object3D | null = child;
         while (pNode) {
@@ -185,7 +155,6 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           return;
         }
 
-        // Simon and new character meshes check
         let isSimon = false;
         let sNode: THREE.Object3D | null = child;
         while (sNode) {
@@ -208,7 +177,6 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
         }
 
         if (isSimon) {
-          // Identify if it's the bodypart mesh (which shouldn't glow)
           let isBodypart = false;
           let bNode: THREE.Object3D | null = child;
           while (bNode) {
@@ -221,35 +189,18 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           }
 
           if (isBodypart) {
-            // Keep bodypart visible with its original materials
             child.visible = true;
             child.frustumCulled = false;
             simonBodypart.push(child);
           } else {
-            // Add other parts to glowing meshes
             simonGlow.push(child);
-            child.visible = false; // Hidden initially, SimonGlowSystem will apply material & make visible
+            child.visible = false;
             child.frustumCulled = false;
           }
           return;
         }
 
-        // Hide GLTF floor/ground plane meshes if showGridFloor is turned off
-        const nameLower = child.name.toLowerCase();
-        const isFloorMesh = nameLower.includes("plane") || nameLower === "floor" || nameLower.startsWith("floor.");
-        if (isFloorMesh && !settings.showGridFloor) {
-          child.visible = false;
-          return;
-        }
-
-        if (isFloorMesh) {
-          floor.push(child);
-          child.visible = false; // Rendered by GridFloorMeshSystem
-          return;
-        }
-
         if (config.hasParticleTarget) {
-          // Only Scene 1 separates target from city
           let isTarget = false;
           let node: THREE.Object3D | null = child;
           while (node) {
@@ -267,19 +218,24 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
         } else {
           city.push(child);
         }
-        child.visible = false;
+        child.visible = true;
       }
     });
 
-    console.log(`[SceneSlot ${sceneIndex}] Separated: ${city.length} city meshes, ${target.length} target meshes, ${simonGlow.length} simon glow meshes, ${simonBodypart.length} simon bodypart meshes, ${floor.length} floor meshes`);
     return { cityMeshes: city, targetMeshes: target, simonGlowMeshes: simonGlow, simonBodypartMeshes: simonBodypart, floorMeshes: floor };
-  }, [gltf, config.hasParticleTarget, sceneIndex, settings.showGridFloor]);
+  }, [gltf, config.hasParticleTarget, sceneIndex]);
 
+  // Patch GLB materials with single-source atmospheric GPU fog
+  useEffect(() => {
+    const allMeshes = [...cityMeshes, ...targetMeshes, ...simonBodypartMeshes];
+    allMeshes.forEach((mesh) => {
+      if (mesh && mesh.material) {
+        const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        mats.forEach((m) => patchMaterialWithAtmosphere(m));
+      }
+    });
+  }, [cityMeshes, targetMeshes, simonBodypartMeshes]);
 
-
-  // Assign a default white material to bodypart meshes since they may have been
-  // exported without materials (which causes them to render black).
-  // We clone the material for each mesh to prevent shared instance opacity bugs.
   useEffect(() => {
     const defaultSkinMat = new THREE.MeshStandardMaterial({
       color: 0xdadada,
@@ -289,13 +245,13 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       transparent: true,
       opacity: 1,
     });
+    patchMaterialWithAtmosphere(defaultSkinMat);
 
     simonBodypartMeshes.forEach((mesh) => {
       mesh.material = defaultSkinMat.clone();
     });
   }, [simonBodypartMeshes]);
 
-  // Enable transparency on Simon's bodypart meshes on mount, restore on unmount
   useEffect(() => {
     simonBodypartMeshes.forEach((mesh) => {
       if (mesh.material) {
@@ -322,7 +278,6 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     };
   }, [simonBodypartMeshes]);
 
-  // Find and set up the camera
   useEffect(() => {
     if (cameraReadyRef.current) return;
 
@@ -364,16 +319,13 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       cam.near = 0.1;
       cam.far = 1000.0;
       cam.aspect = size.width / size.height;
-      // Store the original Blender camera FOV for responsive scaling
       baseFovRef.current = cam.fov;
       cam.updateProjectionMatrix();
       cameraReadyRef.current = true;
       onCameraReady(cam);
-      console.log(`[SceneSlot ${sceneIndex}] Camera registered (baseFOV: ${cam.fov.toFixed(1)}°)`);
     }
   }, [gltf, size, sceneIndex, onCameraReady]);
 
-  // Set up active animations (play paused)
   useEffect(() => {
     Object.keys(actions).forEach((name) => {
       if (name.toLowerCase().includes("mixamo") && !activeMixamoActionNames.includes(name)) {
@@ -387,26 +339,23 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     });
   }, [actions, activeMixamoActionNames]);
 
-  // Drive animations from shared scroll state
   useFrame((state) => {
     const glUserData = (state.gl as any).userData || {};
     const activeSceneIndex = glUserData.activeSceneIndex ?? 0;
     const incomingSceneIndex = glUserData.incomingSceneIndex ?? -1;
 
-    // A scene is visible only if it is the active scene OR the incoming transitioning scene
     const isVisible = (sceneIndex === activeSceneIndex) || (sceneIndex === incomingSceneIndex);
 
     if (groupRef.current) {
       groupRef.current.visible = isVisible;
     }
 
-    if (!isVisible) return; // Skip updating animations/calculations if hidden
+    if (!isVisible) return;
 
     const scrollNorms: number[] = glUserData.sceneScrollNorms || [];
     const scrollNorm = scrollNorms[sceneIndex] ?? 0.0;
     const globalTime = scrollNorm * maxDuration;
 
-    // Update all active actions
     Object.keys(actions).forEach((name) => {
       if (name.toLowerCase().includes("mixamo") && !activeMixamoActionNames.includes(name)) return;
       const action = actions[name];
@@ -414,9 +363,8 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
         const clip = gltf.animations.find((c) => c.name === name);
         const duration = clip ? clip.duration : 1.0;
 
-        // Shift all animations except camera by the Blender start frame offset
         const isCamera = name.toLowerCase().includes("camera");
-        const timelineOffset = -BLENDER_START_FRAME / 30; // 17.1 seconds
+        const timelineOffset = -BLENDER_START_FRAME / 30;
         const evalTime = isCamera ? globalTime : (globalTime - timelineOffset);
 
         action.time = Math.min(Math.max(0, evalTime), duration);
@@ -425,38 +373,6 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
 
     if (mixer) mixer.update(0);
 
-    // Dynamic linear fog opacity fade for Simon's bodypart meshes
-    simonBodypartMeshes.forEach((mesh) => {
-      if (!mesh.material) return;
-
-      const worldPos = new THREE.Vector3();
-      mesh.getWorldPosition(worldPos);
-
-      const viewSpacePos = worldPos.clone().applyMatrix4(state.camera.matrixWorldInverse);
-      const depth = -viewSpacePos.z;
-
-      const showFogVal = glUserData.sceneVisuals?.showFog !== undefined ? glUserData.sceneVisuals.showFog : settings.showFog;
-      const fogNearVal = glUserData.sceneVisuals?.fogNear !== undefined ? glUserData.sceneVisuals.fogNear : settings.fogNear;
-      const fogFarVal = glUserData.sceneVisuals?.fogFar !== undefined ? glUserData.sceneVisuals.fogFar : settings.fogFar;
-      const fogAmountVal = glUserData.sceneVisuals?.fogAmount !== undefined ? glUserData.sceneVisuals.fogAmount : settings.fogAmount;
-
-      let opacity = 1.0;
-      if (showFogVal) {
-        const fogFactor = THREE.MathUtils.clamp((fogFarVal - depth) / Math.max(fogFarVal - fogNearVal, 0.0001), 0.0, 1.0);
-        const fogMix = fogAmountVal * (1.0 - fogFactor);
-        opacity = 1.0 - fogMix;
-      }
-
-      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-      materials.forEach((mat) => {
-        mat.opacity = opacity;
-      });
-    });
-
-    // Keep camera aspect ratio + responsive zoom up to date.
-    // When the viewport is narrower than the design aspect (16:9),
-    // zoom out uniformly so the scene scales down instead of cropping.
-    // Unlike FOV changes, zoom preserves perspective distortion exactly.
     if (cameraReadyRef.current) {
       const DESIGN_ASPECT = 16 / 9;
       const currentAspect = size.width / size.height;
@@ -466,12 +382,10 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           const cam = child as THREE.PerspectiveCamera;
           cam.aspect = currentAspect;
 
-          // Restore original FOV (undo any previous FOV hacks)
           if (baseFovRef.current > 0) {
             cam.fov = baseFovRef.current;
           }
 
-          // Uniform zoom: 1.0 on desktop, scales down on narrow viewports
           if (currentAspect < DESIGN_ASPECT) {
             cam.zoom = Math.max(0.5, currentAspect / DESIGN_ASPECT);
           } else {
@@ -487,13 +401,6 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
   return (
     <group ref={groupRef}>
       <primitive object={gltf.scene} visible={true} />
-      {cityMeshes.length > 0 && (
-        <CityXRayMeshSystem
-          meshes={cityMeshes}
-          projectionBounds={projectionBounds}
-          sceneIndex={sceneIndex}
-        />
-      )}
       {simonGlowMeshes.length > 0 && (
         <SimonGlowSystem
           meshes={simonGlowMeshes}
@@ -508,10 +415,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
         />
       )}
 
-      {/* 3D → Screen-space bridge for callout overlays */}
       <TargetOverlayBridge scene={gltf.scene} />
-
-      {/* Interactive Liquid Particle System anchored at Cube005 */}
       <InteractiveSceneParticleSystem position={[1047.551, 398.157, 2.997]} />
     </group>
   );

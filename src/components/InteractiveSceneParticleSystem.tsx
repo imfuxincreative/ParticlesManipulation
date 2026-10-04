@@ -7,22 +7,20 @@ import * as THREE from "three";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { ModelParticleShader } from "@/shaders/modelShader";
 import { useSimulation } from "@/context/SimulationContext";
+import { atmosphereUniforms } from "@/lib/atmosphereUniforms";
 
-// ─── Configuration ──────────────────────────────────────────────────
 const INTERACTIVE_MODELS = ["/heart.glb", "/bird.glb"];
 const MODEL_NAMES = ["Heart", "Bird"];
-const PARTICLE_GRID = 90; // 90x90 = 8,100 particles
+const PARTICLE_GRID = 90;
 const PARTICLE_COUNT = PARTICLE_GRID * PARTICLE_GRID;
 const TARGET_SIZE = 6.0;
 const MORPH_FRAMES = 600;
-const DAMPING = 0.88;
 
 const ROTATION_OFFSETS: [number, number, number][] = [
-  [0, 0, 0],     // heart.glb
-  [0, -90, 0],   // bird.glb
+  [0, 0, 0],
+  [0, -90, 0],
 ];
 
-// Preload all interactive models
 INTERACTIVE_MODELS.forEach((m) => useGLTF.preload(m));
 
 function extractAndPrepare(
@@ -194,13 +192,12 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
 }) => {
   const { settings, updateSetting } = useSimulation();
   const modelIndex = (settings.currentModelIndex ?? 0) % INTERACTIVE_MODELS.length;
-  const { camera, raycaster, pointer } = useThree();
+  const { camera, raycaster } = useThree();
 
   const groupRef = useRef<THREE.Group>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const pointsRef = useRef<THREE.Points>(null);
 
-  // Load models
   const gltf0 = useGLTF(INTERACTIVE_MODELS[0]);
   const gltf1 = useGLTF(INTERACTIVE_MODELS[1]);
   const gltfs = useMemo(() => [gltf0, gltf1], [gltf0, gltf1]);
@@ -209,7 +206,6 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     return gltfs.map((g, idx) => extractAndPrepare(g, idx));
   }, [gltfs]);
 
-  // Physics state refs
   const restPositionsRef = useRef<Float32Array>(new Float32Array(PARTICLE_COUNT * 3));
   const dynamicPositionsRef = useRef<Float32Array>(new Float32Array(PARTICLE_COUNT * 3));
   const velocitiesRef = useRef<Float32Array>(new Float32Array(PARTICLE_COUNT * 3));
@@ -221,14 +217,12 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
   const framesToSimRef = useRef(MORPH_FRAMES);
   const physicsReady = useRef(false);
 
-  // Fluid Drag Physics Refs
   const isDraggingRef = useRef(false);
   const lastPointerPosRef = useRef<THREE.Vector3>(new THREE.Vector3());
   const pointerVelocityRef = useRef<THREE.Vector3>(new THREE.Vector3());
   const currentPointerLocalRef = useRef<THREE.Vector3>(new THREE.Vector3());
   const dragPlaneRef = useRef<THREE.Plane>(new THREE.Plane());
 
-  // Manual model switching handlers
   const handleNextModel = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     const nextIdx = (modelIndex + 1) % INTERACTIVE_MODELS.length;
@@ -260,7 +254,6 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     }
   }, [modelIndex, allModelData]);
 
-  // Pointer drag listeners for liquid flow interaction
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     isDraggingRef.current = true;
@@ -315,7 +308,6 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
   }, []);
 
   const uniforms = useMemo(() => ({
-    uTime: { value: 0 },
     uNoiseStrength: { value: settings.noiseStrength },
     uNoiseSpeed: { value: settings.noiseSpeed },
     uPointSize: { value: settings.pointSize * 1.5 },
@@ -345,11 +337,6 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     uFlowClumping: { value: settings.modelFlowClumping },
     uGlowIntensity: { value: 1.2 },
     uScrollProgress: { value: 0.0 },
-    uShowFog: { value: settings.showFog ? 1.0 : 0.0 },
-    uFogColor: { value: new THREE.Color(settings.fogColor) },
-    uFogNear: { value: settings.fogNear },
-    uFogFar: { value: settings.fogFar },
-    uFogAmount: { value: settings.fogAmount },
     uScatterColorScale: { value: 2.5 },
     uSpiralSuppression: { value: settings.fluidSpiralSuppression ?? 1.0 },
     uBurnColorPrimary: { value: new THREE.Color(settings.burnColorPrimary || "#e91e63") },
@@ -359,9 +346,9 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     uBurnExponent: { value: settings.burnExponent ?? 1.5 },
     uBurnMidThreshold: { value: settings.burnMidThreshold ?? 0.25 },
     uBurnMaxThreshold: { value: settings.burnMaxThreshold ?? 0.70 },
+    ...atmosphereUniforms,
   }), []);
 
-  // Update uniforms reactively when settings change
   useEffect(() => {
     if (!materialRef.current) return;
     const u = materialRef.current.uniforms;
@@ -393,21 +380,14 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     if (u.uBurnExponent) u.uBurnExponent.value = settings.burnExponent ?? 1.5;
     if (u.uBurnMidThreshold) u.uBurnMidThreshold.value = settings.burnMidThreshold ?? 0.25;
     if (u.uBurnMaxThreshold) u.uBurnMaxThreshold.value = settings.burnMaxThreshold ?? 0.70;
-    if (u.uShowFog) u.uShowFog.value = settings.showFog ? 1.0 : 0.0;
-    if (u.uFogColor) u.uFogColor.value.set(settings.fogColor);
-    if (u.uFogNear) u.uFogNear.value = settings.fogNear;
-    if (u.uFogFar) u.uFogFar.value = settings.fogFar;
-    if (u.uFogAmount) u.uFogAmount.value = settings.fogAmount;
   }, [settings]);
 
   const targetMeshRef = useRef<THREE.Object3D | null>(null);
   const tempWorldPosRef = useRef<THREE.Vector3>(new THREE.Vector3());
 
-  // Main Liquid Flow Physics Loop
-  useFrame((state, delta) => {
+  useFrame((state) => {
     const elapsed = state.clock.elapsedTime;
 
-    // Dynamically lock position to target mesh 'Cube.005' / 'Cube005' with offset & continuous X-rotation
     if (groupRef.current) {
       if (!targetMeshRef.current) {
         const found = state.scene.getObjectByName("Cube005") || state.scene.getObjectByName("Cube.005");
@@ -462,13 +442,11 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     const morphEase = settings.loaderMorphSpeed ?? 0.025;
     const damping = settings.fluidDamping ?? 0.88;
 
-    // Liquid Drag Impulse Properties
     const isDragging = isDraggingRef.current;
     const pLoc = currentPointerLocalRef.current;
     const pVel = pointerVelocityRef.current;
     const pSpeed = pVel.length();
 
-    // Radius & force of fluid drag effect
     const FLUID_RADIUS = settings.fluidDragRadius ?? 4.0;
     const FLUID_RADIUS_SQ = FLUID_RADIUS * FLUID_RADIUS;
     const dragStrength = settings.fluidDragStrength ?? 1.2;
@@ -476,7 +454,6 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     for (let i = 0; i < count; i++) {
       const ix = i * 3, iy = ix + 1, iz = ix + 2;
 
-      // Apply liquid drag physics if user is dragging over particles
       if (isDragging && pSpeed > 0.001) {
         const dx = pos[ix] - pLoc.x;
         const dy = pos[iy] - pLoc.y;
@@ -488,18 +465,15 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
           const falloff = 1.0 - dist / FLUID_RADIUS;
           const fluidFactor = falloff * falloff * 0.9 * dragStrength;
 
-          // Normalized radial direction from drag pointer center
           const invDist = 1.0 / (dist + 0.0001);
           const radX = dx * invDist;
           const radY = dy * invDist;
           const radZ = dz * invDist;
 
-          // Lateral liquid swirl perpendicular to drag direction
           const swirlX = -pVel.y * radZ + pVel.z * radY;
           const swirlY = pVel.x * radZ - pVel.z * radX;
           const swirlZ = -pVel.x * radY + pVel.y * radX;
 
-          // Combined liquid impulse driven reactively by dashboard settings
           const dragImpulse = settings.fluidDirectionalBias ?? 0.40;
           const radialImpulse = settings.fluidRadialExpansion ?? 0.45;
           const swirlImpulse = settings.fluidTurbulenceSwirl ?? 0.35;
@@ -514,7 +488,6 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
         }
       }
 
-      // Viscous liquid damping
       vel[ix] *= damping;
       vel[iy] *= damping;
       vel[iz] *= damping;
@@ -523,7 +496,6 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
       let ny = pos[iy] + vel[iy];
       let nz = pos[iz] + vel[iz];
 
-      // Spring return to rest position
       nx += (rest[ix] - nx) * morphEase;
       ny += (rest[iy] - ny) * morphEase;
       nz += (rest[iz] - nz) * morphEase;
@@ -544,7 +516,6 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
       scatter[i] = speedSq > 0.000001 ? Math.sqrt(speedSq) : 0.0;
     }
 
-    // Decay pointer velocity smoothly
     pVel.multiplyScalar(0.8);
 
     const posAttr = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute;
@@ -559,7 +530,6 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
 
   return (
     <group ref={groupRef} position={position} rotation={rotation}>
-      {/* Invisible Interactive Drag Hit Mesh */}
       <mesh
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
@@ -570,7 +540,6 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
 
-      {/* Particle Cloud */}
       <points ref={pointsRef} frustumCulled={false}>
         <bufferGeometry>
           <bufferAttribute
@@ -595,13 +564,13 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
           vertexShader={ModelParticleShader.vertexShader}
           fragmentShader={ModelParticleShader.fragmentShader}
           uniforms={uniforms}
+          defines={{ USE_ATMOSPHERE: "" }}
           transparent={true}
           depthWrite={false}
           blending={THREE.NormalBlending}
         />
       </points>
 
-      {/* Interactive 3D Arrow Navigation Overlay */}
       <Html position={[0, -4.2, 0]} center distanceFactor={28} zIndexRange={[100, 0]}>
         <div className="flex items-center gap-3 bg-slate-950/85 border border-purple-500/40 backdrop-blur-xl px-4 py-2 rounded-full shadow-2xl pointer-events-auto select-none transition-all hover:border-purple-500/80">
           <button

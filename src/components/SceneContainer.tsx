@@ -1,14 +1,16 @@
 "use client";
 
-import React, { Suspense, useRef, useState, useEffect, Component, ErrorInfo, ReactNode } from "react";
+import React, { Suspense, useState, useEffect, Component, ErrorInfo, ReactNode } from "react";
 import { Canvas } from "@react-three/fiber";
 import { ScrollControls, useProgress } from "@react-three/drei";
 import * as THREE from "three";
 import { useSimulation } from "@/context/SimulationContext";
 import { SceneModel } from "./SceneModel";
 import { LenisScrollAdapter } from "./LenisScrollAdapter";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import Image from "next/image";
+import { AtmosphereController } from "./atmosphere/AtmosphereController";
+import { AtmosphereLighting } from "./atmosphere/AtmosphereLighting";
+import { AtmospherePostFX } from "./atmosphere/AtmospherePostFX";
+import { AtmosphereDebug } from "./atmosphere/AtmosphereDebug";
 
 // --- Real-time R3F Asset Loading Tracker ---
 const SceneProgressTracker: React.FC = () => {
@@ -83,16 +85,7 @@ const WebGLFallback: React.FC = () => (
       <h2 className="text-xl font-semibold text-slate-100 mb-3">WebGL Context Unavailable</h2>
       <p className="text-sm text-slate-400 leading-relaxed mb-6">
         Your browser&apos;s WebGL context has been lost or hardware acceleration is disabled.
-        This is usually caused by a GPU driver crash or browser settings.
       </p>
-      <div className="text-left text-xs text-slate-500 space-y-2 bg-slate-950/60 rounded-lg p-4 border border-white/5">
-        <p className="font-semibold text-slate-300 mb-2">Try these steps:</p>
-        <p>1. <strong className="text-slate-300">Close all Chrome tabs</strong> and reopen this page</p>
-        <p>2. Go to <code className="text-purple-400 bg-slate-800 px-1.5 py-0.5 rounded">chrome://settings/system</code></p>
-        <p>3. Enable <strong className="text-slate-300">&quot;Use hardware acceleration when available&quot;</strong></p>
-        <p>4. Restart Chrome completely</p>
-        <p>5. Or try <code className="text-purple-400 bg-slate-800 px-1.5 py-0.5 rounded">chrome://gpu</code> to check WebGL status</p>
-      </div>
       <button
         onClick={() => window.location.reload()}
         className="mt-5 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer"
@@ -117,8 +110,6 @@ export const SceneContainer: React.FC = () => {
     const isSmallScreen = window.innerWidth <= 768;
     setIsMobile(isMobileUA || isSmallScreen);
 
-    // Defer heavy main 3D scene canvas startup by 250ms
-    // so ParticleLoadingScreen initializes at 60 FPS first without thread lockups
     const timer = setTimeout(() => {
       setShouldRenderCanvas(true);
     }, 250);
@@ -133,17 +124,17 @@ export const SceneContainer: React.FC = () => {
   if (!shouldRenderCanvas) {
     return <div className="w-full h-full absolute inset-0 z-0 bg-slate-950" />;
   }
-  console.log('m')
 
   return (
     <WebGLErrorBoundary fallback={<WebGLFallback />}>
       <div className="w-full h-full absolute inset-0 z-0 canvas-container">
         <Canvas
+          shadows="soft"
           camera={{
             position: [0, 0, 10],
             fov: 60,
             near: 0.1,
-            far: 100,
+            far: 1000,
           }}
           dpr={isMobile ? 1.2 : [1, 1.5]}
           gl={{
@@ -151,27 +142,15 @@ export const SceneContainer: React.FC = () => {
             powerPreference: "high-performance",
           }}
           onCreated={({ gl }) => {
-            // Match Blender's viewport: disable tone mapping that darkens PBR materials
             gl.toneMapping = THREE.NoToneMapping;
             gl.outputColorSpace = THREE.SRGBColorSpace;
-            // Handle context loss gracefully
-            const canvas = gl.domElement;
-            canvas.addEventListener("webglcontextlost", (e) => {
-              e.preventDefault();
-              console.warn("WebGL context lost. Please refresh.");
-            });
           }}
         >
           <SceneProgressTracker />
-          <color attach="background" args={[settings.hazeColor]} />
 
-          <ambientLight intensity={1.5} />
-          <directionalLight position={[5, 10, 7]} intensity={2.5} />
-          <directionalLight position={[-5, 5, -5]} intensity={1.2} />
-          <directionalLight position={[0, -5, 5]} intensity={0.8} />
-          <pointLight position={[10, 10, 10]} intensity={1.5} />
-          {/* Hemisphere light for natural Blender-like ambient fill */}
-          <hemisphereLight args={['#ffffff', '#444444', 1.5]} />
+          {/* Unified Atmosphere Controller & Single-source Lights */}
+          <AtmosphereController />
+          <AtmosphereLighting />
 
           <Suspense fallback={null}>
             <ScrollControls pages={Math.max(1, Math.round(5 / settings.scrollSpeed))} damping={settings.scrollDamping}>
@@ -180,29 +159,17 @@ export const SceneContainer: React.FC = () => {
             </ScrollControls>
           </Suspense>
 
-          {/* Restore vibrant glow and bright colors via Postprocessing Bloom */}
-          <EffectComposer enableNormalPass={false} multisampling={0}>
-            <Bloom mipmapBlur intensity={settings.simonBloomIntensity} luminanceThreshold={1.1} luminanceSmoothing={0.1} />
-          </EffectComposer>
+          {/* Atmosphere Post Processing Pipeline */}
+          <AtmospherePostFX />
         </Canvas>
 
-        {/* <nav className="fixed top-0 lg:p-4 p-2 pt-3 left-0 z-[999]">
-          <div className="">
-            <h4>imfuCxinCreative</h4>
+        {/* Developer Seam & Fog Overlay */}
+        <AtmosphereDebug />
 
-
-          </div>
-        </nav> */}
-        {/* <div className="Live cam fixed flex items-center gap-2 flex-col z-[99999] bottom-6 left-10 ">
-          <Image src="/livecam.png" className="h-20 w-20 rounded-full" alt="Live Cam" width={100} height={100} />
-          <p>Live cam</p>
-        </div> */}
-
-        {/* Floating Frame Overlay HUD */} <div className="flex fixed top-0 items-center justify-between gap-4">
-
+        {/* Floating Frame Overlay HUD */}
+        <div className="flex fixed top-0 items-center justify-between gap-4">
           <span id="overlay-frame-val" className="text-[13px]">0</span>
         </div>
-
       </div>
     </WebGLErrorBoundary>
   );

@@ -1,0 +1,429 @@
+# Crimson Atmosphere Refactor — Implementation Plan
+
+Goal: rebuild the sky, fog, depth, lighting and post FX of the **main scene** (`SceneContainer` → `SceneModel` → `SceneSlot` + `GridFloor`) so it matches the reference. That means one crimson hue, no horizon line, strong atmospheric perspective, a crisp rim-lit hero, and subtle grain and bloom.
+
+---
+
+## 0. Audit: why it looks wrong today
+
+Your 6 listed problems are real. I also found these root causes in the code:
+
+| # | Finding | Where | Effect |
+|---|---------|-------|--------|
+| A | The sky dome copies the **camera quaternion**, so the gradient spins with the view. The "horizon" ends up wherever the camera points, not in world space. | [SkyDome.tsx:L51-L56](file:///d:/CODE/Particles/src/components/SkyDome.tsx#L51-L56) | No real horizon, gradient looks flat |
+| B | Sky frag is `mix(horizonSky, topSky, ...) * uExposure`, starting from pure `#ff0000`, with no colorspace chunk | [skyShader.ts:L65-L82](file:///d:/CODE/Particles/src/shaders/skyShader.ts#L65-L82) | Clipped, flat red |
+| C | Grass and trees fog toward a hard-coded **near-black** `vec3(0.02,0,0.01)`, not the fog color | [ghibliShader.ts:L282-L287](file:///d:/CODE/Particles/src/shaders/ghibliShader.ts#L282-L287) | The dark/grey band on the ground |
+| D | The grass fragment uses `uFogAmount`, but it is **never declared**. Its uniforms object also has no `uShowFog/uFogColor/...` | ghibliShader.ts / [GhibliGrassField.tsx:L106-L127](file:///d:/CODE/Particles/src/components/ghibli/GhibliGrassField.tsx#L106-L127) | Most likely a GLSL compile error, or fog silently off (I'll check the console) |
+| E | A per-frame **CPU "fog"** lerps every GLB material's `color` toward `#050002` using the *object-centre* depth. It allocates Vector3/Color for each mesh, every frame. | [SceneSlot.tsx:L414-L448](file:///d:/CODE/Particles/src/components/SceneSlot.tsx#L414-L448) | Whole meshes turn black at once, fights real fog, GC churn |
+| F | Background is `hazeColor #1a0505`, fog is `#b30000`, sky is `#ff0000` | SceneContainer / SimulationContext | 3 different "atmosphere" colors |
+| G | Linear `THREE.Fog` gets re-created or mutated from 4 different components | SceneModel, SimonGlowSystem, GhibliGrassField, SceneSlot | Values drift apart |
+| H | 5 lights (3 directional + point + hemisphere with a white sky color) | [SceneContainer.tsx:L168-L174](file:///d:/CODE/Particles/src/components/SceneContainer.tsx#L168-L174) | Flat lighting, no depth |
+| I | Custom shaders don't include `<tonemapping_fragment>` / `<colorspace_fragment>` | all custom shaders | Inconsistent color spaces between materials |
+| J | Bloom threshold is `1.1` with `NoToneMapping` | SceneContainer | Bloom basically never fires |
+| K | Grass is green and the flowers are pastel pink, yellow and violet | GridFloor / GhibliFlowers | Breaks the monochrome look (see Open Question 2) |
+
+---
+
+## 1. Architecture
+
+```mermaid
+flowchart LR
+  Panel["AtmospherePanel (Dashboard tab)"] -->|set| Store["useAtmosphere (zustand + persist)"]
+  Store -->|subscribe: colors/params| Uniforms["atmosphereUniforms (singleton)"]
+  Ctrl["AtmosphereController (single useFrame)"] -->|uTime, uCamPos, uGlowDir| Uniforms
+  Ctrl -->|FogExp2 + background| Scene["scene.fog / scene.background"]
+  Uniforms --> Sky["SkyDome ShaderMaterial"]
+  Uniforms --> Grass["Grass / Trees / Flowers"]
+  Uniforms --> Simon["SimonGlow shader"]
+  Uniforms --> Patched["GLB MeshStandardMaterials (onBeforeCompile)"]
+  Uniforms --> Pillars["Hero + depth-layer pillars"]
+  Store --> Lights["AtmosphereLighting"]
+  Store --> Post["AtmospherePostFX"]
+```
+
+Key rules:
+- **One store** ([lib/atmosphere.ts](file:///d:/CODE/Particles/src/lib/atmosphere.ts)) holds only serializable data (hex strings, numbers, tuples). It is persisted to `localStorage`.
+- **One uniform object**, `atmosphereUniforms`. Every material spreads it into its own uniforms (`{ ...own, ...atmosphereUniforms }`). Spreading copies *references* to the same `{ value }` objects, so one write updates every material.
+  > Never `UniformsUtils.clone()` the shared part. SimonGlowSystem currently clones, so it will merge the shared uniforms *after* cloning.
+- **Fog color is derived**: `fogColor = lerp(horizon, zenith, 0.15)` in linear space, unless `decoupleFog` is on.
+- **Sky and fog share one GLSL function**, `atmosphereInscatter(dir)`. At `dir.y = 0` the sky returns exactly this value, and fully fogged geometry returns the same value. So the seam is mathematically impossible, not just tuned away.
+
+---
+
+## 2. Store: `src/lib/atmosphere.ts`
+
+```ts
+export type Vec3Tuple = [number, number, number];
+export type AtmosphereQuality = "high" | "low";
+
+export interface AtmosphereConfig {
+  // Colors (sRGB hex; converted to linear once when writing uniforms)
+  horizonColor: string;   // #b3000a
+  zenithColor: string;    // #3a0004
+  glowColor: string;      // #ff1a1a
+  decoupleFog: boolean;   // false
+  fogColorOverride: string; // only used when decoupleFog === true
+  // Fog
+  fogEnabled: boolean;
+  fogDensity: number;       // 0.012
+  fogHeightFalloff: number; // 0.04
+  fogHeightBase: number;    // 0
+  // Sky
+  skyEnabled: boolean;
+  skyExposure: number;      // 1.0 (clamped 0.5–1.5)
+  glowStrength: number;     // 0.55
+  glowMode: "tracked" | "fixed";
+  glowDirection: Vec3Tuple; // used when fixed; when tracked = normalize(heroTop - camPos)
+  cloudScale: number;       // 1.4
+  cloudSpeed: number;       // 0.015
+  cloudContrast: number;    // 1.3
+  // Lighting
+  ambientIntensity: number; // 0.25
+  rimIntensity: number;     // 4.0
+  rimWhiteMix: number;      // 0.45 (see Open Question 4)
+  keyFillIntensity: number; // 0.35
+  topGlowIntensity: number; // 6.0 (point light at hero top)
+  // Post
+  bloomIntensity: number;   // 0.6
+  bloomThreshold: number;   // 0.6
+  bloomRadius: number;      // 0.7
+  vignetteStrength: number; // 0.75
+  vignetteOffset: number;   // 0.25
+  grainAmount: number;      // 0.12
+  godRays: boolean;         // false
+  quality: AtmosphereQuality;
+}
+
+export const REFERENCE_PRESET: AtmosphereConfig = { /* the defaults above */ };
+
+export function deriveFogColorHex(c: Pick<AtmosphereConfig,
+  "horizonColor" | "zenithColor" | "decoupleFog" | "fogColorOverride">): string;
+
+/** Mirror of the GLSL math, used by the debug overlay and the seam check. */
+export function computeFogFactor(viewDist: number, worldY: number, c: AtmosphereConfig): number;
+
+interface AtmosphereActions {
+  set: <K extends keyof AtmosphereConfig>(k: K, v: AtmosphereConfig[K]) => void;
+  applyPreset: (p?: AtmosphereConfig) => void;  // "Reference Preset" button
+}
+
+export const useAtmosphere = create<AtmosphereConfig & AtmosphereActions>()(
+  persist((set) => ({ ...REFERENCE_PRESET, /* actions */ }), {
+    name: "crimson-atmosphere", version: 1,
+    storage: createJSONStorage(() => localStorage),
+    skipHydration: true,   // rehydrate() in a useEffect → no SSR hydration mismatch
+  })
+);
+```
+
+- `zustand@5.0.14` is already in `node_modules` as a transitive dependency of drei. I'll add it to `package.json` as a **direct** dependency.
+- Persisting to `localStorage` covers both hot reload and full reloads.
+- `quality` is auto-detected the first time only, using `hardwareConcurrency <= 4`, mobile UA or `deviceMemory <= 4`. After that the user can override it.
+
+`src/lib/atmosphereUniforms.ts` holds the singleton (`THREE.Color` / `Vector3` instances created once) plus `writeConfigToUniforms(cfg)`. Nothing is allocated per call: it uses `Color.set()` / `convertSRGBToLinear` on existing objects.
+
+---
+
+## 3. Shaders
+
+### 3.1 `src/shaders/atmosphericFog.glsl.ts` (the key chunk)
+
+```glsl
+uniform vec3  uFogColor;        // derived, linear
+uniform float uFogDensity;
+uniform float uFogHeightFalloff;
+uniform float uFogHeightBase;
+uniform float uFogEnabled;      // 0/1
+uniform vec3  uCamPos;
+uniform vec3  uGlowColor;
+uniform vec3  uGlowDir;
+uniform float uGlowStrength;
+
+// Shared by the sky AND fogged geometry, so silhouettes in the glow region pick up the glow too.
+vec3 atmosphereInscatter(vec3 dir) {
+  float g = pow(max(dot(dir, uGlowDir), 0.0), 6.0);
+  return uFogColor + uGlowColor * g * uGlowStrength;
+}
+
+float atmosphereFactor(float viewDist, vec3 worldPos) {
+  float distFog   = 1.0 - exp(-pow(viewDist * uFogDensity, 1.6));
+  float h         = max(worldPos.y - uFogHeightBase, 0.0);
+  float heightFog = exp(-h * uFogHeightFalloff);
+  return clamp(distFog * mix(1.0, heightFog, 0.65), 0.0, 1.0) * uFogEnabled;
+}
+
+vec3 applyAtmosphere(vec3 color, float viewDist, vec3 worldPos) {
+  float f    = atmosphereFactor(viewDist, worldPos);
+  float luma = dot(color, vec3(0.299, 0.587, 0.114));
+  color  = mix(color, vec3(luma), f * 0.5);   // desaturate far
+  color *= mix(1.0, 0.55, f);                 // darken far (also fades shadows → shadow*(1-f))
+  return mix(color, atmosphereInscatter(normalize(worldPos - uCamPos)), f);
+}
+
+// For additive particles: fade energy out instead of tinting toward the haze.
+vec3 applyAtmosphereAdditive(vec3 color, float viewDist, vec3 worldPos) {
+  return color * (1.0 - atmosphereFactor(viewDist, worldPos));
+}
+```
+
+### 3.2 `src/shaders/skyDome.glsl.ts`
+
+- **Vertex**: `vWorldDir = mat3(modelMatrix) * position`. The mesh follows the camera's **position only** (fixes A). `gl_Position.z = gl_Position.w` pins the dome to the far plane at any radius.
+- **Fragment** (`CLOUD_OCTAVES` is a define: 5 on high quality, 3 on low):
+
+```glsl
+vec3 dir  = normalize(vWorldDir);
+float t   = smoothstep(-0.05, 0.75, dir.y);
+vec3 base = mix(uHorizonColor, uZenithColor, pow(t, 0.8));
+base     += uGlowColor * pow(max(dot(dir, uGlowDir), 0.0), 6.0) * uGlowStrength;
+
+vec2 p  = dir.xz / (max(dir.y, 0.0) + 0.3) * uCloudScale + uTime * uCloudSpeed * vec2(1.0, 0.35);
+float n = clamp((fbm(p) - 0.5) * uCloudContrast + 0.5, 0.0, 1.0);
+base   *= mix(1.0, 0.75 + 0.5 * n, smoothstep(0.0, 0.18, dir.y)); // clouds fade out at horizon (no stretching)
+base   *= clamp(uSkyExposure, 0.5, 1.5);
+
+// Seam-free horizon: at dir.y <= 0 the sky IS the fog inscatter
+vec3 col = mix(atmosphereInscatter(dir), base, smoothstep(0.0, 0.12, dir.y));
+gl_FragColor = vec4(col, 1.0);
+#include <tonemapping_fragment>
+#include <colorspace_fragment>
+```
+
+- Material settings: `side: BackSide, depthWrite: false, fog: false, toneMapped: false`, `renderOrder = -1000`.
+- The value noise and fBm go in a shared `noise.glsl.ts`, which the hedge shader also uses. It's low-frequency, rotated per octave, and has no hard edges.
+- The edge/bottom darkening is done in **post**, in screen space. That way it can't break the sky/ground seam.
+
+### 3.3 Custom materials: why `fog: false`
+
+Custom ShaderMaterials call `applyAtmosphere()` directly at the end of `main()`. They stay at `fog: false` on purpose. With `fog: true`, three.js expects `UniformsLib.fog` uniforms and runs its own fog on top, which would double-fog. Each shader gets:
+- a `vWorldPos` varying (instancing-aware),
+- `gl_FragColor.rgb = applyAtmosphere(rgb, distance(vWorldPos, uCamPos), vWorldPos);`
+- the `<tonemapping_fragment>` and `<colorspace_fragment>` includes (fixes I).
+
+### 3.4 Built-in materials: `src/lib/patchAtmosphere.ts`
+
+```ts
+export function patchMaterialWithAtmosphere(mat: THREE.Material): void {
+  if (mat.userData.atmospherePatched === true) return;
+  mat.userData.atmospherePatched = true;
+  mat.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, atmosphereUniforms);          // shared refs
+    shader.vertexShader = shader.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying vec3 vAtmoWorldPos;")
+      .replace("#include <project_vertex>", `#include <project_vertex>
+        vec4 atmoWP = vec4(transformed, 1.0);
+        #ifdef USE_BATCHING
+          atmoWP = batchingMatrix * atmoWP;
+        #endif
+        #ifdef USE_INSTANCING
+          atmoWP = instanceMatrix * atmoWP;
+        #endif
+        vAtmoWorldPos = (modelMatrix * atmoWP).xyz;`);   // skinning already applied to `transformed`
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <common>", `#include <common>\nvarying vec3 vAtmoWorldPos;\n${atmosphereParsGLSL}`)
+      .replace("#include <fog_fragment>",
+        "gl_FragColor.rgb = applyAtmosphere(gl_FragColor.rgb, distance(vAtmoWorldPos, uCamPos), vAtmoWorldPos);");
+  };
+  mat.customProgramCacheKey = () => "atmosphere-v1";
+  mat.needsUpdate = true;
+}
+```
+
+This is applied once when SceneSlot loads the GLB (city meshes, target, Simon bodypart), to the ground plane in GridFloor, and to any MeshStandardMaterial we add. `scene.fog = FogExp2(fogColor, fogDensity)` stays as a **fallback** for anything left unpatched (drei helpers and so on), using the same color and density.
+
+### 3.5 `src/shaders/hedgePillar.glsl.ts` (hero and depth layers)
+
+- **Geometry**: `BoxGeometry(w, h, w, 24, 96, 24)`, deformed once on the CPU with a gentle twist and hourglass waist, like the reference.
+- **Fragment**:
+  - fBm/cellular leaf-clump AO for the hedge texture
+  - half-Lambert from the rim and key lights
+  - a **top-edge rim term** (`smoothstep(h-1.5, h, localY) * facing-light`) pushed above 1.0, so only the lit top edge passes the bloom threshold
+  - `applyAtmosphere()` last
+
+---
+
+## 4. Depth layers: `src/components/atmosphere/DepthLayers.tsx`
+
+Config-driven list: hero (about 40u from the hero-shot camera), mid (about 120u), far (about 260u), plus an optional 4th even further out. The hero top's world position is written to the store, where it drives `uGlowDir` (tracked mode) and the rim light target.
+
+Expected fog factor `f` with the defaults (density 0.012, falloff 0.04). These come from the TS mirror:
+
+| Layer | Dist | f at base (y=0) | f at y=15 | Read |
+|-------|------|-----------------|-----------|------|
+| Hero | 40 | 0.27 | 0.19 | crisp, high contrast |
+| Mid | 120 | 0.83 | 0.59 | dark soft silhouette |
+| Far | 260 | 0.998 | 0.71 | barely-visible shape |
+| Ground | 400 | ≈1.000 | — | equals the horizon/fog color |
+
+Height fog makes bases dissolve faster than tops, which is exactly what the far pillar in the reference does.
+
+---
+
+## 5. Lighting: `src/components/atmosphere/AtmosphereLighting.tsx`
+
+Replaces the 5 lights in SceneContainer (fixes H):
+- `ambientLight` at 0.25, tinted toward `zenithColor`.
+- **Rim directional light** placed *behind* the hero relative to the camera (`heroTop + flatten(heroTop - camPos) * 80 + up * 40`) and aimed at it. Color is `glowColor`, mixed toward white by `rimWhiteMix`.
+  - Soft PCF shadows: `<Canvas shadows="soft">`, shadow camera fitted around the hero, `mapSize` 2048 on high quality, 1024 on low.
+- Optional `pointLight` just above the hero top (`distance 30, decay 2`) for the hot edge.
+- Optional low white key/fill from camera-right, to light the front face like the reference.
+- Shadows fade with distance for free: fog mixes *after* lighting, so `shadow × (1 − f)` is implicit.
+- Note: the instanced grass ShaderMaterial doesn't sample shadow maps today. Adding that is out of scope; grass gets root AO plus fog instead.
+
+---
+
+## 6. Post FX: `src/components/atmosphere/AtmospherePostFX.tsx`
+
+```tsx
+<EffectComposer multisampling={0} enableNormalPass={false}>
+  <Bloom mipmapBlur intensity={0.6} luminanceThreshold={0.6} radius={0.7} />
+  {/* optional, low quality off: */ godRays && <RadialGlow center={glowScreenPos} strength={0.08} />}
+  <ToneMapping mode={ToneMappingMode.NEUTRAL} />
+  <CrimsonGrade vignetteColor={zenith} vignetteOffset={0.25} vignetteDarkness={0.75} grain={0.12} />
+</EffectComposer>
+```
+
+- **Tone mapping happens once, in post.** The renderer stays on `NoToneMapping`. Inside a composer, three.js skips material-level tone mapping when rendering to render targets, so `toneMapped:false` on the sky is effectively a no-op there. I keep it for correctness anyway.
+- **Why NEUTRAL** (Khronos PBR Neutral, supported by postprocessing 6.39.1): it is the identity for values below ~0.76 whose min channel is ≈0, which describes every near-pure red we use. So the sky renders **exactly as authored**. Only highlights (the hero top edge) get compressed toward white, like the white-hot edge in the reference. AgX would desaturate the crimson toward pink; ACES pushes it toward orange.
+- **Bloom**: red sky luminance ≈ 0.2126·R stays under 0.6, so the sky and glow never bloom. Only the near-white top-edge rim blooms.
+- **`src/effects/CrimsonGradeEffect.ts`**: one custom `Effect` (merged into a single pass) that does:
+  - a **tinted vignette** with a bottom bias (mixes toward zenithColor, not black)
+  - **animated film grain**, luminance-weighted so it's strongest in the midtones, blended soft-light style, with time from the composer
+
+---
+
+## 7. Controls: `src/components/atmosphere/AtmospherePanel.tsx`
+
+This adds a new **"Atmosphere"** tab to [Dashboard.tsx](file:///d:/CODE/Particles/src/components/Dashboard.tsx). It reuses the existing look: `font-mono text-[10px]` labels, emerald accents, the same toggle and range markup, pulled into small `SliderRow` / `ColorRow` / `ToggleRow` components.
+
+| Section | Controls |
+|---------|----------|
+| Colors | Horizon, Zenith, Glow, Fog Color 🔒 (read-only swatch showing the derived value) + "Decouple fog color" toggle |
+| Fog | Enabled, Density, Height Falloff, Height Base |
+| Sky | Enabled, Exposure (0.5–1.5), Glow Strength, Cloud Scale/Speed/Contrast |
+| Light | Ambient, Rim, Rim White Mix, Key Fill, Top Glow |
+| Post | Bloom, Vignette, Grain, God Rays, Quality |
+| — | **Reference Preset** button (calls `applyPreset()`) |
+
+The old Sky Atmosphere, Environmental Fog and Lighting sections ([Dashboard.tsx:L631-L806](file:///d:/CODE/Particles/src/components/Dashboard.tsx#L631-L806)) get removed, and the tab is renamed to "Camera & Scroll". Copy/Import JSON will include an `atmosphere` key.
+
+---
+
+## 8. File list
+
+### NEW
+| File | Purpose |
+|------|---------|
+| `src/lib/atmosphere.ts` | Types, `REFERENCE_PRESET`, `deriveFogColorHex`, `computeFogFactor`, zustand store + persist, quality detection |
+| `src/lib/atmosphereUniforms.ts` | Shared uniform singleton + `writeConfigToUniforms` |
+| `src/lib/patchAtmosphere.ts` | `onBeforeCompile` patcher for built-in materials |
+| `src/shaders/atmosphericFog.glsl.ts` | `atmosphereInscatter`, `atmosphereFactor`, `applyAtmosphere(Additive)` |
+| `src/shaders/noise.glsl.ts` | Value noise + fBm (shared) |
+| `src/shaders/skyDome.glsl.ts` | Sky vertex/fragment |
+| `src/shaders/hedgePillar.glsl.ts` | Hero/silhouette pillar shader |
+| `src/components/atmosphere/AtmosphereController.tsx` | Store→uniform subscription, the **single** `useFrame` (time, camPos, glowDir, FogExp2, background), `persist.rehydrate()` |
+| `src/components/atmosphere/AtmosphereLighting.tsx` | Ambient, rim + shadows, top point light, key fill |
+| `src/components/atmosphere/DepthLayers.tsx` | Hero + mid + far pillars |
+| `src/components/atmosphere/AtmospherePostFX.tsx` | Composer stack |
+| `src/effects/CrimsonGradeEffect.ts` | Tinted vignette + animated grain |
+| `src/effects/RadialGlowEffect.ts` | Optional cheap god rays |
+| `src/components/atmosphere/AtmospherePanel.tsx` | Dashboard tab UI |
+| `src/components/atmosphere/AtmosphereDebug.tsx` | Dev-only: per-layer `f`, sky/ground seam ΔE readout |
+
+### MODIFY
+| File | Change |
+|------|--------|
+| [SkyDome.tsx](file:///d:/CODE/Particles/src/components/SkyDome.tsx) | Rewrite: position-only follow, shared uniforms, quality define; drop GLB/scroll logic |
+| [skyShader.ts](file:///d:/CODE/Particles/src/shaders/skyShader.ts) | **Delete** (replaced by `skyDome.glsl.ts`) |
+| [SceneContainer.tsx](file:///d:/CODE/Particles/src/components/SceneContainer.tsx) | Remove the 5 lights, `<color background>` and the old Bloom; add `shadows="soft"`, Controller, Lighting, PostFX |
+| [SceneModel.tsx](file:///d:/CODE/Particles/src/components/SceneModel.tsx) | Remove the THREE.Fog block (L334-351) and the haze background (L328-332); drop the sky/fog keys from `lerpVisuals`; mount `<DepthLayers/>` |
+| [SceneSlot.tsx](file:///d:/CODE/Particles/src/components/SceneSlot.tsx) | **Delete the CPU silhouette loop (L414-448)**; patch GLB materials on load; remove the fog/sky fields from `SceneVisualOverrides` |
+| SimonGlowSystem.tsx + simonGlowShader.ts | Linear fog → `applyAtmosphere`; merge shared uniforms after clone; remove the per-frame fog sync |
+| [ghibliShader.ts](file:///d:/CODE/Particles/src/shaders/ghibliShader.ts) | Swap both fog blocks for `applyAtmosphere`; remove the undeclared `uFogAmount`; add the colorspace chunks; add a `crimson` palette |
+| GhibliGrassField.tsx / GhibliTrees.tsx | Spread shared uniforms; remove the fog sync and per-frame `new Vector3()` |
+| [GhibliFlowers.tsx](file:///d:/CODE/Particles/src/components/ghibli/GhibliFlowers.tsx) | Add the `vWorldPos` varying + `applyAtmosphere`; reuse vectors in `useFrame` |
+| GridFloor.tsx / GridFloorMeshSystem.tsx / gridFloorShader.ts | Patch the ground material; swap the grid shader's linear fog |
+| InteractiveSceneParticleSystem.tsx / modelShader.ts | `#ifdef USE_ATMOSPHERE` path using `applyAtmosphereAdditive`. ParticleLoadingScreen shares modelShader, doesn't set the define, and stays unchanged. |
+| [SimulationContext.tsx](file:///d:/CODE/Particles/src/context/SimulationContext.tsx) | Remove `skyColor, skyExposure, skyHorizonRange, showSky, fogColor, fogNear, fogFar, fogAmount, showFog, ambientLightIntensity, directionalLightIntensity` (they move to the store). `hazeColor` goes too if nothing else uses it. |
+| Dashboard.tsx | Add the Atmosphere tab, remove the old sections, extend JSON export |
+| package.json | Add `zustand` ^5 as a direct dependency |
+
+`CityXRayMeshSystem` isn't mounted anywhere right now, so it's left alone.
+
+---
+
+## 9. Phases
+
+1. **Foundation**: store, uniforms, GLSL chunks, patcher, Controller. Nothing visual changes yet.
+2. **Sky + fog**: new SkyDome; migrate grass, trees, flowers, Simon, GLB materials and ground; delete all the old fog paths (C, D, E, F, G).
+3. **Depth + light**: DepthLayers, AtmosphereLighting, shadows.
+4. **Post**: Bloom, Neutral tone mapping, CrimsonGrade, optional god rays.
+5. **Panel**: Atmosphere tab, preset, JSON export; SimulationContext cleanup.
+6. **Perf + verify**: quality flag, `tsc`, lint, acceptance checklist.
+
+---
+
+## 10. Tunables: what they do and good ranges
+
+| Param | Default | Range | What it does |
+|-------|---------|-------|--------------|
+| Horizon Color | `#b3000a` | dark–mid crimson | Main haze hue; fog is derived from it |
+| Zenith Color | `#3a0004` | very dark red | Top of sky and vignette tint; fog leans 15% toward it |
+| Glow Color | `#ff1a1a` | saturated red | Backlight lobe in the sky and on fogged silhouettes; rim light |
+| Glow Strength | 0.55 | 0.2–1.0 | Lobe brightness; >1 starts to clip |
+| Fog Density | 0.012 | 0.006–0.025 | Distance where layers separate; 0 = off, 0.05 = wall |
+| Fog Height Falloff | 0.04 | 0.01–0.1 | Higher = fog hugs the ground, tops stay visible |
+| Fog Height Base | 0 | ground Y ± 10 | Altitude where height fog is densest |
+| Sky Exposure | 1.0 | 0.5–1.5 | Trim only, no more 3.9× hack |
+| Cloud Scale | 1.4 | 0.6–3.0 | Smaller = bigger, softer smoke blobs |
+| Cloud Speed | 0.015 | 0–0.05 | Drift; forced to 0 on low quality |
+| Cloud Contrast | 1.3 | 0.5–2.5 | Mottling strength |
+| Ambient | 0.25 | 0.15–0.35 | Shadow-side fill; higher flattens depth |
+| Rim Intensity | 4.0 | 2–8 | Backlight on the hero's edges and top |
+| Rim White Mix | 0.45 | 0–1 | 0 = pure glowColor rim (strict spec), ~0.5 = near-white top like the reference |
+| Bloom | 0.6 | 0.3–1.0 | Threshold 0.6, so only the hot top edge blooms |
+| Vignette | 0.75 | 0.5–0.9 | Darkens edges and bottom toward zenith |
+| Grain | 0.12 | 0.06–0.18 | Visible but subtle above ~0.1 |
+
+---
+
+## 11. Open questions (need your input)
+
+> [!IMPORTANT]
+> **1. What is the hero object?** The reference has a twisted hedge pillar with a tiny figure on top.
+> - (a) *Recommended:* new procedural hedge pillars (hero + mid + far), with **Simon standing on top of the hero pillar**.
+> - (b) Pillars as the hero; Simon stays where he is.
+> - (c) Use an existing GLB mesh as the hero, plus silhouette clones.
+>
+> For (a) and (b) I need the **scroll position / frame of the "hero shot"**, so I can place the pillars about 40/120/260 units from the camera at that point. Otherwise I'll add a dev gizmo to place them.
+
+> [!IMPORTANT]
+> **2. Grass and flowers vs. monochrome.** Green grass and pastel flowers will read as non-crimson near the camera. Should the Reference Preset switch the grass to a new dark `crimson` palette (charcoal → oxblood) and hide the flowers?
+
+> [!NOTE]
+> **3. Tone mapping:** I recommend **NEUTRAL** (keeps the sky exactly as authored, with white-hot highlights). Tell me if you'd rather have ACES or AgX.
+> **4. Rim light color:** the spec says `glowColor`. The reference's top edge is near-white, so I added `rimWhiteMix` (default 0.45). Set it to 0 for the strict spec.
+> **5.** OK to **remove the sky/fog fields from the per-scene `SceneVisualOverrides`**? There's only one scene and it defines none. Otherwise they'd become a second source of truth.
+
+---
+
+## 12. Verification plan
+
+**Automated**
+- `npx tsc --noEmit`: strict, no `any` in new files.
+- `npm run lint`.
+- Scratch seam test (`scratch/seamCheck.ts`) that uses the TS mirror of the shader math. It asserts:
+  - (1) `computeFogFactor(400, 0) > 0.999`, so the ground at 400u equals the inscatter color within ΔE < 1;
+  - (2) sky color at `dir.y = 0` equals the inscatter color exactly;
+  - (3) the three layer `f` values are each at least 0.1 apart.
+
+**Manual (on your running `npm run dev`)**
+- [ ] No horizon line while scrubbing the scroll; `AtmosphereDebug` seam ΔE ≈ 0.
+- [ ] Sky shows soft drifting mottling, a glow behind the hero, and darker edges and bottom.
+- [ ] Hero crisp, mid a dark silhouette, far faint.
+- [ ] Fog Density 0 → everything clear (grass, trees, Simon, GLB, pillars); 0.05 → everything dissolves together.
+- [ ] Changing Horizon Color shifts the sky, fog, ground and silhouettes together.
+- [ ] Grain subtle; only the hero's top edge blooms.
+- [ ] No grey anywhere in the haze. Spot-check by sampling pixels: hue stays within ±10° of red.
+- [ ] Holds 60 fps on high quality; low quality turns off cloud animation and god rays and uses 3 octaves.
+- [ ] Browser console: no shader compile errors (confirms D is fixed).

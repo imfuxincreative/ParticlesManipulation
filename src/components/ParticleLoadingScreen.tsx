@@ -7,7 +7,8 @@ import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { ModelParticleShader } from "@/shaders/modelShader";
 import { useSimulation } from "@/context/SimulationContext";
-import { SkyShader } from "@/shaders/skyShader";
+import { skyDomeVertexShader, skyDomeFragmentShader } from "@/shaders/skyDome.glsl";
+import { atmosphereUniforms } from "@/lib/atmosphereUniforms";
 
 // ─── Configuration ──────────────────────────────────────────────────
 const LOADER_MODELS = ["/heart.glb", "/bird.glb"];
@@ -192,47 +193,33 @@ function extractAndPrepare(
 }
 
 // ═════════════════════════════════════════════════════════════════════
-// LoaderSkyDome — Simplified sky dome for the loading screen (no SCENE.glb or ScrollControls dependency)
+// LoaderSkyDome — Simplified sky dome for the loading screen
 const LoaderSkyDome: React.FC<{
   settings: LoaderParticleSystemProps["settings"];
-}> = ({ settings }) => {
+}> = () => {
   const { camera } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-  const uniforms = useMemo(() => {
-    return THREE.UniformsUtils.clone(SkyShader.uniforms);
+  const material = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      vertexShader: skyDomeVertexShader,
+      fragmentShader: skyDomeFragmentShader,
+      uniforms: { ...atmosphereUniforms },
+      side: THREE.BackSide,
+      depthWrite: false,
+      transparent: false,
+    });
   }, []);
-
-  useEffect(() => {
-    if (!materialRef.current) return;
-    const u = materialRef.current.uniforms;
-    u.uHorizonColor.value.set(settings.skyColor || "#ff007f");
-    u.uExposure.value = settings.skyExposure ?? 1.55;
-    if (u.uHorizonMin) {
-      u.uHorizonMin.value = settings.skyHorizonRange ?? 0.0;
-    }
-  }, [settings.skyColor, settings.skyExposure, settings.skyHorizonRange]);
 
   useFrame(() => {
     if (meshRef.current && camera) {
-      camera.getWorldPosition(meshRef.current.position);
-      camera.getWorldQuaternion(meshRef.current.quaternion);
+      meshRef.current.position.copy(camera.position);
     }
   });
 
   return (
-    <mesh ref={meshRef}>
-      <sphereGeometry args={[800, 32, 15]} />
-      <shaderMaterial
-        ref={materialRef}
-        vertexShader={SkyShader.vertexShader}
-        fragmentShader={SkyShader.fragmentShader}
-        uniforms={uniforms}
-        transparent={false}
-        depthWrite={false}
-        side={THREE.BackSide}
-      />
+    <mesh ref={meshRef} material={material}>
+      <sphereGeometry args={[800, 32, 16]} />
     </mesh>
   );
 };

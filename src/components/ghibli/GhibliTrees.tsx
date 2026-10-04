@@ -2,7 +2,8 @@ import React, { useMemo, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { GhibliShader } from '@/shaders/ghibliShader';
+import { GhibliShader, colorsToFloat32Array, thresholdsToFloat32Array } from '@/shaders/ghibliShader';
+import { atmosphereUniforms } from '@/lib/atmosphereUniforms';
 
 interface GhibliTreesProps {
   colors?: string[];
@@ -28,16 +29,19 @@ export const GhibliTrees: React.FC<GhibliTreesProps> = ({
   const { nodes } = useGLTF('/trees.glb') as any;
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-  const colorMapValues = useMemo(() => {
-    return colors.map((c) => new THREE.Color(c));
+  const colorMapFloat32 = useMemo(() => {
+    return colorsToFloat32Array(colors);
   }, [colors]);
+
+  const thresholdsFloat32 = useMemo(() => {
+    return thresholdsToFloat32Array(thresholds);
+  }, [thresholds]);
 
   const uniforms = useMemo(() => {
     return {
-      colorMap: { value: colorMapValues },
-      brightnessThresholds: { value: thresholds },
-      lightPosition: { value: lightPosition },
-      uTime: { value: 0.0 },
+      colorMap: { value: colorMapFloat32 },
+      brightnessThresholds: { value: thresholdsFloat32 },
+      lightPosition: { value: lightPosition.clone() },
       uWindSpeed: { value: windSpeed },
       uWindStrength: { value: windStrength },
       uWindScale: { value: 0.08 },
@@ -50,24 +54,20 @@ export const GhibliTrees: React.FC<GhibliTreesProps> = ({
       uGrassRevealOffset: { value: 250.0 },
       uGrassRevealDirection: { value: new THREE.Vector3(0, 0, -1) },
       uCameraPosition: { value: new THREE.Vector3(0, 0, 0) },
+      ...atmosphereUniforms,
     };
-  }, [colorMapValues, thresholds, lightPosition, windSpeed, windStrength]);
+  }, [colorMapFloat32, thresholdsFloat32, lightPosition, windSpeed, windStrength]);
 
   React.useEffect(() => {
     if (materialRef.current) {
-      materialRef.current.uniforms.colorMap.value = colorMapValues;
-      materialRef.current.uniforms.brightnessThresholds.value = thresholds;
-      materialRef.current.uniforms.lightPosition.value = lightPosition;
-      materialRef.current.uniforms.uWindSpeed.value = windSpeed;
-      materialRef.current.uniforms.uWindStrength.value = windStrength;
+      const u = materialRef.current.uniforms;
+      if (u.colorMap) u.colorMap.value = colorMapFloat32;
+      if (u.brightnessThresholds) u.brightnessThresholds.value = thresholdsFloat32;
+      if (u.lightPosition && u.lightPosition.value) u.lightPosition.value.copy(lightPosition);
+      if (u.uWindSpeed) u.uWindSpeed.value = windSpeed;
+      if (u.uWindStrength) u.uWindStrength.value = windStrength;
     }
-  }, [colorMapValues, thresholds, lightPosition, windSpeed, windStrength]);
-
-  useFrame((state, delta) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value += delta;
-    }
-  });
+  }, [colorMapFloat32, thresholdsFloat32, lightPosition, windSpeed, windStrength]);
 
   const FoliageGeometry = nodes?.Foliage?.geometry;
 

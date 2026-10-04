@@ -1,8 +1,34 @@
 import * as THREE from 'three';
+import { atmosphereParsGLSL } from './atmosphericFog.glsl';
+
+export function colorsToFloat32Array(colors: (string | THREE.Color)[]): Float32Array {
+  const arr = new Float32Array(12);
+  const temp = new THREE.Color();
+  for (let i = 0; i < 4; i++) {
+    const c = colors[i] || '#000000';
+    if (c instanceof THREE.Color) {
+      temp.copy(c);
+    } else {
+      temp.set(c);
+    }
+    arr[i * 3 + 0] = temp.r;
+    arr[i * 3 + 1] = temp.g;
+    arr[i * 3 + 2] = temp.b;
+  }
+  return arr;
+}
+
+export function thresholdsToFloat32Array(thresholds: number[]): Float32Array {
+  const arr = new Float32Array(3);
+  for (let i = 0; i < 3; i++) {
+    arr[i] = thresholds[i] ?? 0.0;
+  }
+  return arr;
+}
 
 export interface GhibliShaderUniforms {
-  colorMap: { value: THREE.Color[] };
-  brightnessThresholds: { value: number[] };
+  colorMap: { value: Float32Array };
+  brightnessThresholds: { value: Float32Array };
   lightPosition: { value: THREE.Vector3 };
   uTime: { value: number };
   uWindSpeed: { value: number };
@@ -20,21 +46,16 @@ export interface GhibliShaderUniforms {
   uGrassHeight: { value: number };
   uGrassWidth: { value: number };
   uRealisticMode: { value: number };
-  [key: string]: { value: any };
+  [key: string]: { value: unknown };
 }
 
 export const GhibliShader = {
   uniforms: {
     colorMap: {
-      value: [
-        new THREE.Color('#8ecc43'), // Highlight (Fresh vibrant tip green)
-        new THREE.Color('#4d942a'), // Upper (Lush meadow green)
-        new THREE.Color('#2d6124'), // Lower (Rich forest green)
-        new THREE.Color('#153313'), // Shadow (Deep soil root green)
-      ],
+      value: colorsToFloat32Array(['#ff4d4d', '#b3000a', '#660006', '#260002']),
     },
     brightnessThresholds: {
-      value: [0.65, 0.35, 0.05],
+      value: thresholdsToFloat32Array([0.65, 0.35, 0.05]),
     },
     lightPosition: { value: new THREE.Vector3(15, 20, 15) },
     uTime: { value: 0.0 },
@@ -42,7 +63,7 @@ export const GhibliShader = {
     uWindStrength: { value: 0.3 },
     uWindScale: { value: 0.15 },
     uGrassSway: { value: 1.0 },
-    uGrowthProgress: { value: 1.0 }, // 0.0 = sprouted, 1.0 = full height
+    uGrowthProgress: { value: 1.0 },
     uSubsurfaceStrength: { value: 0.25 },
     uGrassRevealProgress: { value: 0.0 },
     uGrassRevealDistance: { value: 710.0 },
@@ -52,7 +73,7 @@ export const GhibliShader = {
     uCameraPosition: { value: new THREE.Vector3(0.0, 0.0, 0.0) },
     uGrassHeight: { value: 1.7 },
     uGrassWidth: { value: 0.3 },
-    uRealisticMode: { value: 1.0 }, // 1.0 = Realistic smooth meadow, 0.0 = Cel Quantized
+    uRealisticMode: { value: 1.0 },
   } as GhibliShaderUniforms,
 
   vertexShader: /* glsl */ `
@@ -81,8 +102,8 @@ export const GhibliShader = {
     varying vec3 vWorldPosition;
     varying float vWindFactor;
     varying float vGrowthFactor;
+    varying float vDepth;
 
-    // 2D Simplex-like noise helper for organic wind and growth movement
     vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
     vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
     vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
@@ -120,7 +141,6 @@ export const GhibliShader = {
 
       vec3 transformed = position;
 
-      // Calculate global world position for continuous spatial wind noise and reveal wave across instances
       #ifdef USE_INSTANCING
         vec4 worldPos = modelMatrix * instanceMatrix * vec4(position, 1.0);
         vWorldNormal = normalize(mat3(modelMatrix * instanceMatrix) * normal);
@@ -131,45 +151,28 @@ export const GhibliShader = {
 
       vWorldPosition = worldPos.xyz;
 
-      // ─── SPATIAL SCROLL REVEAL WAVE ───
-      // Camera look direction vector (horizontal ground plane)
       vec3 revealDir = length(uGrassRevealDirection) > 0.001 ? normalize(uGrassRevealDirection) : vec3(0.0, 0.0, -1.0);
-      
-      // Distance of grass vertex ahead of camera position along look direction vector
       float distanceAhead = dot(worldPos.xyz - uCameraPosition, revealDir);
-
-      // Current reveal wave front distance ahead of camera
       float waveFront = uGrassRevealOffset + (uGrassRevealProgress * uGrassRevealDistance);
 
-      // Organic spatial noise for natural meadow patchiness
       float spatialNoise = snoise(worldPos.xz * 0.07) * (uGrassRevealSoftness * 0.3);
       float effectiveDistance = distanceAhead + spatialNoise;
 
-      // Behind-camera fade out: grass more than 60-150 units behind camera fades out
       float behindFade = smoothstep(-150.0, -60.0, distanceAhead);
-
-      // Forward reveal wave: 1.0 in front of camera up to waveFront, 0.0 unrevealed far ahead
       float softness = max(1.0, uGrassRevealSoftness);
       float forwardReveal = 1.0 - smoothstep(waveFront - softness, waveFront, effectiveDistance);
 
-      // Combined reveal factor (1.0 = grown in view, 0.0 = discarded behind camera or far ahead)
       float spatialRevealFactor = forwardReveal * behindFade;
-
-      // Combine mount growth progress with scroll-based spatial reveal
       float combinedProgress = clamp(uGrowthProgress * spatialRevealFactor, 0.0, 1.0);
 
-      // Existing smooth cubic curve for natural sprout emergence
       float growthFactor = combinedProgress * combinedProgress * (3.0 - 2.0 * combinedProgress);
       vGrowthFactor = growthFactor;
 
-      // Scale height and width based on combined growth progress + user uGrassHeight and uGrassWidth uniforms
       transformed.y *= growthFactor * uGrassHeight;
       transformed.xz *= mix(0.05, 1.0, growthFactor) * uGrassWidth;
 
-      // Wind displacement logic
-      // Height factor ensures grass/leaves bend more towards top (y > 0)
       float heightFactor = clamp(uv.y > 0.0 ? uv.y : max(0.0, position.y), 0.0, 1.0);
-      heightFactor = pow(heightFactor, 1.5) * growthFactor; // Wind only affects grown grass
+      heightFactor = pow(heightFactor, 1.5) * growthFactor;
 
       if (uGrassSway > 0.0 && heightFactor > 0.05) {
         float time = uTime * uWindSpeed;
@@ -181,7 +184,7 @@ export const GhibliShader = {
 
         transformed.x += totalWind * 0.8;
         transformed.z += totalWind * 0.6;
-        transformed.y -= abs(totalWind) * 0.2; // Slight dip when bending
+        transformed.y -= abs(totalWind) * 0.2;
         vWindFactor = totalWind;
       } else {
         vWindFactor = 0.0;
@@ -193,6 +196,7 @@ export const GhibliShader = {
         vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.0);
       #endif
 
+      vDepth = -mvPosition.z;
       gl_Position = projectionMatrix * mvPosition;
     }
   `,
@@ -215,22 +219,28 @@ export const GhibliShader = {
     varying vec3 vWorldPosition;
     varying float vWindFactor;
     varying float vGrowthFactor;
+    varying float vDepth;
+
+    ${atmosphereParsGLSL}
 
     void main() {
-      // Hide un-grown grass blades
       if (vGrowthFactor < 0.02) {
         discard;
       }
 
       vec3 worldNormal = normalize(vWorldNormal);
-      vec3 lightVector = normalize(lightPosition - vWorldPosition);
-      vec3 viewVector = normalize(cameraPosition - vWorldPosition);
+      vec3 lightVector = length(uGlowDir) > 0.001 ? normalize(uGlowDir) : normalize(lightPosition - vWorldPosition);
+      vec3 viewVector = normalize(uCamPos - vWorldPosition);
+
+      // Derive dynamic atmosphere lighting components
+      vec3 atmoAmbient = mix(uHorizonColor, uZenithColor, 0.35) * max(uAmbientIntensity, 0.15);
+      vec3 rimColor = mix(uGlowColor, vec3(1.0), clamp(uRimWhiteMix, 0.0, 1.0));
+
+      vec3 finalRGB;
 
       if (uRealisticMode > 0.5) {
-        // ─── REALISTIC LUSH MEADOW SHADING ───
         float heightRatio = clamp(vUv.y > 0.0 ? vUv.y : max(0.0, vPosition.y / 1.65), 0.0, 1.0);
 
-        // Smooth vertical root-to-tip gradient
         vec3 rootColor = colorMap[3];
         vec3 lowerColor = colorMap[2];
         vec3 upperColor = colorMap[1];
@@ -242,63 +252,71 @@ export const GhibliShader = {
           smoothstep(0.15, 0.7, heightRatio)
         );
 
-        // Micro spatial color variation across landscape
         float patchNoise = sin(vWorldPosition.x * 0.03 + vWorldPosition.z * 0.02) * cos(vWorldPosition.z * 0.04 - vWorldPosition.x * 0.02);
         vec3 tintShift = mix(vec3(0.92, 1.04, 0.88), vec3(1.05, 0.96, 1.08), patchNoise * 0.5 + 0.5);
         baseGrassColor *= tintShift;
 
-        // Smooth Half-Lambert diffuse lighting
+        // Atmosphere directional rim & key light
         float NdotL = max(0.0, dot(worldNormal, lightVector));
-        float halfLambert = NdotL * 0.5 + 0.5;
-        float diffuseLight = pow(halfLambert, 1.4);
+        float halfLambert = pow(NdotL * 0.5 + 0.5, 1.4);
 
-        // Ambient Occlusion shadow at blade root
         float ao = smoothstep(0.0, 0.45, heightRatio) * 0.7 + 0.3;
 
-        // Subsurface scattering (sun shining through translucent blade tips)
+        // Subsurface scattering glowing with atmosphere light
         float backLight = max(0.0, dot(-lightVector, viewVector));
-        float sss = pow(backLight, 2.5) * uSubsurfaceStrength * heightRatio;
-        vec3 sssGlow = tipColor * sss * 1.8;
+        float sss = pow(backLight, 2.2) * uSubsurfaceStrength * heightRatio;
+        vec3 sssGlow = mix(tipColor, rimColor, 0.5) * sss * 2.0;
 
-        // Combine realistic lighting components
-        vec3 finalRGB = baseGrassColor * (diffuseLight * 0.85 + 0.25) * ao + sssGlow;
+        // Lighting equation combining atmosphere ambient, rim backlight, and base blade color
+        vec3 lightEnv = atmoAmbient * 2.5 + rimColor * (pow(halfLambert, 1.8) * uRimIntensity * 0.4);
+        finalRGB = baseGrassColor * lightEnv * ao + sssGlow;
 
-        // Dynamic wind wave shimmer
         if (abs(vWindFactor) > 0.15) {
           finalRGB = mix(finalRGB, tipColor * 1.15, clamp(abs(vWindFactor) * 0.25, 0.0, 0.2));
         }
-
-        gl_FragColor = vec4(finalRGB, 1.0);
       } else {
-        // ─── GHIBLI TOON QUANTIZED SHADING ───
-        float brightness = dot(worldNormal, lightVector);
+        float NdotL = dot(worldNormal, lightVector);
         float backLight = max(0.0, dot(-lightVector, viewVector));
         float sss = pow(backLight, 3.0) * uSubsurfaceStrength * (vUv.y > 0.0 ? vUv.y : 0.5);
-        float totalLight = brightness + sss;
+        float totalLight = NdotL + sss;
 
-        vec4 finalColor;
+        vec3 toonBase;
         if (totalLight > brightnessThresholds[0]) {
-          finalColor = vec4(colorMap[0], 1.0);
+          toonBase = colorMap[0];
         } else if (totalLight > brightnessThresholds[1]) {
-          finalColor = vec4(colorMap[1], 1.0);
+          toonBase = colorMap[1];
         } else if (totalLight > brightnessThresholds[2]) {
-          finalColor = vec4(colorMap[2], 1.0);
+          toonBase = colorMap[2];
         } else {
-          finalColor = vec4(colorMap[3], 1.0);
+          toonBase = colorMap[3];
         }
 
         if (abs(vWindFactor) > 0.2) {
-          finalColor.rgb = mix(finalColor.rgb, colorMap[0], clamp(abs(vWindFactor) * 0.3, 0.0, 0.25));
+          toonBase = mix(toonBase, colorMap[0], clamp(abs(vWindFactor) * 0.3, 0.0, 0.25));
         }
 
-        gl_FragColor = finalColor;
+        finalRGB = toonBase * (atmoAmbient * 2.0 + rimColor * 0.5);
       }
+
+      float dist = distance(vWorldPosition, uCamPos);
+      finalRGB = applyAtmosphere(finalRGB, dist, vWorldPosition);
+
+      gl_FragColor = vec4(finalRGB, 1.0);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
     }
   `,
 };
 
-// Preset Color Palettes
 export const GHIBLI_PALETTES = {
+  crimson: {
+    name: 'Crimson Atmosphere',
+    colors: ['#ff4d4d', '#b3000a', '#660006', '#260002'],
+    sky: '#3a0004',
+    horizon: '#b3000a',
+    ground: '#260002',
+    thresholds: [0.65, 0.35, 0.05],
+  },
   realistic: {
     name: 'Realistic Lush Meadow',
     colors: ['#8ecc43', '#4d942a', '#2d6124', '#153313'],

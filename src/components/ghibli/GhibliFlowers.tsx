@@ -2,6 +2,8 @@ import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useScroll } from '@react-three/drei';
 import * as THREE from 'three';
+import { atmosphereParsGLSL } from '@/shaders/atmosphericFog.glsl';
+import { atmosphereUniforms } from '@/lib/atmosphereUniforms';
 
 interface GhibliFlowersProps {
   count?: number;
@@ -19,13 +21,13 @@ interface GhibliFlowersProps {
 }
 
 const FLOWER_COLORS = [
-  '#ff7eb9', // Pastel Pink
-  '#ff9e42', // Bright Meadow Orange
-  '#ffd15c', // Sun Gold Yellow
-  '#ffffff', // White Daisy
-  '#b15eff', // Wild Violet
-  '#ff4d4d', // Poppy Red
-  '#ff9ebb', // Soft Rose
+  '#ff7eb9',
+  '#ff9e42',
+  '#ffd15c',
+  '#ffffff',
+  '#b15eff',
+  '#ff4d4d',
+  '#ff9ebb',
 ];
 
 export const GhibliFlowers: React.FC<GhibliFlowersProps> = ({
@@ -46,7 +48,6 @@ export const GhibliFlowers: React.FC<GhibliFlowersProps> = ({
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const scrollData = useScroll();
 
-  // 1. Create 5-Petal Meadow Flower Geometry
   const flowerGeometry = useMemo(() => {
     const geom = new THREE.BufferGeometry();
 
@@ -55,12 +56,10 @@ export const GhibliFlowers: React.FC<GhibliFlowersProps> = ({
     const normals: number[] = [];
     const indices: number[] = [];
 
-    // Center disk (Yellow core)
     positions.push(0, 0.2, 0);
     uvs.push(0.5, 0.5);
     normals.push(0, 1, 0);
 
-    // 5 Petals around center
     const numPetals = 5;
     const petalRadius = 0.22;
     const centerRadius = 0.07;
@@ -81,10 +80,9 @@ export const GhibliFlowers: React.FC<GhibliFlowersProps> = ({
 
       const baseIdx = positions.length / 3;
 
-      // 3 vertices per petal triangle: Center base 1, Center base 2, Petal tip
       positions.push(c1x, 0.15, c1z);
       positions.push(c2x, 0.15, c2z);
-      positions.push(px, 0.28, pz); // Slightly angled upwards
+      positions.push(px, 0.28, pz);
 
       uvs.push(0.0, 0.0, 1.0, 0.0, 0.5, 1.0);
       normals.push(0, 0.9, 0.3, 0, 0.9, 0.3, 0, 0.9, 0.3);
@@ -97,14 +95,13 @@ export const GhibliFlowers: React.FC<GhibliFlowersProps> = ({
     geom.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
     geom.setIndex(indices);
     geom.computeVertexNormals();
+    geom.boundingSphere = new THREE.Sphere(new THREE.Vector3(400, 0, 0), 2500);
 
     return geom;
   }, []);
 
-  // 2. Custom Flower Shader Material
   const uniforms = useMemo(() => {
     return {
-      uTime: { value: 0.0 },
       uWindSpeed: { value: windSpeed },
       uWindStrength: { value: windStrength },
       uGrowthProgress: { value: growthProgress ?? 1.0 },
@@ -115,6 +112,7 @@ export const GhibliFlowers: React.FC<GhibliFlowersProps> = ({
       uGrassRevealDirection: { value: grassRevealDirection },
       uCameraPosition: { value: new THREE.Vector3() },
       uFlowerScale: { value: scale },
+      ...atmosphereUniforms,
     };
   }, [
     windSpeed,
@@ -177,7 +175,6 @@ export const GhibliFlowers: React.FC<GhibliFlowersProps> = ({
 
           vec3 transformed = position * uFlowerScale * growthFactor;
 
-          // Gentle wind sway
           float time = uTime * uWindSpeed;
           transformed.x += sin(time * 1.2 + worldPos.x * 0.1) * 0.12 * uWindStrength * growthFactor;
           transformed.z += cos(time * 1.2 + worldPos.z * 0.1) * 0.12 * uWindStrength * growthFactor;
@@ -196,20 +193,26 @@ export const GhibliFlowers: React.FC<GhibliFlowersProps> = ({
         precision highp int;
 
         varying vec3 vColor;
+        varying vec3 vWorldPosition;
         varying float vGrowthFactor;
+
+        ${atmosphereParsGLSL}
 
         void main() {
           if (vGrowthFactor < 0.02) {
             discard;
           }
-          gl_FragColor = vec4(vColor, 1.0);
+          float dist = distance(vWorldPosition, uCamPos);
+          vec3 finalColor = applyAtmosphere(vColor, dist, vWorldPosition);
+          gl_FragColor = vec4(finalColor, 1.0);
+          #include <tonemapping_fragment>
+          #include <colorspace_fragment>
         }
       `,
       side: THREE.DoubleSide,
     });
   }, [uniforms]);
 
-  // Update uniforms when props change
   React.useEffect(() => {
     if (materialRef.current) {
       const u = materialRef.current.uniforms;
@@ -235,20 +238,15 @@ export const GhibliFlowers: React.FC<GhibliFlowersProps> = ({
     grassRevealDirection,
   ]);
 
-  // 3. Populate Flower Instance Matrices & Colors
   React.useEffect(() => {
     if (!meshRef.current) return;
-
-    flowerGeometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(400, 0, 0), 2500);
 
     const dummy = new THREE.Object3D();
     const colorObj = new THREE.Color();
 
     for (let i = 0; i < count; i++) {
-      // Uniform distribution across active camera depth (-100 to +850 X) and wide sides (-180 to +180 Z)
       const x = -100 + Math.random() * 950;
       const z = (Math.random() - 0.5) * 360;
-      // Heights vary naturally from 0.8 to 2.2 to sit right atop the grass blades
       const y = 0.8 + Math.random() * 1.4;
 
       dummy.position.set(x, y, z);
@@ -262,7 +260,6 @@ export const GhibliFlowers: React.FC<GhibliFlowersProps> = ({
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
 
-      // Random vibrant meadow flower color
       const hexColor = FLOWER_COLORS[Math.floor(Math.random() * FLOWER_COLORS.length)];
       colorObj.set(hexColor);
       meshRef.current.setColorAt(i, colorObj);
@@ -274,11 +271,8 @@ export const GhibliFlowers: React.FC<GhibliFlowersProps> = ({
     }
   }, [count, flowerGeometry]);
 
-  // 4. Animation loop
   useFrame((state, delta) => {
     if (!materialRef.current) return;
-
-    materialRef.current.uniforms.uTime.value += delta;
 
     const camPos = new THREE.Vector3();
     const camDir = new THREE.Vector3();

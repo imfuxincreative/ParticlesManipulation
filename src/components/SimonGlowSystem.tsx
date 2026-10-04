@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { SimonGlowShader } from "@/shaders/simonGlowShader";
 import { useSimulation } from "@/context/SimulationContext";
+import { atmosphereUniforms } from "@/lib/atmosphereUniforms";
 
 interface SimonGlowSystemProps {
   meshes: THREE.Mesh[];
@@ -13,36 +14,34 @@ interface SimonGlowSystemProps {
 
 export const SimonGlowSystem: React.FC<SimonGlowSystemProps> = ({ meshes, sceneIndex }) => {
   const { settings } = useSimulation();
-  
-  // Track cloned materials active on meshes to update them in the frame loop
   const activeMaterialsRef = useRef<THREE.ShaderMaterial[]>([]);
 
-  // Base shader material
   const material = useMemo(() => {
     return new THREE.ShaderMaterial({
       vertexShader: SimonGlowShader.vertexShader,
       fragmentShader: SimonGlowShader.fragmentShader,
-      uniforms: THREE.UniformsUtils.clone(SimonGlowShader.uniforms),
+      uniforms: {
+        ...THREE.UniformsUtils.clone(SimonGlowShader.uniforms),
+        ...atmosphereUniforms,
+      },
       transparent: true,
-      depthWrite: true, // Need depth writing for proper occlusion
+      depthWrite: true,
       side: THREE.DoubleSide,
     });
   }, []);
 
-  // Skinned shader material variant sharing same uniforms
   const skinnedMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       vertexShader: SimonGlowShader.vertexShader,
       fragmentShader: SimonGlowShader.fragmentShader,
       uniforms: material.uniforms,
-      defines: { USE_SKINNING: '' },
+      defines: { USE_SKINNING: "" },
       transparent: true,
       depthWrite: true,
       side: THREE.DoubleSide,
     });
   }, [material]);
 
-  // Sync settings to uniforms
   useEffect(() => {
     const mats = [material, skinnedMaterial, ...activeMaterialsRef.current];
     mats.forEach((mat) => {
@@ -51,17 +50,9 @@ export const SimonGlowSystem: React.FC<SimonGlowSystemProps> = ({ meshes, sceneI
       if (settings.simonGlowColor) {
         mat.uniforms.uColor.value.set(settings.simonGlowColor);
       }
-      
-      // Sync fog uniforms
-      if (mat.uniforms.uShowFog) mat.uniforms.uShowFog.value = settings.showFog ? 1.0 : 0.0;
-      if (mat.uniforms.uFogColor) mat.uniforms.uFogColor.value.set(settings.fogColor);
-      if (mat.uniforms.uFogNear) mat.uniforms.uFogNear.value = settings.fogNear;
-      if (mat.uniforms.uFogFar) mat.uniforms.uFogFar.value = settings.fogFar;
-      if (mat.uniforms.uFogAmount) mat.uniforms.uFogAmount.value = settings.fogAmount;
     });
-  }, [settings.simonGlowIntensity, settings.simonGlowOpacity, settings.simonGlowColor, settings.showFog, settings.fogColor, settings.fogNear, settings.fogFar, settings.fogAmount, material, skinnedMaterial, meshes]);
+  }, [settings.simonGlowIntensity, settings.simonGlowOpacity, settings.simonGlowColor, material, skinnedMaterial, meshes]);
 
-  // Replace meshes' materials and restore on unmount (deferred by 1 frame to prevent loader freeze)
   useEffect(() => {
     const originalMaterials = new Map<THREE.Mesh, THREE.Material | THREE.Material[]>();
     const clonedMaterials: THREE.ShaderMaterial[] = [];
@@ -74,8 +65,10 @@ export const SimonGlowSystem: React.FC<SimonGlowSystemProps> = ({ meshes, sceneI
         const isSkinned = (mesh as THREE.SkinnedMesh).isSkinnedMesh;
         const baseMat = isSkinned ? skinnedMaterial : material;
         const clonedMat = baseMat.clone();
+        
+        // Ensure shared atmosphere uniforms references are preserved after clone
+        Object.assign(clonedMat.uniforms, atmosphereUniforms);
 
-        // Compute bounding box for edge gradients
         mesh.geometry.computeBoundingBox();
         const bbox = mesh.geometry.boundingBox;
         if (bbox) {
@@ -114,33 +107,12 @@ export const SimonGlowSystem: React.FC<SimonGlowSystemProps> = ({ meshes, sceneI
     const activeSceneIndex = glUserData.activeSceneIndex ?? 0;
     const incomingSceneIndex = glUserData.incomingSceneIndex ?? -1;
 
-    // Update only if this scene is visible
     const isVisible = (sceneIndex === activeSceneIndex) || (sceneIndex === incomingSceneIndex);
     if (!isVisible) return;
-
-    // Apply real-time scroll overrides for fog
-    const vis = glUserData.sceneVisuals || {};
-    const showFogVal = vis.showFog !== undefined ? vis.showFog : settings.showFog;
-    const fogColorVal = vis.fogColor ?? settings.fogColor;
-    const fogNearVal = vis.fogNear !== undefined ? vis.fogNear : settings.fogNear;
-    const fogFarVal = vis.fogFar !== undefined ? vis.fogFar : settings.fogFar;
-    const fogAmountVal = vis.fogAmount !== undefined ? vis.fogAmount : settings.fogAmount;
 
     const mats = [material, skinnedMaterial, ...activeMaterialsRef.current];
     mats.forEach((mat) => {
       mat.uniforms.uTime.value = state.clock.elapsedTime;
-      
-      if (mat.uniforms.uShowFog) mat.uniforms.uShowFog.value = showFogVal ? 1.0 : 0.0;
-      if (mat.uniforms.uFogColor) mat.uniforms.uFogColor.value.set(fogColorVal);
-      if (mat.uniforms.uFogNear) mat.uniforms.uFogNear.value = fogNearVal;
-      if (mat.uniforms.uFogFar) mat.uniforms.uFogFar.value = fogFarVal;
-      if (mat.uniforms.uFogAmount) mat.uniforms.uFogAmount.value = fogAmountVal;
-      
-      if (mat.uniforms.uOpacity) mat.uniforms.uOpacity.value = settings.simonGlowOpacity;
-      mat.uniforms.uGlowIntensity.value = settings.simonGlowIntensity;
-      if (settings.simonGlowColor) {
-        mat.uniforms.uColor.value.set(settings.simonGlowColor);
-      }
     });
   });
 

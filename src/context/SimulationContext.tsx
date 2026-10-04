@@ -55,6 +55,8 @@ export interface SimulationSettings {
   skyColor: string;
   skyExposure: number;
   skyHorizonRange: number;
+  ambientLightIntensity: number;
+  directionalLightIntensity: number;
   wingStartMode: "spine" | "formed" | "scattered";
   showWingAnchor: boolean;
   wingFlowFrequency: number;
@@ -157,7 +159,7 @@ const defaultSettings: SimulationSettings = {
   focusDepth: 14,
   focusRange: 2,
   bokehScale: 4,
-  hazeColor: "#ffffff",
+  hazeColor: "#1a0505",
   hazeDensity: 0.1,
   tintColor: "#a855f7",
   tintMix: 0,
@@ -179,7 +181,7 @@ const defaultSettings: SimulationSettings = {
   xraySolidRevealDepth: 110,
   xrayHoverRadius: 10,
   xrayLineGlowIntensity: 2.5,
-  showGridFloor: true,
+  showGridFloor: false,
   gridFloorOpacity: 0.35,
   gridFloorFillOpacity: 0.15,
   gridTileSize: 4,
@@ -190,25 +192,27 @@ const defaultSettings: SimulationSettings = {
   gridFloorFallMaxDistance: 5,
   gridFloorFallRandomness: 50,
   showSky: true,
-  skyColor: "#3b82f6",
+  skyColor: "#ff0000",
   skyExposure: 1.0,
   skyHorizonRange: -0.8,
+  ambientLightIntensity: 0.3,
+  directionalLightIntensity: 1.4,
   wingStartMode: "spine",
   showWingAnchor: false,
   wingFlowFrequency: 1,
   wingFlowStrength: 0.2,
   wingGlowIntensity: 1.5,
   simonGlowIntensity: 1.2,
-  simonBloomIntensity: 0.4,
+  simonBloomIntensity: 0.25,
   simonGlowColor: "#ffffff",
   simonGlowOpacity: 0.4,
   titleSize: 8,
   titleYOffset: -0.5,
   showWings: false,
   showFog: true,
-  fogColor: "#3b82f6",
-  fogNear: 150,
-  fogFar: 800,
+  fogColor: "#b30000",
+  fogNear: 40,
+  fogFar: 350,
   fogAmount: 1,
   modelFlowSpeed: 0.15,
   modelFlowStrength: 0.4,
@@ -250,8 +254,8 @@ const defaultSettings: SimulationSettings = {
   alwaysShowLoader: false,
   showGhibliGrass: true,
   useRealisticGrass: true,
-  ghibliGrassCount: 500000,
-  ghibliGrassHeight: 1.7,
+  ghibliGrassCount: 930000,
+  ghibliGrassHeight: 2.7,
   ghibliGrassWidth: 0.3,
   ghibliGrassRadius: 90,
   ghibliGrassWindSpeed: 1.2,
@@ -264,7 +268,7 @@ const defaultSettings: SimulationSettings = {
   ghibliFlowerScale: 1.2,
   showGhibliTrees: true,
   ghibliPaletteKey: "realistic",
-  groundColor: "#1c3d18",
+  groundColor: "#260002",
   groundOpacity: 1.0,
   isLoading: true,
   isSceneLoaded: false,
@@ -277,12 +281,7 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [settings, setSettings] = useState<SimulationSettings>(defaultSettings);
 
   const updateSetting = useCallback(<K extends keyof SimulationSettings>(key: K, value: SimulationSettings[K]) => {
-    setSettings((prev) => {
-      if (key === "skyColor" && typeof value === "string") {
-        return { ...prev, skyColor: value, fogColor: value };
-      }
-      return { ...prev, [key]: value };
-    });
+    setSettings((prev) => ({ ...prev, [key]: value }));
   }, []);
 
   const triggerSceneEntrance = useCallback(() => {
