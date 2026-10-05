@@ -51,25 +51,27 @@ async function main() {
     });
 
   const targetGlbPath = path.resolve('public/SCENE.glb');
-  const backupGlbPath = path.resolve('public/SCENE_original.glb');
+  const originalGlbPath = path.resolve('public/SCENE_original.glb');
+  const rawGlbPath = path.resolve('public/SCENE_raw.glb');
 
-  // 1. If SCENE_original.glb does not exist yet, copy SCENE.glb as backup
-  if (!fs.existsSync(backupGlbPath) && fs.existsSync(targetGlbPath)) {
-    fs.copyFileSync(targetGlbPath, backupGlbPath);
-    console.log(`✓ Created backup GLB at "${backupGlbPath}".`);
-  }
-
-  // 2. If a new Blender export (> 15MB) is saved to SCENE.glb, update the backup file
+  // If SCENE.glb itself is a fresh raw Blender export (> 15 MB), save a copy to SCENE_original.glb
   if (fs.existsSync(targetGlbPath)) {
     const targetSize = fs.statSync(targetGlbPath).size;
     if (targetSize > 15 * 1024 * 1024) {
-      fs.copyFileSync(targetGlbPath, backupGlbPath);
-      console.log(`✓ Updated raw backup file (${(targetSize / 1024 / 1024).toFixed(2)} MB) at "${backupGlbPath}".`);
+      fs.copyFileSync(targetGlbPath, originalGlbPath);
+      console.log(`✓ Updated raw source file (${(targetSize / 1024 / 1024).toFixed(2)} MB) at "${originalGlbPath}".`);
     }
   }
 
-  // Read from backupGlbPath if available, otherwise targetGlbPath
-  const sourcePath = fs.existsSync(backupGlbPath) ? backupGlbPath : targetGlbPath;
+  // Determine source file: check for uncompressed raw sources (SCENE_original.glb, SCENE_raw.glb)
+  // If present, pick the raw file with the latest modification time.
+  let sourcePath = targetGlbPath;
+  const rawCandidates = [originalGlbPath, rawGlbPath].filter(p => fs.existsSync(p));
+
+  if (rawCandidates.length > 0) {
+    rawCandidates.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+    sourcePath = rawCandidates[0];
+  }
 
   console.log(`2. Reading input GLB "${sourcePath}"...`);
   const document = await io.read(sourcePath);

@@ -69,23 +69,37 @@ export const FOCAL_LENGTH_KEYFRAMES: FocalLengthKeyframe[] = [
   { frame: 4561, focalLength: 20 },
 ]
 
-export function getFocalLengthAtFrame(frame: number): number {
-  if (FOCAL_LENGTH_KEYFRAMES.length === 0) return 26
-  if (frame <= FOCAL_LENGTH_KEYFRAMES[0].frame) return FOCAL_LENGTH_KEYFRAMES[0].focalLength
-  if (frame >= FOCAL_LENGTH_KEYFRAMES[FOCAL_LENGTH_KEYFRAMES.length - 1].frame) {
-    return FOCAL_LENGTH_KEYFRAMES[FOCAL_LENGTH_KEYFRAMES.length - 1].focalLength
+export const MOBILE_FOCAL_LENGTH_KEYFRAMES: FocalLengthKeyframe[] = [
+  { frame: -493, focalLength: 28 },
+  { frame: 720, focalLength: 64 },
+  { frame: 1212, focalLength: 64 },
+  { frame: 1857, focalLength: 68 },
+  { frame: 2493, focalLength: 68 },
+  { frame: 3116, focalLength: 64 },
+  { frame: 3613, focalLength: 34 },
+  { frame: 3846, focalLength: 44 },
+  { frame: 4057, focalLength: 44 },
+  { frame: 4561, focalLength: 54 },
+]
+
+export function getFocalLengthAtFrame(frame: number, isMobile: boolean = false): number {
+  const keyframes = isMobile ? MOBILE_FOCAL_LENGTH_KEYFRAMES : FOCAL_LENGTH_KEYFRAMES
+  if (keyframes.length === 0) return isMobile ? 16 : 26
+  if (frame <= keyframes[0].frame) return keyframes[0].focalLength
+  if (frame >= keyframes[keyframes.length - 1].frame) {
+    return keyframes[keyframes.length - 1].focalLength
   }
 
-  for (let i = 0; i < FOCAL_LENGTH_KEYFRAMES.length - 1; i++) {
-    const k0 = FOCAL_LENGTH_KEYFRAMES[i]
-    const k1 = FOCAL_LENGTH_KEYFRAMES[i + 1]
+  for (let i = 0; i < keyframes.length - 1; i++) {
+    const k0 = keyframes[i]
+    const k1 = keyframes[i + 1]
     if (frame >= k0.frame && frame <= k1.frame) {
       const factor = (frame - k0.frame) / (k1.frame - k0.frame)
       return k0.focalLength + (k1.focalLength - k0.focalLength) * factor
     }
   }
 
-  return 26
+  return isMobile ? 16 : 26
 }
 
 export function focalLengthToFov(focalLengthMm: number, sensorHeightMm: number = 24): number {

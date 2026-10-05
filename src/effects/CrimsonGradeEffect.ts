@@ -6,6 +6,7 @@ uniform vec3 uVignetteColor;
 uniform float uVignetteStrength;
 uniform float uVignetteOffset;
 uniform float uGrainAmount;
+uniform float uBuildingContrast;
 uniform float uTime;
 
 float rand(vec2 co) {
@@ -14,6 +15,9 @@ float rand(vec2 co) {
 
 void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
   vec4 color = inputColor;
+
+  // Apply Building & Light Contrast Grading
+  color.rgb = max((color.rgb - vec3(0.5)) * uBuildingContrast + vec3(0.5), vec3(0.0));
 
   // Bottom-biased Vignette (mixes toward zenith color instead of black)
   vec2 dist = (uv - vec2(0.5, 0.42));
@@ -37,11 +41,13 @@ export class CrimsonGradeEffect extends Effect {
     vignetteStrength = 0.75,
     vignetteOffset = 0.25,
     grainAmount = 0.12,
+    buildingContrast = 1.0,
   }: {
     vignetteColor?: THREE.Color;
     vignetteStrength?: number;
     vignetteOffset?: number;
     grainAmount?: number;
+    buildingContrast?: number;
   } = {}) {
     super("CrimsonGradeEffect", fragmentShader, {
       uniforms: new Map<string, THREE.Uniform>([
@@ -49,6 +55,7 @@ export class CrimsonGradeEffect extends Effect {
         ["uVignetteStrength", new THREE.Uniform(vignetteStrength)],
         ["uVignetteOffset", new THREE.Uniform(vignetteOffset)],
         ["uGrainAmount", new THREE.Uniform(grainAmount)],
+        ["uBuildingContrast", new THREE.Uniform(buildingContrast)],
         ["uTime", new THREE.Uniform(0)],
       ]),
     });

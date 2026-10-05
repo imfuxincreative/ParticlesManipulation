@@ -6,6 +6,9 @@ export function patchMaterialWithAtmosphere(mat: THREE.Material): void {
   if (!mat || mat.userData.atmospherePatched === true) return;
   mat.userData.atmospherePatched = true;
 
+  mat.transparent = true;
+  mat.depthWrite = true;
+
   const originalOnBeforeCompile = mat.onBeforeCompile;
 
   mat.onBeforeCompile = (shader, renderer) => {
@@ -38,7 +41,10 @@ export function patchMaterialWithAtmosphere(mat: THREE.Material): void {
       .replace("#include <common>", `#include <common>\nvarying vec3 vAtmoWorldPos;\n${atmosphereParsGLSL}`)
       .replace(
         "#include <fog_fragment>",
-        `#include <fog_fragment>\n        gl_FragColor.rgb = applyAtmosphere(gl_FragColor.rgb, distance(vAtmoWorldPos, uCamPos), vAtmoWorldPos);`
+        `#include <fog_fragment>
+        float atmoDist = distance(vAtmoWorldPos, uCamPos);
+        gl_FragColor.rgb = applyAtmosphere(gl_FragColor.rgb, atmoDist, vAtmoWorldPos);
+        gl_FragColor.a *= atmosphereAlphaFactor(atmoDist);`
       );
   };
 

@@ -19,6 +19,12 @@ export interface AtmosphereConfig {
   fogHeightFalloff: number; // 0.04
   fogHeightBase: number;    // 0
 
+  // Distance Opacity Depth Fade
+  farFadeEnabled: boolean;
+  farFadeStart: number;     // Distance (u) where opacity fade begins
+  farFadeEnd: number;       // Distance (u) where opacity drops to minimum
+  farMinOpacity: number;    // 0.0 = completely transparent far objects
+
   // Sky
   skyEnabled: boolean;
   skyExposure: number;      // 1.0 (clamped 0.5–1.5)
@@ -32,6 +38,7 @@ export interface AtmosphereConfig {
 
   // Lighting
   ambientIntensity: number; // 0.25
+  buildingContrast: number; // 1.0 (clamped 0.2–3.0)
   rimIntensity: number;     // 4.0
   rimWhiteMix: number;      // 0.45
   keyFillIntensity: number; // 0.35
@@ -60,6 +67,11 @@ export const REFERENCE_PRESET: AtmosphereConfig = {
   fogHeightFalloff: 0.02,
   fogHeightBase: 8,
 
+  farFadeEnabled: true,
+  farFadeStart: 250,
+  farFadeEnd: 1400,
+  farMinOpacity: 0.0,
+
   skyEnabled: true,
   skyExposure: 1.50,
   glowStrength: 0.30,
@@ -71,6 +83,7 @@ export const REFERENCE_PRESET: AtmosphereConfig = {
   cloudCoverage: 0.35,
 
   ambientIntensity: 0.25,
+  buildingContrast: 1.0,
   rimIntensity: 4.0,
   rimWhiteMix: 0.45,
   keyFillIntensity: 0.35,

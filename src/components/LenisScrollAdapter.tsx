@@ -280,7 +280,8 @@ export const LenisScrollAdapter: React.FC = () => {
     // Dynamically update camera focal length (in mm) and adapt FOV responsively
     if (state.camera && (state.camera as any).isPerspectiveCamera) {
       const camera = state.camera as THREE.PerspectiveCamera;
-      const currentFocalLength = getFocalLengthAtFrame(rawFrame);
+      const isMobile = state.size.width < 768 || (state.size.width / state.size.height) < 1.0;
+      const currentFocalLength = getFocalLengthAtFrame(rawFrame, isMobile);
       const targetBaseFov = focalLengthToFov(currentFocalLength);
       const aspect = state.size.width / state.size.height;
       const baseAspect = 1.7778; // 16:9 design aspect ratio

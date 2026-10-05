@@ -7,6 +7,10 @@ export interface AtmosphereUniforms {
   uFogHeightFalloff: { value: number };
   uFogHeightBase: { value: number };
   uFogEnabled: { value: number };
+  uFarFadeEnabled: { value: number };
+  uFarFadeStart: { value: number };
+  uFarFadeEnd: { value: number };
+  uFarMinOpacity: { value: number };
   uCamPos: { value: THREE.Vector3 };
   uGlowColor: { value: THREE.Color };
   uGlowDir: { value: THREE.Vector3 };
@@ -22,6 +26,7 @@ export interface AtmosphereUniforms {
   uRimIntensity: { value: number };
   uRimWhiteMix: { value: number };
   uAmbientIntensity: { value: number };
+  uBuildingContrast: { value: number };
   [key: string]: { value: any };
 }
 
@@ -31,6 +36,10 @@ export const atmosphereUniforms: AtmosphereUniforms = {
   uFogHeightFalloff: { value: 0.04 },
   uFogHeightBase: { value: 0 },
   uFogEnabled: { value: 1.0 },
+  uFarFadeEnabled: { value: 1.0 },
+  uFarFadeStart: { value: 250.0 },
+  uFarFadeEnd: { value: 1400.0 },
+  uFarMinOpacity: { value: 0.0 },
   uCamPos: { value: new THREE.Vector3(0, 0, 10) },
   uGlowColor: { value: new THREE.Color("#ff1a1a").convertSRGBToLinear() },
   uGlowDir: { value: new THREE.Vector3(0, 0.5, -1).normalize() },
@@ -46,6 +55,7 @@ export const atmosphereUniforms: AtmosphereUniforms = {
   uRimIntensity: { value: 4.0 },
   uRimWhiteMix: { value: 0.45 },
   uAmbientIntensity: { value: 0.25 },
+  uBuildingContrast: { value: 1.0 },
 };
 
 const tempColor = new THREE.Color();
@@ -59,6 +69,11 @@ export function writeConfigToUniforms(cfg: AtmosphereConfig): void {
   atmosphereUniforms.uFogHeightFalloff.value = cfg.fogHeightFalloff;
   atmosphereUniforms.uFogHeightBase.value = cfg.fogHeightBase;
   atmosphereUniforms.uFogEnabled.value = cfg.fogEnabled ? 1.0 : 0.0;
+
+  atmosphereUniforms.uFarFadeEnabled.value = (cfg.farFadeEnabled ?? true) ? 1.0 : 0.0;
+  atmosphereUniforms.uFarFadeStart.value = cfg.farFadeStart ?? 250.0;
+  atmosphereUniforms.uFarFadeEnd.value = cfg.farFadeEnd ?? 1400.0;
+  atmosphereUniforms.uFarMinOpacity.value = cfg.farMinOpacity ?? 0.0;
 
   tempColor.set(cfg.glowColor).convertSRGBToLinear();
   atmosphereUniforms.uGlowColor.value.copy(tempColor);
@@ -83,4 +98,5 @@ export function writeConfigToUniforms(cfg: AtmosphereConfig): void {
   atmosphereUniforms.uRimIntensity.value = cfg.rimIntensity;
   atmosphereUniforms.uRimWhiteMix.value = cfg.rimWhiteMix;
   atmosphereUniforms.uAmbientIntensity.value = cfg.ambientIntensity;
+  atmosphereUniforms.uBuildingContrast.value = cfg.buildingContrast ?? 1.0;
 }

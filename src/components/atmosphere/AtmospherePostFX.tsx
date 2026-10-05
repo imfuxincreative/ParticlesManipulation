@@ -14,6 +14,7 @@ const CrimsonGrade = forwardRef<
     vignetteStrength: number;
     vignetteOffset: number;
     grainAmount: number;
+    buildingContrast: number;
   }
 >((props, ref) => {
   const effect = useMemo(() => {
@@ -22,6 +23,7 @@ const CrimsonGrade = forwardRef<
       vignetteStrength: props.vignetteStrength,
       vignetteOffset: props.vignetteOffset,
       grainAmount: props.grainAmount,
+      buildingContrast: props.buildingContrast,
     });
   }, []);
 
@@ -37,7 +39,10 @@ const CrimsonGrade = forwardRef<
 
     const grain = effect.uniforms.get("uGrainAmount");
     if (grain) grain.value = props.grainAmount;
-  }, [effect, props.vignetteColor, props.vignetteStrength, props.vignetteOffset, props.grainAmount]);
+
+    const contrast = effect.uniforms.get("uBuildingContrast");
+    if (contrast) contrast.value = props.buildingContrast;
+  }, [effect, props.vignetteColor, props.vignetteStrength, props.vignetteOffset, props.grainAmount, props.buildingContrast]);
 
   return <primitive ref={ref} object={effect} dispose={null} />;
 });
@@ -52,6 +57,7 @@ export const AtmospherePostFX: React.FC = () => {
   const vignetteOffset = useAtmosphere((s) => s.vignetteOffset);
   const grainAmount = useAtmosphere((s) => s.grainAmount);
   const zenithColor = useAtmosphere((s) => s.zenithColor);
+  const buildingContrast = useAtmosphere((s) => s.buildingContrast);
 
   return (
     <EffectComposer multisampling={0} enableNormalPass={false}>
@@ -67,6 +73,7 @@ export const AtmospherePostFX: React.FC = () => {
         vignetteStrength={vignetteStrength}
         vignetteOffset={vignetteOffset}
         grainAmount={grainAmount}
+        buildingContrast={buildingContrast ?? 1.0}
       />
     </EffectComposer>
   );

@@ -136,6 +136,18 @@ export const AtmospherePanel: React.FC = () => {
         <SliderRow label="HEIGHT BASE Y" value={atmo.fogHeightBase} min={-20} max={20} step={1} unit="u" onChange={(v) => set("fogHeightBase", v)} />
       </div>
 
+      {/* SECTION 2.5: DISTANCE DEPTH & OPACITY FADE */}
+      <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-emerald-500/20 rounded-xl">
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-emerald-400 tracking-wider">
+          <Eye className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Distance Depth & Opacity Fade</span>
+        </div>
+        <ToggleRow label="ENABLE FAR ALPHA FADE" value={atmo.farFadeEnabled ?? true} onChange={(v) => set("farFadeEnabled", v)} />
+        <SliderRow label="FADE START DIST" value={atmo.farFadeStart ?? 250} min={50} max={2000} step={10} unit="u" onChange={(v) => set("farFadeStart", v)} />
+        <SliderRow label="FADE END DIST" value={atmo.farFadeEnd ?? 1400} min={100} max={4000} step={50} unit="u" onChange={(v) => set("farFadeEnd", v)} />
+        <SliderRow label="FAR MIN OPACITY" value={atmo.farMinOpacity ?? 0.0} min={0.0} max={1.0} step={0.05} onChange={(v) => set("farMinOpacity", v)} />
+      </div>
+
       {/* SECTION 3: SKY */}
       <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
         <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-emerald-400 tracking-wider">
@@ -181,6 +193,7 @@ export const AtmospherePanel: React.FC = () => {
           <span>Atmosphere Lighting</span>
         </div>
         <SliderRow label="AMBIENT INTENSITY" value={atmo.ambientIntensity} min={0.05} max={0.6} step={0.05} onChange={(v) => set("ambientIntensity", v)} />
+        <SliderRow label="BUILDING CONTRAST" value={atmo.buildingContrast ?? 1.0} min={0.2} max={3.0} step={0.05} onChange={(v) => set("buildingContrast", v)} />
         <SliderRow label="RIM BACKLIGHT" value={atmo.rimIntensity} min={1.0} max={10.0} step={0.5} onChange={(v) => set("rimIntensity", v)} />
         <SliderRow label="RIM WHITE MIX" value={atmo.rimWhiteMix} min={0.0} max={1.0} step={0.05} onChange={(v) => set("rimWhiteMix", v)} />
         <SliderRow label="KEY FILL INTENSITY" value={atmo.keyFillIntensity} min={0.0} max={1.0} step={0.05} onChange={(v) => set("keyFillIntensity", v)} />
@@ -196,6 +209,7 @@ export const AtmospherePanel: React.FC = () => {
         <SliderRow label="BLOOM INTENSITY" value={atmo.bloomIntensity} min={0.0} max={2.0} step={0.05} onChange={(v) => set("bloomIntensity", v)} />
         <SliderRow label="BLOOM THRESHOLD" value={atmo.bloomThreshold} min={0.2} max={1.2} step={0.05} onChange={(v) => set("bloomThreshold", v)} />
         <SliderRow label="BLOOM RADIUS" value={atmo.bloomRadius} min={0.1} max={1.5} step={0.05} onChange={(v) => set("bloomRadius", v)} />
+        <SliderRow label="LIGHT CONTRAST" value={atmo.buildingContrast ?? 1.0} min={0.2} max={3.0} step={0.05} onChange={(v) => set("buildingContrast", v)} />
         <SliderRow label="VIGNETTE STRENGTH" value={atmo.vignetteStrength} min={0.0} max={1.5} step={0.05} onChange={(v) => set("vignetteStrength", v)} />
         <SliderRow label="VIGNETTE OFFSET" value={atmo.vignetteOffset} min={0.0} max={0.6} step={0.05} onChange={(v) => set("vignetteOffset", v)} />
         <SliderRow label="FILM GRAIN" value={atmo.grainAmount} min={0.0} max={0.3} step={0.01} onChange={(v) => set("grainAmount", v)} />
