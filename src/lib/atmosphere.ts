@@ -39,10 +39,12 @@ export interface AtmosphereConfig {
   // Lighting
   ambientIntensity: number; // 0.25
   buildingContrast: number; // 1.0 (clamped 0.2–3.0)
-  rimIntensity: number;     // 4.0
-  rimWhiteMix: number;      // 0.45
-  keyFillIntensity: number; // 0.35
+  rimIntensity: number;     // 10.0
+  rimWhiteMix: number;      // 0.85
+  keyFillIntensity: number; // 0.00
   topGlowIntensity: number; // 6.0
+  rimPositionOffset: Vec3Tuple;     // default [60, 10, -150]
+  keyFillPositionOffset: Vec3Tuple; // default [45, -50, 72]
 
   // Post
   bloomIntensity: number;   // 0.6
@@ -57,13 +59,13 @@ export interface AtmosphereConfig {
 
 export const REFERENCE_PRESET: AtmosphereConfig = {
   horizonColor: "#FF000D",
-  zenithColor: "#4D0000",
+  zenithColor: "#FF0000",
   glowColor: "#FF0000",
   decoupleFog: true,
   fogColorOverride: "#E70D18",
 
   fogEnabled: true,
-  fogDensity: 0.008,
+  fogDensity: 0.003,
   fogHeightFalloff: 0.02,
   fogHeightBase: 8,
 
@@ -80,21 +82,23 @@ export const REFERENCE_PRESET: AtmosphereConfig = {
   cloudScale: 2.2,
   cloudSpeed: 0.04,
   cloudContrast: 2.2,
-  cloudCoverage: 0.35,
+  cloudCoverage: 0.60,
 
   ambientIntensity: 0.25,
   buildingContrast: 1.0,
-  rimIntensity: 4.0,
-  rimWhiteMix: 0.45,
-  keyFillIntensity: 0.35,
+  rimIntensity: 10.0,
+  rimWhiteMix: 0.85,
+  keyFillIntensity: 0.00,
   topGlowIntensity: 6.0,
+  rimPositionOffset: [60, 10, -150],
+  keyFillPositionOffset: [45, -50, 72],
 
   bloomIntensity: 0.6,
   bloomThreshold: 0.6,
   bloomRadius: 0.7,
   vignetteStrength: 0.75,
   vignetteOffset: 0.25,
-  grainAmount: 0.12,
+  grainAmount: 0.23,
   godRays: false,
   quality: "high",
 };

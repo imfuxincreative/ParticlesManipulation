@@ -14,6 +14,8 @@ export const AtmosphereLighting: React.FC = () => {
   const zenithColorHex = useAtmosphere((s) => s.zenithColor);
   const glowColorHex = useAtmosphere((s) => s.glowColor);
   const heroTopPosition = useAtmosphere((s) => s.heroTopPosition);
+  const rimPositionOffset = useAtmosphere((s) => s.rimPositionOffset ?? [60, 10, -150]);
+  const keyFillPositionOffset = useAtmosphere((s) => s.keyFillPositionOffset ?? [45, -50, 72]);
   const quality = useAtmosphere((s) => s.quality);
 
   const rimLightRef = useRef<THREE.DirectionalLight>(null);
@@ -43,9 +45,9 @@ export const AtmosphereLighting: React.FC = () => {
       <directionalLight
         ref={rimLightRef}
         position={[
-          heroTopPosition[0] + 10,
-          heroTopPosition[1] + 30,
-          heroTopPosition[2] - 50,
+          heroTopPosition[0] + rimPositionOffset[0],
+          heroTopPosition[1] + rimPositionOffset[1],
+          heroTopPosition[2] + rimPositionOffset[2],
         ]}
         target={heroTargetRef.current || undefined}
         color={rimColor}
@@ -75,12 +77,12 @@ export const AtmosphereLighting: React.FC = () => {
         decay={2}
       />
 
-      {/* Front-Right Key / Fill Light */}
+      {/* Key / Fill Light */}
       <directionalLight
         position={[
-          heroTopPosition[0] + 40,
-          heroTopPosition[1] + 20,
-          heroTopPosition[2] + 40,
+          heroTopPosition[0] + keyFillPositionOffset[0],
+          heroTopPosition[1] + keyFillPositionOffset[1],
+          heroTopPosition[2] + keyFillPositionOffset[2],
         ]}
         color="#ffffff"
         intensity={keyFillIntensity}

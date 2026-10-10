@@ -309,6 +309,22 @@ export const GhibliShader = {
 };
 
 export const GHIBLI_PALETTES = {
+  shadow: {
+    name: 'Black Shadow',
+    colors: ['#181818', '#0d0d0d', '#050505', '#000000'],
+    sky: '#08080a',
+    horizon: '#14141a',
+    ground: '#000000',
+    thresholds: [0.65, 0.35, 0.05],
+  },
+  obsidian: {
+    name: 'Pure Pitch Black',
+    colors: ['#000000', '#000000', '#000000', '#000000'],
+    sky: '#020204',
+    horizon: '#0a0a0e',
+    ground: '#000000',
+    thresholds: [0.65, 0.35, 0.05],
+  },
   crimson: {
     name: 'Crimson Atmosphere',
     colors: ['#ff4d4d', '#b3000a', '#660006', '#260002'],

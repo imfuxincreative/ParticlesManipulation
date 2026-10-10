@@ -3,11 +3,11 @@ const fs = require('fs');
 const path = require('path');
 
 const glbRelativePath = 'public/SCENE.glb';
-const outputPath = path.join(__dirname, '..', 'src', 'components', 'SceneModelGenerated.tsx');
+const outputPath = path.join(__dirname, '..', 'scratch', 'SceneModelGenerated.tsx');
 
 console.log(`1. Running gltfjsx on "${glbRelativePath}"...`);
 try {
-  execSync(`npx gltfjsx "${glbRelativePath}" -o src/components/SceneModelGenerated.tsx --types`, {
+  execSync(`npx gltfjsx "${glbRelativePath}" -o scratch/SceneModelGenerated.tsx --types`, {
     stdio: 'inherit',
     cwd: path.join(__dirname, '..')
   });

@@ -38,12 +38,18 @@ interface SliderRowProps {
   onChange: (val: number) => void;
 }
 
+const getDecimals = (step: number) => {
+  if (step < 0.01) return 3;
+  if (step < 0.1) return 2;
+  return 1;
+};
+
 const SliderRow: React.FC<SliderRowProps> = ({ label, value, min, max, step, unit = "", onChange }) => (
   <div className="flex flex-col gap-0.5">
     <div className="flex justify-between font-mono text-[10px]">
       <span className="text-slate-400">{label}</span>
       <span className="text-emerald-300">
-        {value.toFixed(step < 0.1 ? 2 : 1)}
+        {value.toFixed(getDecimals(step))}
         {unit}
       </span>
     </div>
@@ -192,12 +198,94 @@ export const AtmospherePanel: React.FC = () => {
           <Sliders className="w-3.5 h-3.5" />
           <span>Atmosphere Lighting</span>
         </div>
-        <SliderRow label="AMBIENT INTENSITY" value={atmo.ambientIntensity} min={0.05} max={0.6} step={0.05} onChange={(v) => set("ambientIntensity", v)} />
+        <SliderRow label="AMBIENT INTENSITY" value={atmo.ambientIntensity} min={0.0} max={1.0} step={0.02} onChange={(v) => set("ambientIntensity", v)} />
         <SliderRow label="BUILDING CONTRAST" value={atmo.buildingContrast ?? 1.0} min={0.2} max={3.0} step={0.05} onChange={(v) => set("buildingContrast", v)} />
-        <SliderRow label="RIM BACKLIGHT" value={atmo.rimIntensity} min={1.0} max={10.0} step={0.5} onChange={(v) => set("rimIntensity", v)} />
-        <SliderRow label="RIM WHITE MIX" value={atmo.rimWhiteMix} min={0.0} max={1.0} step={0.05} onChange={(v) => set("rimWhiteMix", v)} />
-        <SliderRow label="KEY FILL INTENSITY" value={atmo.keyFillIntensity} min={0.0} max={1.0} step={0.05} onChange={(v) => set("keyFillIntensity", v)} />
         <SliderRow label="TOP HERO GLOW" value={atmo.topGlowIntensity} min={0.0} max={12.0} step={0.5} onChange={(v) => set("topGlowIntensity", v)} />
+
+        {/* KEY / FILL LIGHT */}
+        <div className="pt-1 border-t border-white/10 flex flex-col gap-1.5">
+          <span className="text-[10px] uppercase font-semibold text-amber-400 tracking-wider">Key / Fill Light</span>
+          <SliderRow label="KEY FILL INTENSITY" value={atmo.keyFillIntensity} min={0.0} max={2.0} step={0.05} onChange={(v) => set("keyFillIntensity", v)} />
+          <SliderRow
+            label="KEY FILL POS X"
+            value={atmo.keyFillPositionOffset?.[0] ?? 45}
+            min={-150}
+            max={150}
+            step={1}
+            unit="u"
+            onChange={(v) => {
+              const current = atmo.keyFillPositionOffset ?? [45, -50, 72];
+              set("keyFillPositionOffset", [v, current[1], current[2]]);
+            }}
+          />
+          <SliderRow
+            label="KEY FILL POS Y"
+            value={atmo.keyFillPositionOffset?.[1] ?? -50}
+            min={-150}
+            max={150}
+            step={1}
+            unit="u"
+            onChange={(v) => {
+              const current = atmo.keyFillPositionOffset ?? [45, -50, 72];
+              set("keyFillPositionOffset", [current[0], v, current[2]]);
+            }}
+          />
+          <SliderRow
+            label="KEY FILL POS Z"
+            value={atmo.keyFillPositionOffset?.[2] ?? 72}
+            min={-150}
+            max={150}
+            step={1}
+            unit="u"
+            onChange={(v) => {
+              const current = atmo.keyFillPositionOffset ?? [45, -50, 72];
+              set("keyFillPositionOffset", [current[0], current[1], v]);
+            }}
+          />
+        </div>
+
+        {/* RIM LIGHT */}
+        <div className="pt-1 border-t border-white/10 flex flex-col gap-1.5">
+          <span className="text-[10px] uppercase font-semibold text-amber-400 tracking-wider">Rim Backlight</span>
+          <SliderRow label="RIM BACKLIGHT INTENSITY" value={atmo.rimIntensity} min={0.0} max={10.0} step={0.5} onChange={(v) => set("rimIntensity", v)} />
+          <SliderRow label="RIM WHITE MIX" value={atmo.rimWhiteMix} min={0.0} max={1.0} step={0.05} onChange={(v) => set("rimWhiteMix", v)} />
+          <SliderRow
+            label="RIM POS X"
+            value={atmo.rimPositionOffset?.[0] ?? 60}
+            min={-150}
+            max={150}
+            step={1}
+            unit="u"
+            onChange={(v) => {
+              const current = atmo.rimPositionOffset ?? [60, 10, -150];
+              set("rimPositionOffset", [v, current[1], current[2]]);
+            }}
+          />
+          <SliderRow
+            label="RIM POS Y"
+            value={atmo.rimPositionOffset?.[1] ?? 10}
+            min={-150}
+            max={150}
+            step={1}
+            unit="u"
+            onChange={(v) => {
+              const current = atmo.rimPositionOffset ?? [60, 10, -150];
+              set("rimPositionOffset", [current[0], v, current[2]]);
+            }}
+          />
+          <SliderRow
+            label="RIM POS Z"
+            value={atmo.rimPositionOffset?.[2] ?? -150}
+            min={-150}
+            max={150}
+            step={1}
+            unit="u"
+            onChange={(v) => {
+              const current = atmo.rimPositionOffset ?? [60, 10, -150];
+              set("rimPositionOffset", [current[0], current[1], v]);
+            }}
+          />
+        </div>
       </div>
 
       {/* SECTION 5: POST PROCESSING */}

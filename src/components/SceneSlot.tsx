@@ -109,13 +109,12 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     return max || 1;
   }, [gltf.animations, activeMixamoActionNames]);
 
-  const { cityMeshes, targetMeshes, simonGlowMeshes, simonBodypartMeshes, floorMeshes, skycityMeshes } = useMemo(() => {
+  const { cityMeshes, targetMeshes, simonGlowMeshes, simonBodypartMeshes, floorMeshes } = useMemo(() => {
     const city: THREE.Mesh[] = [];
     const target: THREE.Mesh[] = [];
     const simonGlow: THREE.Mesh[] = [];
     const simonBodypart: THREE.Mesh[] = [];
     const floor: THREE.Mesh[] = [];
-    const skycity: THREE.Mesh[] = [];
 
     gltf.scene.updateMatrixWorld(true);
     gltf.scene.traverse((child) => {
@@ -125,24 +124,6 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
 
       if (child instanceof THREE.Mesh) {
         if (child.name === "Cube005" || child.name === "Cube.005") {
-          child.visible = false;
-          return;
-        }
-
-        // Detect Skycity collection or parent Empty named Skycity
-        let isSkycity = false;
-        let skyNode: THREE.Object3D | null = child;
-        while (skyNode) {
-          const lowerName = skyNode.name ? skyNode.name.toLowerCase() : "";
-          if (lowerName.includes("skycity") || lowerName.includes("sky_city")) {
-            isSkycity = true;
-            break;
-          }
-          skyNode = skyNode.parent;
-        }
-
-        if (isSkycity) {
-          skycity.push(child);
           child.visible = false;
           return;
         }
@@ -241,29 +222,19 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       }
     });
 
-    return { cityMeshes: city, targetMeshes: target, simonGlowMeshes: simonGlow, simonBodypartMeshes: simonBodypart, floorMeshes: floor, skycityMeshes: skycity };
+    return { cityMeshes: city, targetMeshes: target, simonGlowMeshes: simonGlow, simonBodypartMeshes: simonBodypart, floorMeshes: floor };
   }, [gltf, config.hasParticleTarget, sceneIndex]);
 
-  // Patch GLB materials with single-source atmospheric GPU fog and enable transparency for Skycity
+  // Patch GLB materials with single-source atmospheric GPU fog
   useEffect(() => {
-    const allMeshes = [...cityMeshes, ...targetMeshes, ...simonBodypartMeshes, ...skycityMeshes];
+    const allMeshes = [...cityMeshes, ...targetMeshes, ...simonBodypartMeshes];
     allMeshes.forEach((mesh) => {
       if (mesh && mesh.material) {
         const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
         mats.forEach((m) => patchMaterialWithAtmosphere(m));
       }
     });
-
-    skycityMeshes.forEach((mesh) => {
-      if (mesh && mesh.material) {
-        const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-        mats.forEach((m) => {
-          m.transparent = true;
-          m.needsUpdate = true;
-        });
-      }
-    });
-  }, [cityMeshes, targetMeshes, simonBodypartMeshes, skycityMeshes]);
+  }, [cityMeshes, targetMeshes, simonBodypartMeshes]);
 
   useEffect(() => {
     const defaultSkinMat = new THREE.MeshStandardMaterial({
@@ -402,34 +373,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
 
     if (mixer) mixer.update(0);
 
-    // Scroll-driven opacity fade for Skycity meshes (reaches 100% opacity at frame 2796)
-    if (skycityMeshes.length > 0) {
-      const currentFrame = (typeof window !== "undefined" && typeof (window as any).particlesCurrentFrame === "number")
-        ? (window as any).particlesCurrentFrame
-        : -493;
 
-      const FADE_START_FRAME = 2500; // Fades in smoothly between frames 2500 and 2796
-      const FADE_END_FRAME = 2796;   // Reaches 100% opacity at frame 2796
-
-      let skyOpacity = 0.0;
-      if (currentFrame >= FADE_END_FRAME) {
-        skyOpacity = 1.0;
-      } else if (currentFrame <= FADE_START_FRAME) {
-        skyOpacity = 0.0;
-      } else {
-        skyOpacity = (currentFrame - FADE_START_FRAME) / (FADE_END_FRAME - FADE_START_FRAME);
-      }
-
-      skycityMeshes.forEach((mesh) => {
-        mesh.visible = skyOpacity > 0.001;
-        if (mesh.material) {
-          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-          mats.forEach((m) => {
-            m.opacity = skyOpacity;
-          });
-        }
-      });
-    }
 
     if (cameraReadyRef.current) {
       const DESIGN_ASPECT = 16 / 9;

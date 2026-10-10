@@ -76,6 +76,8 @@ export const Dashboard: React.FC = () => {
       rimWhiteMix: rawAtmo.rimWhiteMix,
       keyFillIntensity: rawAtmo.keyFillIntensity,
       topGlowIntensity: rawAtmo.topGlowIntensity,
+      rimPositionOffset: rawAtmo.rimPositionOffset,
+      keyFillPositionOffset: rawAtmo.keyFillPositionOffset,
       bloomIntensity: rawAtmo.bloomIntensity,
       bloomThreshold: rawAtmo.bloomThreshold,
       bloomRadius: rawAtmo.bloomRadius,
@@ -542,12 +544,12 @@ export const Dashboard: React.FC = () => {
                 <div className="flex flex-col gap-1.5">
                   <span className="text-[10px] uppercase text-slate-400 font-semibold tracking-wider">Color Palette</span>
                   <div className="grid grid-cols-3 gap-1">
-                    {(["crimson", "realistic", "summer", "sunset", "sakura", "autumn"] as const).map((key) => (
+                    {(Object.keys(GHIBLI_PALETTES) as Array<keyof typeof GHIBLI_PALETTES>).map((key) => (
                       <button
                         key={key}
                         onClick={() => {
                           updateSetting("ghibliPaletteKey", key);
-                          const pal = GHIBLI_PALETTES[key as keyof typeof GHIBLI_PALETTES];
+                          const pal = GHIBLI_PALETTES[key];
                           if (pal && pal.ground) {
                             updateSetting("groundColor", pal.ground);
                           }
