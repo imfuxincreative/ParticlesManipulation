@@ -76,8 +76,15 @@ export const SimonGlowSystem: React.FC<SimonGlowSystemProps> = ({ meshes, sceneI
           clonedMat.uniforms.uLocalMax = { value: bbox.max.clone() };
         }
 
-        const isHair = mesh.name.toLowerCase().includes("hair");
-        clonedMat.uniforms.uIsHair = { value: isHair ? 1.0 : 0.0 };
+        const lowerName = mesh.name ? mesh.name.toLowerCase() : "";
+        const isHairOrGlass =
+          lowerName === "hair2.001" ||
+          lowerName === "hair2" ||
+          lowerName === "hair.001" ||
+          lowerName === "hair" ||
+          lowerName === "glass.001" ||
+          lowerName === "glass";
+        clonedMat.uniforms.uIsHair = { value: isHairOrGlass ? 1.0 : 0.0 };
 
         mesh.material = clonedMat;
         mesh.visible = true;

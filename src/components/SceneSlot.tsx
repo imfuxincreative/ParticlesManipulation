@@ -123,6 +123,17 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       }
 
       if (child instanceof THREE.Mesh) {
+        if (child.geometry && !child.geometry.boundingSphere) {
+          child.geometry.computeBoundingSphere();
+        }
+
+        if (child.material) {
+          const mats = Array.isArray(child.material) ? child.material : [child.material];
+          mats.forEach((m) => {
+            m.side = THREE.DoubleSide;
+          });
+        }
+
         if (child.name === "Cube005" || child.name === "Cube.005") {
           child.visible = false;
           return;
@@ -155,38 +166,42 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           return;
         }
 
-        let isSimon = false;
-        let sNode: THREE.Object3D | null = child;
-        while (sNode) {
-          const lowerName = sNode.name ? sNode.name.toLowerCase() : "";
-          if (
-            lowerName.includes("simon") ||
-            lowerName === "hair2" ||
-            lowerName === "glass" ||
-            lowerName === "glass.001" ||
-            lowerName.includes("armature") ||
-            lowerName === "shirt2" ||
-            lowerName === "pant2" ||
-            lowerName === "hair.001" ||
-            lowerName === "bodypart2"
-          ) {
-            isSimon = true;
-            break;
+        const SIMON_EXACT_NAMES = new Set([
+          "simon",
+          "simon.001",
+          "bodypart",
+          "bodypart2",
+          "shirt2",
+          "tshirt",
+          "pant",
+          "pant2",
+          "shoe2",
+          "sneaker",
+          "hair",
+          "hair.001",
+          "hair2",
+          "hair2.001",
+          "glass",
+          "glass.001",
+        ]);
+
+        const childName = child.name ? child.name.toLowerCase() : "";
+
+        let isSimon = SIMON_EXACT_NAMES.has(childName);
+        if (!isSimon) {
+          let sNode: THREE.Object3D | null = child.parent;
+          while (sNode) {
+            const pName = sNode.name ? sNode.name.toLowerCase() : "";
+            if (pName === "simon" || pName === "simon.001" || pName === "armature") {
+              isSimon = true;
+              break;
+            }
+            sNode = sNode.parent;
           }
-          sNode = sNode.parent;
         }
 
         if (isSimon) {
-          let isBodypart = false;
-          let bNode: THREE.Object3D | null = child;
-          while (bNode) {
-            const bName = bNode.name ? bNode.name.toLowerCase() : "";
-            if (bName === "bodypart" || bName === "bodypart2") {
-              isBodypart = true;
-              break;
-            }
-            bNode = bNode.parent;
-          }
+          const isBodypart = childName === "bodypart" || childName === "bodypart2";
 
           if (isBodypart) {
             child.visible = true;
@@ -225,13 +240,18 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     return { cityMeshes: city, targetMeshes: target, simonGlowMeshes: simonGlow, simonBodypartMeshes: simonBodypart, floorMeshes: floor };
   }, [gltf, config.hasParticleTarget, sceneIndex]);
 
-  // Patch GLB materials with single-source atmospheric GPU fog
+  // Patch GLB materials with single-source atmospheric GPU fog and ensure double-sided rendering
   useEffect(() => {
     const allMeshes = [...cityMeshes, ...targetMeshes, ...simonBodypartMeshes];
     allMeshes.forEach((mesh) => {
-      if (mesh && mesh.material) {
-        const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-        mats.forEach((m) => patchMaterialWithAtmosphere(m));
+      if (mesh) {
+        if (mesh.material) {
+          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+          mats.forEach((m) => {
+            m.side = THREE.DoubleSide;
+            patchMaterialWithAtmosphere(m);
+          });
+        }
       }
     });
   }, [cityMeshes, targetMeshes, simonBodypartMeshes]);

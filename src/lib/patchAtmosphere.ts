@@ -6,8 +6,10 @@ export function patchMaterialWithAtmosphere(mat: THREE.Material): void {
   if (!mat || mat.userData.atmospherePatched === true) return;
   mat.userData.atmospherePatched = true;
 
-  mat.transparent = true;
-  mat.depthWrite = true;
+  mat.side = THREE.DoubleSide;
+  if (mat.opacity < 1.0) {
+    mat.transparent = true;
+  }
 
   const originalOnBeforeCompile = mat.onBeforeCompile;
 
