@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 3D binary models and scratch tools
+*.glb
+*.gltf
+/scratch/
+/tools/
