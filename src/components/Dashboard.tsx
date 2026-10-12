@@ -23,7 +23,7 @@ export const Dashboard: React.FC = () => {
   const { settings, updateSetting, updateSettings } = useSimulation();
   const atmoState = useAtmosphere();
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [activeTab, setActiveTab] = useState<"atmosphere" | "visuals" | "camera">("atmosphere");
+  const [activeTab, setActiveTab] = useState<"atmosphere" | "visuals" | "particles" | "camera">("atmosphere");
   const [copied, setCopied] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importText, setImportText] = useState("");
@@ -54,6 +54,8 @@ export const Dashboard: React.FC = () => {
     const rawAtmo = useAtmosphere.getState();
     const cleanAtmo = {
       horizonColor: rawAtmo.horizonColor,
+      enableScrollHorizonColor: rawAtmo.enableScrollHorizonColor,
+      horizonColorKeyframes: rawAtmo.horizonColorKeyframes,
       zenithColor: rawAtmo.zenithColor,
       glowColor: rawAtmo.glowColor,
       decoupleFog: rawAtmo.decoupleFog,
@@ -174,31 +176,38 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* Tab Navigation */}
-          <div className="grid grid-cols-3 gap-1 bg-slate-900/80 p-1 rounded-xl border border-white/5 text-[10px] font-medium text-slate-400">
+          <div className="grid grid-cols-4 gap-1 bg-slate-900/80 p-1 rounded-xl border border-white/5 text-[9px] font-medium text-slate-400">
             <button
               onClick={() => setActiveTab("atmosphere")}
-              className={`py-1.5 rounded-lg cursor-pointer transition-all flex items-center justify-center gap-1 ${
-                activeTab === "atmosphere" ? "bg-red-700 text-white font-semibold shadow" : "hover:text-slate-200"
-              }`}
+              className={`py-1.5 rounded-lg cursor-pointer transition-all flex items-center justify-center gap-0.5 ${activeTab === "atmosphere" ? "bg-red-700 text-white font-semibold shadow" : "hover:text-slate-200"
+                }`}
             >
               <Sun className="w-3 h-3" />
-              <span>Atmosphere</span>
+              <span>Atmo</span>
             </button>
             <button
               onClick={() => setActiveTab("visuals")}
-              className={`py-1.5 rounded-lg cursor-pointer transition-all ${
-                activeTab === "visuals" ? "bg-emerald-600 text-white font-semibold shadow" : "hover:text-slate-200"
-              }`}
+              className={`py-1.5 rounded-lg cursor-pointer transition-all flex items-center justify-center gap-0.5 ${activeTab === "visuals" ? "bg-emerald-600 text-white font-semibold shadow" : "hover:text-slate-200"
+                }`}
             >
-              Visuals & Grass
+              <Trees className="w-3 h-3" />
+              <span>Visuals</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("particles")}
+              className={`py-1.5 rounded-lg cursor-pointer transition-all flex items-center justify-center gap-0.5 ${activeTab === "particles" ? "bg-purple-600 text-white font-semibold shadow" : "hover:text-slate-200"
+                }`}
+            >
+              <Sparkles className="w-3 h-3" />
+              <span>Particles</span>
             </button>
             <button
               onClick={() => setActiveTab("camera")}
-              className={`py-1.5 rounded-lg cursor-pointer transition-all ${
-                activeTab === "camera" ? "bg-emerald-600 text-white font-semibold shadow" : "hover:text-slate-200"
-              }`}
+              className={`py-1.5 rounded-lg cursor-pointer transition-all flex items-center justify-center gap-0.5 ${activeTab === "camera" ? "bg-emerald-600 text-white font-semibold shadow" : "hover:text-slate-200"
+                }`}
             >
-              Camera
+              <Camera className="w-3 h-3" />
+              <span>Camera</span>
             </button>
           </div>
 
@@ -260,8 +269,8 @@ export const Dashboard: React.FC = () => {
                 {importStatus && (
                   <div
                     className={`text-xs p-2 rounded border font-mono ${importStatus.includes("successfully")
-                        ? "bg-green-950/50 border-green-500/50 text-green-300"
-                        : "bg-red-950/50 border-red-500/50 text-red-300"
+                      ? "bg-green-950/50 border-green-500/50 text-green-300"
+                      : "bg-red-950/50 border-red-500/50 text-red-300"
                       }`}
                   >
                     {importStatus}
@@ -555,8 +564,8 @@ export const Dashboard: React.FC = () => {
                           }
                         }}
                         className={`py-1 rounded border text-center font-mono capitalize cursor-pointer transition-all text-[10px] ${settings.ghibliPaletteKey === key
-                            ? "bg-emerald-950/60 border-emerald-500 text-emerald-300 font-bold"
-                            : "bg-slate-900/50 border-white/5 text-slate-400 hover:text-slate-200"
+                          ? "bg-emerald-950/60 border-emerald-500 text-emerald-300 font-bold"
+                          : "bg-slate-900/50 border-white/5 text-slate-400 hover:text-slate-200"
                           }`}
                       >
                         {key}
@@ -674,6 +683,550 @@ export const Dashboard: React.FC = () => {
                     onChange={(e) => updateSetting("simonGlowOpacity", parseFloat(e.target.value))}
                     className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: PARTICLE EFFECT CONTROLS */}
+          {activeTab === "particles" && (
+            <div className="flex flex-col gap-4 text-xs">
+              {/* 1. MODEL MORPH & CORE PARTICLES */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-purple-400 tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Particle Model & Appearance</span>
+                </div>
+
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">3D MODEL SELECTION</span>
+                  <div className="flex gap-1">
+                    {["Heart", "Bird"].map((name, idx) => (
+                      <button
+                        key={name}
+                        onClick={() => updateSetting("currentModelIndex", idx)}
+                        className={`px-2 py-1 rounded text-[10px] font-mono cursor-pointer transition-all ${(settings.currentModelIndex ?? 0) === idx
+                            ? "bg-purple-600 text-white font-bold"
+                            : "bg-slate-800 text-slate-400 hover:text-white"
+                          }`}
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">PARTICLE SIZE</span>
+                    <span className="text-purple-300">{(settings.pointSize ?? 2.5).toFixed(1)}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="10.0"
+                    step="0.1"
+                    value={settings.pointSize ?? 2.5}
+                    onChange={(e) => updateSetting("pointSize", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">DEFAULT PARTICLE COLOR</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-5 h-5 rounded border border-white/20 relative overflow-hidden"
+                      style={{ backgroundColor: settings.particleDefaultColor || "#ffffff" }}
+                    >
+                      <input
+                        type="color"
+                        value={settings.particleDefaultColor || "#ffffff"}
+                        onChange={(e) => updateSetting("particleDefaultColor", e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-300 font-mono w-14">{settings.particleDefaultColor || "#ffffff"}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">PARTICLE OPACITY</span>
+                    <span className="text-purple-300">{((settings.opacity ?? 1.0) * 100).toFixed(0)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="1.0"
+                    step="0.05"
+                    value={settings.opacity ?? 1.0}
+                    onChange={(e) => updateSetting("opacity", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">MODEL SCALE</span>
+                    <span className="text-purple-300">{(settings.modelScale ?? 1.0).toFixed(1)}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="10.0"
+                    step="0.1"
+                    value={settings.modelScale ?? 1.0}
+                    onChange={(e) => updateSetting("modelScale", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">MORPH SPEED</span>
+                    <span className="text-purple-300">{(settings.loaderMorphSpeed ?? 0.06).toFixed(3)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.005"
+                    max="0.1"
+                    step="0.005"
+                    value={settings.loaderMorphSpeed ?? 0.06}
+                    onChange={(e) => updateSetting("loaderMorphSpeed", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">AUTO ROTATION SPEED</span>
+                    <span className="text-purple-300">{(settings.modelAutoRotateSpeedX ?? 0.3).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="-2.0"
+                    max="2.0"
+                    step="0.05"
+                    value={settings.modelAutoRotateSpeedX ?? 0.3}
+                    onChange={(e) => updateSetting("modelAutoRotateSpeedX", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* 2. FLOW & TURBULENCE DYNAMICS */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-purple-400 tracking-wider">
+                  <Sliders className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Flow & Turbulence Dynamics</span>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">FLOW STRENGTH</span>
+                    <span className="text-purple-300">{(settings.modelFlowStrength ?? 0.4).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="3.0"
+                    step="0.05"
+                    value={settings.modelFlowStrength ?? 0.4}
+                    onChange={(e) => updateSetting("modelFlowStrength", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">FLOW SPEED</span>
+                    <span className="text-purple-300">{(settings.modelFlowSpeed ?? 0.15).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="1.0"
+                    step="0.01"
+                    value={settings.modelFlowSpeed ?? 0.15}
+                    onChange={(e) => updateSetting("modelFlowSpeed", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">FLOW FREQUENCY</span>
+                    <span className="text-purple-300">{(settings.modelFlowFrequency ?? 0.72).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="3.0"
+                    step="0.05"
+                    value={settings.modelFlowFrequency ?? 0.72}
+                    onChange={(e) => updateSetting("modelFlowFrequency", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">FLOW CLUMPING</span>
+                    <span className="text-purple-300">{(settings.modelFlowClumping ?? 0).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="1.0"
+                    step="0.05"
+                    value={settings.modelFlowClumping ?? 0}
+                    onChange={(e) => updateSetting("modelFlowClumping", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">SCATTER COLOR SCALE</span>
+                    <span className="text-purple-300">{(settings.modelScatterColorScale ?? 0.04).toFixed(3)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="0.5"
+                    step="0.005"
+                    value={settings.modelScatterColorScale ?? 0.04}
+                    onChange={(e) => updateSetting("modelScatterColorScale", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* 3. FLUID & INTERACTION PHYSICS */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-purple-400 tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Fluid Interaction Physics</span>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">FLUID DRAG RADIUS</span>
+                    <span className="text-purple-300">{(settings.fluidDragRadius ?? 4.0).toFixed(1)}u</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="15.0"
+                    step="0.5"
+                    value={settings.fluidDragRadius ?? 4.0}
+                    onChange={(e) => updateSetting("fluidDragRadius", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">FLUID DRAG STRENGTH</span>
+                    <span className="text-purple-300">{(settings.fluidDragStrength ?? 1.2).toFixed(1)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="5.0"
+                    step="0.1"
+                    value={settings.fluidDragStrength ?? 1.2}
+                    onChange={(e) => updateSetting("fluidDragStrength", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">FLUID DAMPING</span>
+                    <span className="text-purple-300">{(settings.fluidDamping ?? 0.88).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.50"
+                    max="0.99"
+                    step="0.01"
+                    value={settings.fluidDamping ?? 0.88}
+                    onChange={(e) => updateSetting("fluidDamping", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">RADIAL EXPANSION</span>
+                    <span className="text-purple-300">{(settings.fluidRadialExpansion ?? 0.45).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="2.0"
+                    step="0.05"
+                    value={settings.fluidRadialExpansion ?? 0.45}
+                    onChange={(e) => updateSetting("fluidRadialExpansion", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">TURBULENCE SWIRL</span>
+                    <span className="text-purple-300">{(settings.fluidTurbulenceSwirl ?? 0.35).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="2.0"
+                    step="0.05"
+                    value={settings.fluidTurbulenceSwirl ?? 0.35}
+                    onChange={(e) => updateSetting("fluidTurbulenceSwirl", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">DIRECTIONAL DRAG BIAS</span>
+                    <span className="text-purple-300">{(settings.fluidDirectionalBias ?? 0.4).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="2.0"
+                    step="0.05"
+                    value={settings.fluidDirectionalBias ?? 0.4}
+                    onChange={(e) => updateSetting("fluidDirectionalBias", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* 4. BURN SHADER & COLOR GLOW */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-purple-400 tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Particle Burn Shading</span>
+                </div>
+
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">BURN PRIMARY COLOR</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-5 h-5 rounded border border-white/20 relative overflow-hidden"
+                      style={{ backgroundColor: settings.burnColorPrimary || "#e91e63" }}
+                    >
+                      <input
+                        type="color"
+                        value={settings.burnColorPrimary || "#e91e63"}
+                        onChange={(e) => updateSetting("burnColorPrimary", e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-300 font-mono w-14">{settings.burnColorPrimary || "#e91e63"}</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">BURN SECONDARY COLOR</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-5 h-5 rounded border border-white/20 relative overflow-hidden"
+                      style={{ backgroundColor: settings.burnColorSecondary || "#00ffff" }}
+                    >
+                      <input
+                        type="color"
+                        value={settings.burnColorSecondary || "#00ffff"}
+                        onChange={(e) => updateSetting("burnColorSecondary", e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-300 font-mono w-14">{settings.burnColorSecondary || "#00ffff"}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">BURN SENSITIVITY</span>
+                    <span className="text-purple-300">{(settings.burnSensitivity ?? 2.5).toFixed(1)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="10.0"
+                    step="0.1"
+                    value={settings.burnSensitivity ?? 2.5}
+                    onChange={(e) => updateSetting("burnSensitivity", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">BURN THRESHOLD</span>
+                    <span className="text-purple-300">{(settings.burnThreshold ?? 0.05).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="1.0"
+                    step="0.01"
+                    value={settings.burnThreshold ?? 0.05}
+                    onChange={(e) => updateSetting("burnThreshold", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">BURN EXPONENT</span>
+                    <span className="text-purple-300">{(settings.burnExponent ?? 1.5).toFixed(1)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="5.0"
+                    step="0.1"
+                    value={settings.burnExponent ?? 1.5}
+                    onChange={(e) => updateSetting("burnExponent", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* 5. NOISE & OPTICS / TINT / HAZE */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-purple-400 tracking-wider">
+                  <Sliders className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Noise & Optics</span>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">NOISE STRENGTH</span>
+                    <span className="text-purple-300">{(settings.noiseStrength ?? 0.1).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="1.0"
+                    step="0.01"
+                    value={settings.noiseStrength ?? 0.1}
+                    onChange={(e) => updateSetting("noiseStrength", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">NOISE SPEED</span>
+                    <span className="text-purple-300">{(settings.noiseSpeed ?? 0.4).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="2.0"
+                    step="0.05"
+                    value={settings.noiseSpeed ?? 0.4}
+                    onChange={(e) => updateSetting("noiseSpeed", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">TINT COLOR</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-5 h-5 rounded border border-white/20 relative overflow-hidden"
+                      style={{ backgroundColor: settings.tintColor || "#a855f7" }}
+                    >
+                      <input
+                        type="color"
+                        value={settings.tintColor || "#a855f7"}
+                        onChange={(e) => updateSetting("tintColor", e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-300 font-mono w-14">{settings.tintColor || "#a855f7"}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">TINT MIX</span>
+                    <span className="text-purple-300">{((settings.tintMix ?? 0) * 100).toFixed(0)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="1.0"
+                    step="0.05"
+                    value={settings.tintMix ?? 0}
+                    onChange={(e) => updateSetting("tintMix", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* 6. PARTICLE GLITCH EFFECTS */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-purple-400 tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Glitch Effects</span>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">PARTICLE GLITCH INTENSITY</span>
+                    <span className="text-purple-300">{(settings.glitchIntensity ?? 0).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="1.0"
+                    step="0.05"
+                    value={settings.glitchIntensity ?? 0}
+                    onChange={(e) => updateSetting("glitchIntensity", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">BG GLITCH INTENSITY</span>
+                    <span className="text-purple-300">{(settings.bgGlitchIntensity ?? 0).toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="1.0"
+                    step="0.05"
+                    value={settings.bgGlitchIntensity ?? 0}
+                    onChange={(e) => updateSetting("bgGlitchIntensity", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* 7. LOADER SYSTEM */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">ALWAYS SHOW LOADER</span>
+                  <button
+                    onClick={() => updateSetting("alwaysShowLoader", !settings.alwaysShowLoader)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.alwaysShowLoader ? "bg-purple-600" : "bg-slate-800"
+                      }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.alwaysShowLoader ? "translate-x-4" : "translate-x-0"
+                        }`}
+                    />
+                  </button>
                 </div>
               </div>
             </div>

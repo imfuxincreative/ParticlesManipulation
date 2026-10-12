@@ -30,7 +30,7 @@ export default function Home() {
   return (
     <SimulationProvider>
       <main className="relative w-full min-h-screen bg-slate-950">
-        
+
         {/* React Three Fiber Canvas Background */}
         <div className="fixed inset-0 w-full h-full z-0">
           <SceneContainer />
@@ -47,7 +47,7 @@ export default function Home() {
 
         {/* Particle Loading Screen Overlay — always visible during development */}
         <ParticleLoadingScreen />
-        
+
       </main>
     </SimulationProvider>
   );

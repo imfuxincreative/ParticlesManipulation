@@ -3,6 +3,7 @@
 import React, { forwardRef, useMemo, useLayoutEffect } from "react";
 import { EffectComposer, Bloom, ToneMapping } from "@react-three/postprocessing";
 import { ToneMappingMode } from "postprocessing";
+import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAtmosphere } from "@/lib/atmosphere";
 import { CrimsonGradeEffect } from "@/effects/CrimsonGradeEffect";
@@ -50,6 +51,7 @@ const CrimsonGrade = forwardRef<
 CrimsonGrade.displayName = "CrimsonGrade";
 
 export const AtmospherePostFX: React.FC = () => {
+  const { gl } = useThree();
   const bloomIntensity = useAtmosphere((s) => s.bloomIntensity);
   const bloomThreshold = useAtmosphere((s) => s.bloomThreshold);
   const bloomRadius = useAtmosphere((s) => s.bloomRadius);
@@ -58,6 +60,22 @@ export const AtmospherePostFX: React.FC = () => {
   const grainAmount = useAtmosphere((s) => s.grainAmount);
   const zenithColor = useAtmosphere((s) => s.zenithColor);
   const buildingContrast = useAtmosphere((s) => s.buildingContrast);
+
+  // Validate WebGL context availability to prevent null alpha attribute error on context loss
+  const isContextValid = useMemo(() => {
+    try {
+      if (!gl) return false;
+      const ctx = gl.getContext();
+      if (!ctx) return false;
+      if (typeof ctx.isContextLost === "function" && ctx.isContextLost()) return false;
+      if (!ctx.getContextAttributes()) return false;
+      return true;
+    } catch {
+      return false;
+    }
+  }, [gl]);
+
+  if (!isContextValid) return null;
 
   return (
     <EffectComposer multisampling={0} enableNormalPass={false}>
@@ -78,3 +96,4 @@ export const AtmospherePostFX: React.FC = () => {
     </EffectComposer>
   );
 };
+

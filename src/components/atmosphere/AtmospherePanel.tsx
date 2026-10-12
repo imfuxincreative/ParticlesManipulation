@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { useAtmosphere, AtmosphereConfig, deriveFogColorHex, REFERENCE_PRESET } from "@/lib/atmosphere";
-import { Sparkles, Cloud, Sun, Eye, Sliders, RotateCcw } from "lucide-react";
+import { useAtmosphere, AtmosphereConfig, deriveFogColorHex, REFERENCE_PRESET, DEFAULT_SKY_KEYFRAMES } from "@/lib/atmosphere";
+import { Sparkles, Cloud, Sun, Eye, Sliders, RotateCcw, Plus, Trash2, Play, Palette } from "lucide-react";
 
 interface ToggleRowProps {
   label: string;
@@ -112,12 +112,104 @@ export const AtmospherePanel: React.FC = () => {
       </button>
 
       {/* SECTION 1: COLORS */}
-      <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+      <div className="flex flex-col gap-2.5 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
         <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-emerald-400 tracking-wider">
           <Eye className="w-3.5 h-3.5" />
           <span>Atmospheric Palette</span>
         </div>
-        <ColorRow label="HORIZON COLOR" value={atmo.horizonColor} onChange={(v) => set("horizonColor", v)} />
+
+        {/* Scroll Horizon Color Timeline Section */}
+        <div className="p-2 bg-slate-950/70 border border-emerald-500/30 rounded-lg flex flex-col gap-2">
+          <ToggleRow
+            label="SCROLL HORIZON COLOR TIMELINE"
+            value={atmo.enableScrollHorizonColor ?? true}
+            onChange={(v) => set("enableScrollHorizonColor", v)}
+          />
+
+          {(atmo.enableScrollHorizonColor ?? true) && (
+            <div className="flex flex-col gap-2 pt-1 border-t border-white/10">
+              <div className="flex justify-between items-center text-[10px] font-mono text-slate-400">
+                <span className="flex items-center gap-1 text-emerald-300 font-semibold">
+                  <Palette className="w-3 h-3 text-emerald-400" /> Frame Timeline Keyframes
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto pr-1">
+                {(atmo.horizonColorKeyframes || DEFAULT_SKY_KEYFRAMES)
+                  .slice()
+                  .sort((a, b) => a.frame - b.frame)
+                  .map((kf, idx) => (
+                    <div
+                      key={kf.id || idx}
+                      className="flex items-center justify-between gap-1.5 p-1.5 bg-slate-900/90 border border-white/10 rounded-md font-mono text-[10px]"
+                    >
+                      <div className="flex items-center gap-1">
+                        <span className="text-slate-400 text-[9px] w-4">#{idx + 1}</span>
+                        <span className="text-slate-400 text-[9px]">F:</span>
+                        <input
+                          type="number"
+                          value={kf.frame}
+                          onChange={(e) =>
+                            atmo.updateHorizonKeyframe(kf.id, { frame: parseInt(e.target.value) || 0 })
+                          }
+                          className="w-14 bg-slate-950 border border-white/15 rounded px-1 py-0.5 text-emerald-300 focus:outline-none focus:border-emerald-500 text-[10px]"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="w-4 h-4 rounded border border-white/20 relative overflow-hidden flex-shrink-0"
+                          style={{ backgroundColor: kf.color }}
+                        >
+                          <input
+                            type="color"
+                            value={kf.color}
+                            onChange={(e) => atmo.updateHorizonKeyframe(kf.id, { color: e.target.value })}
+                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          />
+                        </div>
+                        <span className="text-[9px] text-slate-300 w-12">{kf.color}</span>
+
+                        {/* Snap to Frame button */}
+                        <button
+                          title="Snap camera scroll to this frame"
+                          onClick={() => {
+                            if (typeof window !== "undefined" && (window as any).snapToFrame) {
+                              (window as any).snapToFrame(kf.frame);
+                            }
+                          }}
+                          className="p-1 text-emerald-400 hover:text-white bg-slate-800 hover:bg-emerald-600 rounded transition-colors cursor-pointer"
+                        >
+                          <Play className="w-2.5 h-2.5 fill-current" />
+                        </button>
+
+                        {/* Delete Keyframe button */}
+                        <button
+                          title="Remove keyframe"
+                          onClick={() => atmo.removeHorizonKeyframe(kf.id)}
+                          className="p-1 text-slate-400 hover:text-red-400 bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+
+              <button
+                onClick={() => atmo.addHorizonKeyframe()}
+                className="w-full py-1.5 px-2 bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/40 rounded-md text-emerald-300 hover:text-white text-[10px] font-mono flex items-center justify-center gap-1 transition-all cursor-pointer"
+              >
+                <Plus className="w-3 h-3 text-emerald-400" />
+                <span>Add Horizon Color Keyframe</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {!(atmo.enableScrollHorizonColor ?? true) && (
+          <ColorRow label="HORIZON COLOR" value={atmo.horizonColor} onChange={(v) => set("horizonColor", v)} />
+        )}
         <ColorRow label="ZENITH COLOR" value={atmo.zenithColor} onChange={(v) => set("zenithColor", v)} />
         <ColorRow label="GLOW COLOR" value={atmo.glowColor} onChange={(v) => set("glowColor", v)} />
 

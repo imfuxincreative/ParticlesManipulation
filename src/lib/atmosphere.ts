@@ -5,9 +5,17 @@ import * as THREE from "three";
 export type Vec3Tuple = [number, number, number];
 export type AtmosphereQuality = "high" | "low";
 
+export interface SkyColorKeyframe {
+  id: string;
+  frame: number;
+  color: string;
+}
+
 export interface AtmosphereConfig {
   // Colors (sRGB hex)
   horizonColor: string;     // #b3000a
+  enableScrollHorizonColor: boolean; // Scroll-based dynamic horizon color keyframe transition
+  horizonColorKeyframes: SkyColorKeyframe[]; // Configurable scroll timeline keyframes
   zenithColor: string;      // #3a0004
   glowColor: string;        // #ff1a1a
   decoupleFog: boolean;     // false
@@ -57,8 +65,16 @@ export interface AtmosphereConfig {
   quality: AtmosphereQuality;
 }
 
+export const DEFAULT_SKY_KEYFRAMES: SkyColorKeyframe[] = [
+  { id: "kf-1", frame: -493, color: "#FF000D" },
+  { id: "kf-2", frame: 2800, color: "#fb00ff" },
+  { id: "kf-3", frame: 8347, color: "#00ff11" },
+];
+
 export const REFERENCE_PRESET: AtmosphereConfig = {
   horizonColor: "#FF000D",
+  enableScrollHorizonColor: true,
+  horizonColorKeyframes: DEFAULT_SKY_KEYFRAMES,
   zenithColor: "#FF0000",
   glowColor: "#FF0000",
   decoupleFog: true,
@@ -103,6 +119,58 @@ export const REFERENCE_PRESET: AtmosphereConfig = {
   quality: "high",
 };
 
+const tempLerpC1 = new THREE.Color();
+const tempLerpC2 = new THREE.Color();
+
+/**
+ * Calculates smooth linear-space color interpolation between scroll keyframes based on current Blender frame.
+ */
+export function getInterpolatedHorizonColor(
+  keyframes: SkyColorKeyframe[],
+  currentFrame: number,
+  targetColorOut?: THREE.Color
+): THREE.Color {
+  const out = targetColorOut || new THREE.Color();
+  if (!keyframes || keyframes.length === 0) {
+    out.set("#FF000D").convertSRGBToLinear();
+    return out;
+  }
+
+  const sorted = [...keyframes].sort((a, b) => a.frame - b.frame);
+
+  if (currentFrame <= sorted[0].frame) {
+    out.set(sorted[0].color).convertSRGBToLinear();
+    return out;
+  }
+
+  if (currentFrame >= sorted[sorted.length - 1].frame) {
+    out.set(sorted[sorted.length - 1].color).convertSRGBToLinear();
+    return out;
+  }
+
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const k1 = sorted[i];
+    const k2 = sorted[i + 1];
+    if (currentFrame >= k1.frame && currentFrame <= k2.frame) {
+      const range = k2.frame - k1.frame;
+      const rawT = range > 0 ? (currentFrame - k1.frame) / range : 0;
+      const clampedT = Math.max(0, Math.min(1, rawT));
+      // Smoothstep easing curve for ultra smooth visual transitions: t * t * (3 - 2 * t)
+      const t = clampedT * clampedT * (3 - 2 * clampedT);
+
+      tempLerpC1.set(k1.color).convertSRGBToLinear();
+      tempLerpC2.set(k2.color).convertSRGBToLinear();
+
+      tempLerpC1.lerp(tempLerpC2, t);
+      out.copy(tempLerpC1);
+      return out;
+    }
+  }
+
+  out.set(sorted[0].color).convertSRGBToLinear();
+  return out;
+}
+
 /**
  * Derive the fog color hex. In linear space, fog is 85% horizon + 15% zenith unless decoupled.
  */
@@ -144,6 +212,9 @@ interface AtmosphereActions {
   applyPreset: (p?: AtmosphereConfig) => void;
   setHeroTopPosition: (pos: Vec3Tuple) => void;
   heroTopPosition: Vec3Tuple;
+  addHorizonKeyframe: (kf?: Partial<SkyColorKeyframe>) => void;
+  updateHorizonKeyframe: (id: string, updates: Partial<SkyColorKeyframe>) => void;
+  removeHorizonKeyframe: (id: string) => void;
 }
 
 export const useAtmosphere = create<AtmosphereConfig & AtmosphereActions>()(
@@ -155,6 +226,33 @@ export const useAtmosphere = create<AtmosphereConfig & AtmosphereActions>()(
       set: (k, v) => set((state) => ({ ...state, [k]: v })),
       applyPreset: (p = REFERENCE_PRESET) => set((state) => ({ ...state, ...p })),
       setHeroTopPosition: (pos) => set((state) => ({ ...state, heroTopPosition: pos })),
+      addHorizonKeyframe: (kf) =>
+        set((state) => {
+          const currentKfs = state.horizonColorKeyframes || DEFAULT_SKY_KEYFRAMES;
+          const sorted = [...currentKfs].sort((a, b) => a.frame - b.frame);
+          const lastFrame = sorted.length > 0 ? sorted[sorted.length - 1].frame + 500 : 1000;
+          const newKf: SkyColorKeyframe = {
+            id: "kf-" + Date.now() + "-" + Math.random().toString(36).substring(2, 6),
+            frame: kf?.frame ?? lastFrame,
+            color: kf?.color ?? "#00ffff",
+          };
+          return {
+            ...state,
+            horizonColorKeyframes: [...currentKfs, newKf],
+          };
+        }),
+      updateHorizonKeyframe: (id, updates) =>
+        set((state) => ({
+          ...state,
+          horizonColorKeyframes: (state.horizonColorKeyframes || DEFAULT_SKY_KEYFRAMES).map((kf) =>
+            kf.id === id ? { ...kf, ...updates } : kf
+          ),
+        })),
+      removeHorizonKeyframe: (id) =>
+        set((state) => ({
+          ...state,
+          horizonColorKeyframes: (state.horizonColorKeyframes || DEFAULT_SKY_KEYFRAMES).filter((kf) => kf.id !== id),
+        })),
     }),
     {
       name: "crimson-atmosphere",
@@ -164,3 +262,4 @@ export const useAtmosphere = create<AtmosphereConfig & AtmosphereActions>()(
     }
   )
 );
+

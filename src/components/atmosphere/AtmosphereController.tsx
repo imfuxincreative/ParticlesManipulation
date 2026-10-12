@@ -3,8 +3,12 @@
 import React, { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { useAtmosphere, deriveFogColorHex } from "@/lib/atmosphere";
+import { useAtmosphere, deriveFogColorHex, getInterpolatedHorizonColor } from "@/lib/atmosphere";
 import { atmosphereUniforms, writeConfigToUniforms } from "@/lib/atmosphereUniforms";
+
+const tempColor = new THREE.Color();
+const tempZenithColor = new THREE.Color();
+const tempFogColor = new THREE.Color();
 
 export const AtmosphereController: React.FC = () => {
   const { scene, camera } = useThree();
@@ -37,9 +41,29 @@ export const AtmosphereController: React.FC = () => {
         .normalize();
     }
 
+    // Dynamic scroll horizon color timeline keyframe evaluation
+    const currentFrame = (typeof window !== "undefined" && (window as any).particlesCurrentFrame !== undefined)
+      ? (window as any).particlesCurrentFrame
+      : -493;
+
+    if (config.enableScrollHorizonColor && config.horizonColorKeyframes && config.horizonColorKeyframes.length > 0) {
+      getInterpolatedHorizonColor(config.horizonColorKeyframes, currentFrame, atmosphereUniforms.uHorizonColor.value);
+    } else {
+      tempColor.set(config.horizonColor).convertSRGBToLinear();
+      atmosphereUniforms.uHorizonColor.value.copy(tempColor);
+    }
+
     // Single source of truth for scene fog & background
-    const fogHex = deriveFogColorHex(config);
-    const fogLinearColor = new THREE.Color(fogHex).convertSRGBToLinear();
+    let fogLinearColor: THREE.Color;
+    if (config.decoupleFog) {
+      fogLinearColor = tempColor.set(config.fogColorOverride).convertSRGBToLinear();
+      atmosphereUniforms.uFogColor.value.copy(fogLinearColor);
+    } else {
+      // In linear space, fog is 85% horizon + 15% zenith unless decoupled
+      const zenithLinear = tempZenithColor.set(config.zenithColor).convertSRGBToLinear();
+      fogLinearColor = tempFogColor.copy(atmosphereUniforms.uHorizonColor.value).lerp(zenithLinear, 0.15);
+      atmosphereUniforms.uFogColor.value.copy(fogLinearColor);
+    }
 
     if (config.fogEnabled) {
       if (!scene.fog || !(scene.fog instanceof THREE.FogExp2)) {
@@ -61,3 +85,4 @@ export const AtmosphereController: React.FC = () => {
 
   return null;
 };
+

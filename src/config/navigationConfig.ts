@@ -13,7 +13,7 @@ export interface SectionConfig {
   index: number
 }
 
-export const CHECKPOINTS = [-493, 720, 1212, 1857, 2493, 3116, 3613, 3846, 4057, 4561]
+export const CHECKPOINTS = [-493, 720, 1212, 1857, 2493, 3116, 3613, 3846, 4057, 4561, 8347]
 
 export const SECTIONS: SectionConfig[] = [
   { name: "Home", slug: "home", frame: -493, checkpointIndex: 0, index: 0 },
@@ -67,6 +67,7 @@ export const FOCAL_LENGTH_KEYFRAMES: FocalLengthKeyframe[] = [
   { frame: 3846, focalLength: 15 },
   { frame: 4057, focalLength: 15 },
   { frame: 4561, focalLength: 20 },
+  { frame: 8347, focalLength: 20 },
 ]
 
 export const MOBILE_FOCAL_LENGTH_KEYFRAMES: FocalLengthKeyframe[] = [
@@ -80,6 +81,7 @@ export const MOBILE_FOCAL_LENGTH_KEYFRAMES: FocalLengthKeyframe[] = [
   { frame: 3846, focalLength: 44 },
   { frame: 4057, focalLength: 44 },
   { frame: 4561, focalLength: 54 },
+  { frame: 8347, focalLength: 54 },
 ]
 
 export function getFocalLengthAtFrame(frame: number, isMobile: boolean = false): number {

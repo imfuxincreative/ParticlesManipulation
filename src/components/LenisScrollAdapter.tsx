@@ -15,6 +15,8 @@ interface SnapRange {
 
 // Blender frame offset: GLTF scroll offset 0.0 maps to Blender frame -493
 const BLENDER_FRAME_OFFSET = -493;
+const BLENDER_LAST_FRAME = 8347;
+const TOTAL_BLENDER_FRAMES = BLENDER_LAST_FRAME - BLENDER_FRAME_OFFSET; // 8840
 
 // Configurable checkpoints for magnetic snapping (in Blender frame numbers)
 const SNAP_RANGES: SnapRange[] = [
@@ -43,7 +45,7 @@ export const LenisScrollAdapter: React.FC = () => {
 
   // Compute max animation duration for the scene (based on SCENE.glb camera action)
   const sceneMaxDuration = useMemo(() => {
-    const fallbackDuration = 168.43333333333334; // exact duration of camera track in SCENE.glb
+    const fallbackDuration = TOTAL_BLENDER_FRAMES / 30; // exact duration of camera track in SCENE.glb (8840 frames at 30fps)
     if (!sceneGltf) return fallbackDuration;
     let max = 0;
     const activeMixamoActionName = "mixamo.com.003";
@@ -182,12 +184,12 @@ export const LenisScrollAdapter: React.FC = () => {
       const lenis = lenisRef.current;
 
       const totalFrames = sceneMaxDuration * 30;
-      const currentOffset = scroll ? scroll.offset : (lenis.limit > 0 ? lenis.scroll / lenis.limit : 0);
+      const currentOffset = lenis.limit > 0 ? lenis.scroll / lenis.limit : (scroll ? scroll.offset : 0);
       const currentFrame = currentOffset * totalFrames + BLENDER_FRAME_OFFSET;
 
-      if (e.deltaY > 0 && currentFrame >= 4540) {
+      if (e.deltaY > 0 && currentFrame >= BLENDER_LAST_FRAME - 20) {
         lenis.scrollTo(0, { immediate: true });
-      } else if (e.deltaY < 0 && currentFrame <= -470) {
+      } else if (e.deltaY < 0 && currentFrame <= BLENDER_FRAME_OFFSET + 23) {
         lenis.scrollTo(lenis.limit, { immediate: true });
       }
     };
@@ -208,13 +210,13 @@ export const LenisScrollAdapter: React.FC = () => {
       const diffY = touchCurrentY - touchStartY;
 
       const totalFrames = sceneMaxDuration * 30;
-      const currentOffset = scroll ? scroll.offset : (lenis.limit > 0 ? lenis.scroll / lenis.limit : 0);
+      const currentOffset = lenis.limit > 0 ? lenis.scroll / lenis.limit : (scroll ? scroll.offset : 0);
       const currentFrame = currentOffset * totalFrames + BLENDER_FRAME_OFFSET;
 
-      if (diffY < -15 && currentFrame >= 4540) {
+      if (diffY < -15 && currentFrame >= BLENDER_LAST_FRAME - 20) {
         lenis.scrollTo(0, { immediate: true });
         touchStartY = touchCurrentY;
-      } else if (diffY > 15 && currentFrame <= -470) {
+      } else if (diffY > 15 && currentFrame <= BLENDER_FRAME_OFFSET + 23) {
         lenis.scrollTo(lenis.limit, { immediate: true });
         touchStartY = touchCurrentY;
       }
@@ -309,9 +311,9 @@ export const LenisScrollAdapter: React.FC = () => {
 
       // Instant wrap-around loop scroll at frame boundaries (0ms delay)
       if (lenis.limit > 0 && !isSnappingRef.current && sceneMaxDuration > 0) {
-        if (rawFrame >= 4560 && lenis.velocity > 0) {
+        if ((rawFrame >= BLENDER_LAST_FRAME - 5 || currentOffset >= 0.999) && lenis.velocity > 0) {
           lenis.scrollTo(0, { immediate: true });
-        } else if (rawFrame <= -490 && lenis.velocity < 0) {
+        } else if ((rawFrame <= BLENDER_FRAME_OFFSET + 3 || currentOffset <= 0.001) && lenis.velocity < 0) {
           lenis.scrollTo(lenis.limit, { immediate: true });
         }
       }
@@ -342,8 +344,6 @@ export const LenisScrollAdapter: React.FC = () => {
 
       const targetOffset = lenis.limit > 0 ? lenis.targetScroll / lenis.limit : 0;
       const targetFrame = targetOffset * sceneMaxDuration * 30 + BLENDER_FRAME_OFFSET;
-
-      const currentOffset = lenis.limit > 0 ? lenis.scroll / lenis.limit : 0;
       const currentFrame = currentOffset * sceneMaxDuration * 30 + BLENDER_FRAME_OFFSET;
 
       // Snapping is triggered only when the scroll velocity is low (almost stopped)

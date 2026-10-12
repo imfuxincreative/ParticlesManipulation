@@ -14,7 +14,7 @@ import { patchMaterialWithAtmosphere } from "@/lib/patchAtmosphere";
 
 const CAMERA_NAME = "Camera";
 const TARGET_NAME = "body";
-const BLENDER_START_FRAME = -492;
+const BLENDER_START_FRAME = -493;
 
 export interface SceneVisualOverrides {
   xrayFillOpacity?: number;
@@ -172,6 +172,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           "bodypart",
           "bodypart2",
           "shirt2",
+          "shirt2.001",
           "tshirt",
           "pant",
           "pant2",
@@ -181,6 +182,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           "hair.001",
           "hair2",
           "hair2.001",
+          "hair2.002",
           "glass",
           "glass.001",
         ]);
@@ -192,7 +194,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           let sNode: THREE.Object3D | null = child.parent;
           while (sNode) {
             const pName = sNode.name ? sNode.name.toLowerCase() : "";
-            if (pName === "simon" || pName === "simon.001" || pName === "armature") {
+            if (pName === "simon" || pName === "simon.001" || pName === "armature" || pName === "armature.001") {
               isSimon = true;
               break;
             }
