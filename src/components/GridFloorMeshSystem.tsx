@@ -13,6 +13,9 @@ interface GridFloorMeshSystemProps {
   sceneIndex: number;
 }
 
+// Reusable vector to avoid per-frame allocation in the render loop
+const _localCameraVec = new THREE.Vector3();
+
 // Custom Grid Floor Shader optimized for GLTF meshes that might be rotated
 const CustomGridFloorShader = {
   vertexShader: `
@@ -442,9 +445,10 @@ export const GridFloorMeshSystem: React.FC<GridFloorMeshSystemProps> = ({
       // Force update of matrixWorld to ensure worldToLocal is accurate
       imesh.updateMatrixWorld(true);
 
-      // Transform camera position to local coordinate space of the floor mesh
-      const localCamera = new THREE.Vector3().copy(state.camera.position);
-      imesh.worldToLocal(localCamera);
+      // --- PERF: Reuse vector instead of allocating new THREE.Vector3 every frame ---
+      _localCameraVec.copy(state.camera.position);
+      imesh.worldToLocal(_localCameraVec);
+      const localCamera = _localCameraVec;
 
       const fallRadius = settings.gridFloorFallRadius ?? 40.0;
       const fallRadiusRange = settings.gridFloorFallRadiusRange ?? 20.0;

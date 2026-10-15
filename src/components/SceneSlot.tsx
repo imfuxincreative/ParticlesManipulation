@@ -11,10 +11,23 @@ import { InteractiveSceneParticleSystem } from "./InteractiveSceneParticleSystem
 import { CALLOUT_TARGETS } from "@/config/targetConfig";
 import { useSimulation } from "@/context/SimulationContext";
 import { patchMaterialWithAtmosphere } from "@/lib/patchAtmosphere";
+import { applyEdgeFadeX } from "@/lib/patchEdgeFade";
+
+// Desert mesh: fade opacity to 0 along its local +X edge
+const DESERT_FADE_FRACTION = 0.3; // portion of the desert width used for the fade (0..1)
+const isDesertMesh = (obj: THREE.Object3D) =>
+  obj.name.toLowerCase().startsWith("desert") ||
+  (!!obj.parent && obj.parent.name.toLowerCase().startsWith("desert"));
 
 const CAMERA_NAME = "Camera";
 const TARGET_NAME = "body";
 const BLENDER_START_FRAME = -493;
+const BLENDER_FPS = 30;
+
+// Frame-gated groups (GLTFLoader strips '.' from names, so "Skycity.001" -> "Skycity001")
+const SKYCITY_SHOW_FRAME = 5057; // Skycity.001 renders from this Blender frame onwards
+const SKYCITY_NAMES = ["Skycity.001", "Skycity001"];
+const GROUNDCITY_NAMES = ["groundCity", "groundcity", "GroundCity"]; // hidden from SKYCITY_SHOW_FRAME onwards
 
 export interface SceneVisualOverrides {
   xrayFillOpacity?: number;
@@ -59,13 +72,6 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
   const groupRef = useRef<THREE.Group>(null);
 
   const mixer = useMemo(() => new THREE.AnimationMixer(gltf.scene), [gltf.scene]);
-  const actions = useMemo(() => {
-    const act: Record<string, THREE.AnimationAction> = {};
-    gltf.animations.forEach((clip) => {
-      act[clip.name] = mixer.clipAction(clip);
-    });
-    return act;
-  }, [gltf.animations, mixer]);
 
   useEffect(() => {
     return () => {
@@ -79,6 +85,22 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
   const baseFovRef = useRef<number>(0);
 
   const originalBodypartPropsRef = useRef<Map<THREE.Material, { transparent: boolean; opacity: number }>>(new Map());
+
+  // Resolve frame-gated groups once (no per-frame traversal). Missing groups are simply ignored.
+  const { skycityNodes, groundCityNodes } = useMemo(() => {
+    const find = (names: string[]) => {
+      const found: THREE.Object3D[] = [];
+      gltf.scene.traverse((o) => {
+        if (names.includes(o.name)) found.push(o);
+      });
+      return found;
+    };
+    const sky = find(SKYCITY_NAMES);
+    const ground = find(GROUNDCITY_NAMES);
+    // Start hidden so Skycity never flashes before the first frame update
+    sky.forEach((o) => (o.visible = false));
+    return { skycityNodes: sky, groundCityNodes: ground };
+  }, [gltf.scene]);
 
   const activeMixamoActionNames = useMemo(() => {
     const names = gltf.animations.map((clip) => clip.name);
@@ -99,15 +121,39 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     return active;
   }, [gltf.animations, config.activeAnimationName]);
 
+  // --- PERF: Only register actions for animations we actually use ---
+  // With 3466 animations in the GLB, registering ALL of them causes
+  // mixer.update() to evaluate thousands of dead tracks per frame.
+  // Instead, build a whitelist and only create clipActions for those.
+  const { actions, relevantClips, clipDurationMap } = useMemo(() => {
+    const activeMixamoSet = new Set(activeMixamoActionNames);
+    const act: Record<string, THREE.AnimationAction> = {};
+    const relevant: THREE.AnimationClip[] = [];
+    const durMap = new Map<string, number>();
+
+    gltf.animations.forEach((clip) => {
+      const nameLower = clip.name.toLowerCase();
+      const isMixamo = nameLower.includes("mixamo");
+
+      // Skip inactive mixamo clips
+      if (isMixamo && !activeMixamoSet.has(clip.name)) return;
+
+      // Keep: camera clips, active mixamo, and all other non-mixamo clips
+      act[clip.name] = mixer.clipAction(clip);
+      relevant.push(clip);
+      durMap.set(clip.name, clip.duration);
+    });
+
+    return { actions: act, relevantClips: relevant, clipDurationMap: durMap };
+  }, [gltf.animations, mixer, activeMixamoActionNames]);
+
   const maxDuration = useMemo(() => {
     let max = 0;
-    gltf.animations.forEach((clip) => {
-      const name = clip.name;
-      if (name.toLowerCase().includes("mixamo") && !activeMixamoActionNames.includes(name)) return;
+    relevantClips.forEach((clip) => {
       max = Math.max(max, clip.duration);
     });
     return max || 1;
-  }, [gltf.animations, activeMixamoActionNames]);
+  }, [relevantClips]);
 
   const { cityMeshes, targetMeshes, simonGlowMeshes, simonBodypartMeshes, floorMeshes } = useMemo(() => {
     const city: THREE.Mesh[] = [];
@@ -247,6 +293,9 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     const allMeshes = [...cityMeshes, ...targetMeshes, ...simonBodypartMeshes];
     allMeshes.forEach((mesh) => {
       if (mesh) {
+        if (mesh.material && isDesertMesh(mesh)) {
+          applyEdgeFadeX(mesh, { fadeFraction: DESERT_FADE_FRACTION, smooth: true });
+        }
         if (mesh.material) {
           const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
           mats.forEach((m) => {
@@ -348,18 +397,45 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     }
   }, [gltf, size, sceneIndex, onCameraReady]);
 
+  // --- PERF: Pre-compute the list of action names to iterate in the frame loop ---
+  // Avoids per-frame .toLowerCase() and .includes() string operations on 3466 names.
+  const actionNamesToAnimate = useMemo(() => Object.keys(actions), [actions]);
+
+  // Pre-compute camera action flags to avoid per-frame string checks
+  const cameraActionFlags = useMemo(() => {
+    const flags = new Map<string, boolean>();
+    actionNamesToAnimate.forEach((name) => {
+      flags.set(name, name.toLowerCase().includes("camera"));
+    });
+    return flags;
+  }, [actionNamesToAnimate]);
+
   useEffect(() => {
-    Object.keys(actions).forEach((name) => {
-      if (name.toLowerCase().includes("mixamo") && !activeMixamoActionNames.includes(name)) {
-        return;
-      }
-      const action = actions[name];
+    // All actions in `actions` are already filtered to only relevant ones
+    Object.values(actions).forEach((action) => {
       if (action) {
         action.play();
         action.paused = true;
       }
     });
-  }, [actions, activeMixamoActionNames]);
+  }, [actions]);
+
+  // --- PERF: Cache the camera reference once instead of traversing 9500 nodes per frame ---
+  const sceneCameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const lastAspectRef = useRef<number>(0);
+
+  useEffect(() => {
+    let cam: THREE.PerspectiveCamera | null = null;
+    gltf.scene.traverse((child) => {
+      if ((child as any).isPerspectiveCamera) {
+        cam = child as THREE.PerspectiveCamera;
+      }
+    });
+    sceneCameraRef.current = cam;
+  }, [gltf.scene]);
+
+  // Pre-compute constant timeline offset outside the frame loop
+  const TIMELINE_OFFSET = -BLENDER_START_FRAME / 30;
 
   useFrame((state) => {
     const glUserData = (state.gl as any).userData || {};
@@ -378,47 +454,57 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     const scrollNorm = scrollNorms[sceneIndex] ?? 0.0;
     const globalTime = scrollNorm * maxDuration;
 
-    Object.keys(actions).forEach((name) => {
-      if (name.toLowerCase().includes("mixamo") && !activeMixamoActionNames.includes(name)) return;
+    // --- PERF: Iterate only the pre-filtered action names (not all 3466) ---
+    // Duration is looked up via O(1) Map instead of O(N) .find() per action.
+    // Camera flag is pre-computed to avoid per-frame .toLowerCase().includes().
+    const names = actionNamesToAnimate;
+    for (let i = 0, len = names.length; i < len; i++) {
+      const name = names[i];
       const action = actions[name];
       if (action) {
-        const clip = gltf.animations.find((c) => c.name === name);
-        const duration = clip ? clip.duration : 1.0;
-
-        const isCamera = name.toLowerCase().includes("camera");
-        const timelineOffset = -BLENDER_START_FRAME / 30;
-        const evalTime = isCamera ? globalTime : (globalTime - timelineOffset);
+        const duration = clipDurationMap.get(name) || 1.0;
+        const isCamera = cameraActionFlags.get(name) || false;
+        const evalTime = isCamera ? globalTime : (globalTime - TIMELINE_OFFSET);
 
         action.time = Math.min(Math.max(0, evalTime), duration);
       }
-    });
+    }
 
-    if (mixer) mixer.update(0);
+    mixer.update(0);
 
+    // Current Blender frame (camera clip starts at BLENDER_START_FRAME)
+    const currentFrame = globalTime * BLENDER_FPS + BLENDER_START_FRAME;
+    const showSkycity = currentFrame >= SKYCITY_SHOW_FRAME;
+    for (let i = 0; i < skycityNodes.length; i++) {
+      if (skycityNodes[i].visible !== showSkycity) skycityNodes[i].visible = showSkycity;
+    }
+    for (let i = 0; i < groundCityNodes.length; i++) {
+      if (groundCityNodes[i].visible === showSkycity) groundCityNodes[i].visible = !showSkycity;
+    }
 
-
-    if (cameraReadyRef.current) {
-      const DESIGN_ASPECT = 16 / 9;
+    // --- PERF: Update camera only when aspect ratio actually changes ---
+    // Previously traversed the entire 9500-node scene graph every frame.
+    if (cameraReadyRef.current && sceneCameraRef.current) {
       const currentAspect = size.width / size.height;
 
-      gltf.scene.traverse((child) => {
-        if ((child as any).isPerspectiveCamera) {
-          const cam = child as THREE.PerspectiveCamera;
-          cam.aspect = currentAspect;
+      if (Math.abs(currentAspect - lastAspectRef.current) > 0.001) {
+        lastAspectRef.current = currentAspect;
+        const DESIGN_ASPECT = 16 / 9;
+        const cam = sceneCameraRef.current;
+        cam.aspect = currentAspect;
 
-          if (baseFovRef.current > 0) {
-            cam.fov = baseFovRef.current;
-          }
-
-          if (currentAspect < DESIGN_ASPECT) {
-            cam.zoom = Math.max(0.5, currentAspect / DESIGN_ASPECT);
-          } else {
-            cam.zoom = 1;
-          }
-
-          cam.updateProjectionMatrix();
+        if (baseFovRef.current > 0) {
+          cam.fov = baseFovRef.current;
         }
-      });
+
+        if (currentAspect < DESIGN_ASPECT) {
+          cam.zoom = Math.max(0.5, currentAspect / DESIGN_ASPECT);
+        } else {
+          cam.zoom = 1;
+        }
+
+        cam.updateProjectionMatrix();
+      }
     }
   }, -2);
 

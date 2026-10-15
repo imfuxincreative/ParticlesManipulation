@@ -3,11 +3,12 @@ const fs = require('fs');
 const path = require('path');
 
 const glbRelativePath = 'public/SCENE.glb';
-const outputPath = path.join(__dirname, '..', 'scratch', 'SceneModelGenerated.tsx');
+const outputPath = path.join(__dirname, '..', 'src', 'components', 'SceneModelGenerated.tsx');
+const scratchOutputPath = path.join(__dirname, '..', 'scratch', 'SceneModelGenerated.tsx');
 
 console.log(`1. Running gltfjsx on "${glbRelativePath}"...`);
 try {
-  execSync(`npx gltfjsx "${glbRelativePath}" -o scratch/SceneModelGenerated.tsx --types`, {
+  execSync(`npx gltfjsx "${glbRelativePath}" -o src/components/SceneModelGenerated.tsx --types`, {
     stdio: 'inherit',
     cwd: path.join(__dirname, '..')
   });
@@ -90,5 +91,9 @@ code = code.replace(/nodes\[['"]([^'"]+)['"]\]\.material/g, "nodes['$1']?.materi
 code = code.replace(/materials(?!\?\.)\[['"]([^'"]+)['"]\]/g, "materials?.['$1']");
 
 fs.writeFileSync(outputPath, code, 'utf8');
+try {
+  fs.writeFileSync(scratchOutputPath, code, 'utf8');
+} catch (e) {}
 console.log("✓ Component successfully patched with anisotropic filtering, makeDefault camera, and defensive optional chaining!");
+console.log(`✓ Scene code generated at "${outputPath}"!`);
 console.log("✓ Done!");

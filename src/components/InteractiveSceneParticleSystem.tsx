@@ -385,18 +385,29 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
   const targetMeshRef = useRef<THREE.Object3D | null>(null);
   const tempWorldPosRef = useRef<THREE.Vector3>(new THREE.Vector3());
 
+  // --- PERF: Resolve target mesh once instead of searching scene graph every frame ---
+  useEffect(() => {
+    // Defer to next frame so the scene graph is fully mounted
+    const id = requestAnimationFrame(() => {
+      const found = groupRef.current?.parent
+        ? (function findInScene(obj: THREE.Object3D): THREE.Object3D | null {
+            let root: THREE.Object3D = obj;
+            while (root.parent) root = root.parent;
+            return root.getObjectByName("Cube005") || root.getObjectByName("Cube.005") || null;
+          })(groupRef.current)
+        : null;
+      if (found) {
+        found.visible = false;
+        targetMeshRef.current = found;
+      }
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   useFrame((state) => {
     const elapsed = state.clock.elapsedTime;
 
     if (groupRef.current) {
-      if (!targetMeshRef.current) {
-        const found = state.scene.getObjectByName("Cube005") || state.scene.getObjectByName("Cube.005");
-        if (found) {
-          found.visible = false;
-          targetMeshRef.current = found;
-        }
-      }
-
       if (targetMeshRef.current) {
         targetMeshRef.current.visible = false;
         targetMeshRef.current.getWorldPosition(tempWorldPosRef.current);

@@ -54,15 +54,6 @@ async function main() {
   const originalGlbPath = path.resolve('public/SCENE_original.glb');
   const rawGlbPath = path.resolve('public/SCENE_raw.glb');
 
-  // If SCENE.glb itself is a fresh raw Blender export (> 15 MB), save a copy to SCENE_original.glb
-  if (fs.existsSync(targetGlbPath)) {
-    const targetSize = fs.statSync(targetGlbPath).size;
-    if (targetSize > 15 * 1024 * 1024) {
-      fs.copyFileSync(targetGlbPath, originalGlbPath);
-      console.log(`✓ Updated raw source file (${(targetSize / 1024 / 1024).toFixed(2)} MB) at "${originalGlbPath}".`);
-    }
-  }
-
   // Determine source file: check for uncompressed raw sources (SCENE_original.glb, SCENE_raw.glb)
   // If present, pick the raw file with the latest modification time.
   let sourcePath = targetGlbPath;
@@ -71,9 +62,12 @@ async function main() {
   if (rawCandidates.length > 0) {
     rawCandidates.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
     sourcePath = rawCandidates[0];
+  } else if (!fs.existsSync(targetGlbPath)) {
+    throw new Error('No input GLB found at public/SCENE_original.glb, public/SCENE_raw.glb, or public/SCENE.glb');
   }
 
-  console.log(`2. Reading input GLB "${sourcePath}"...`);
+  const sourceSizeMb = (fs.statSync(sourcePath).size / 1024 / 1024).toFixed(2);
+  console.log(`2. Reading input GLB "${sourcePath}" (${sourceSizeMb} MB)...`);
   const document = await io.read(sourcePath);
 
   console.log('3. Resizing and converting image textures with Sharp (WebP 82% quality, max 2048px)...');
