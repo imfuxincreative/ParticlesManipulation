@@ -73,6 +73,24 @@ export const AtmosphereDebug: React.FC = () => {
         <div className="pt-1 text-[9px] text-emerald-400/80 italic">
           ✓ Seam-free mathematical continuity active
         </div>
+
+        <button
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              if ((window as any).triggerLoopTransition) {
+                (window as any).triggerLoopTransition("forward");
+              }
+              const lenis = (window as any).lenis;
+              if (lenis) {
+                // Smoothly scroll towards the loop seam frame to preview
+                lenis.scrollTo(lenis.limit, { duration: 1.2 });
+              }
+            }
+          }}
+          className="w-full mt-2 py-1.5 px-2 bg-red-600/30 hover:bg-red-600/50 border border-red-500/40 rounded text-[10px] text-red-200 cursor-pointer font-mono text-center transition-colors"
+        >
+          🎬 PREVIEW RED SEAM (TO BE CONTINUED)
+        </button>
       </div>
     </div>
   );

@@ -11,6 +11,9 @@ import { AtmosphereController } from "./atmosphere/AtmosphereController";
 import { AtmosphereLighting } from "./atmosphere/AtmosphereLighting";
 import { AtmospherePostFX } from "./atmosphere/AtmospherePostFX";
 import { AtmosphereDebug } from "./atmosphere/AtmosphereDebug";
+import { LoopTransitionOverlay } from "./transitions/LoopTransitionOverlay";
+import { InTouchScene } from "./InTouch/InTouchScene";
+import { InTouchHUD } from "./InTouch/InTouchHUD";
 
 // --- Real-time R3F Asset Loading Tracker ---
 const SceneProgressTracker: React.FC = () => {
@@ -157,6 +160,9 @@ export const SceneContainer: React.FC = () => {
               <LenisScrollAdapter />
               <SceneModel />
             </ScrollControls>
+
+            {/* InTouch Silhouette Scene (inTouch.glb) */}
+            <InTouchScene />
           </Suspense>
 
           {/* Atmosphere Post Processing Pipeline */}
@@ -170,6 +176,12 @@ export const SceneContainer: React.FC = () => {
         <div className="flex fixed top-0 items-center justify-between gap-4">
           <span id="overlay-frame-val" className="text-[13px]">0</span>
         </div>
+
+        {/* InTouch Interactive Minimal HUD */}
+        <InTouchHUD />
+
+        {/* UI Overlay Screen for Loop Blur, Atmospheric Fog & Lowest Exposure Transition */}
+        <LoopTransitionOverlay />
       </div>
     </WebGLErrorBoundary>
   );

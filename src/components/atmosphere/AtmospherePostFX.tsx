@@ -7,6 +7,7 @@ import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAtmosphere } from "@/lib/atmosphere";
 import { CrimsonGradeEffect } from "@/effects/CrimsonGradeEffect";
+import { LoopMaskTransition } from "@/components/transitions/LoopMaskTransitionEffect";
 
 const CrimsonGrade = forwardRef<
   CrimsonGradeEffect,
@@ -93,6 +94,7 @@ export const AtmospherePostFX: React.FC = () => {
         grainAmount={grainAmount}
         buildingContrast={buildingContrast ?? 1.0}
       />
+      <LoopMaskTransition />
     </EffectComposer>
   );
 };

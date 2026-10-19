@@ -8,6 +8,7 @@ import { GridFloor } from "./GridFloor";
 import { SkyDome } from "./SkyDome";
 import { useSimulation } from "@/context/SimulationContext";
 import { SceneSlot, SceneConfig, SceneVisualOverrides } from "./SceneSlot";
+import { useLoopTransition } from "./transitions/transitionConfig";
 
 const SCENE_CONFIGS: SceneConfig[] = [
   {
@@ -125,6 +126,7 @@ export const SceneModel: React.FC = () => {
   const { set, size } = useThree();
   const scrollData = useScroll();
   const { settings, updateSettings } = useSimulation();
+  const activeScene = useLoopTransition((s) => s.activeScene);
 
   const camerasRef = useRef<(THREE.PerspectiveCamera | null)[]>(
     new Array(NUM_SCENES).fill(null)
@@ -175,7 +177,7 @@ export const SceneModel: React.FC = () => {
   }, [activeSceneIndex, updateSettings]);
 
   useFrame((state, delta) => {
-    if (!scrollData) return;
+    if (!scrollData || activeScene !== "main") return;
 
     const glUserData = (state.gl as any).userData || {};
     if (!(state.gl as any).userData) {
@@ -260,9 +262,11 @@ export const SceneModel: React.FC = () => {
       glUserData.sceneVisuals = getInterpolatedVisuals(t);
     }
 
-    const targetCam = camerasRef.current[activeCamIndex];
-    if (targetCam && state.camera !== targetCam) {
-      set({ camera: targetCam });
+    if (activeScene === "main") {
+      const targetCam = camerasRef.current[activeCamIndex];
+      if (targetCam && state.camera !== targetCam) {
+        set({ camera: targetCam });
+      }
     }
 
     const DESIGN_ASPECT = 16 / 9;
@@ -290,7 +294,7 @@ export const SceneModel: React.FC = () => {
   }, []);
 
   return (
-    <>
+    <group visible={activeScene === "main"}>
       {SCENE_CONFIGS.map((config, i) => (
         <SceneSlot
           key={config.path}
@@ -306,6 +310,6 @@ export const SceneModel: React.FC = () => {
 
       {/* Ghibli Grass & Environment */}
       <GridFloor projectionBounds={cityProjectionBounds} />
-    </>
+    </group>
   );
 };

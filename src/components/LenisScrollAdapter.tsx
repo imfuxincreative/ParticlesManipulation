@@ -7,6 +7,7 @@ import * as THREE from "three";
 import Lenis from "lenis";
 import { useSimulation } from "@/context/SimulationContext";
 import { getFocalLengthAtFrame, focalLengthToFov } from "@/config/navigationConfig";
+import { useLoopTransition } from "./transitions/transitionConfig";
 
 interface SnapRange {
   start: number;
@@ -15,7 +16,7 @@ interface SnapRange {
 
 // Blender frame offset: GLTF scroll offset 0.0 maps to Blender frame -493
 const BLENDER_FRAME_OFFSET = -493;
-const BLENDER_LAST_FRAME = 8347;
+const BLENDER_LAST_FRAME = 8871;
 const TOTAL_BLENDER_FRAMES = BLENDER_LAST_FRAME - BLENDER_FRAME_OFFSET; // 8840
 
 // Configurable checkpoints for magnetic snapping (in Blender frame numbers)
@@ -62,6 +63,7 @@ export const LenisScrollAdapter: React.FC = () => {
   const lastInputTimeRef = useRef(0);
   const isSnappingRef = useRef(false);
   const lastDirectionRef = useRef(1); // 1 = forward/down, -1 = backward/up
+  const lastSwapTimeRef = useRef(0);
 
   // Log on mount to confirm the adapter is active and loaded
   useEffect(() => {
@@ -74,25 +76,29 @@ export const LenisScrollAdapter: React.FC = () => {
     const wrapper = scroll.el;
     const content = scroll.fill;
 
-    // Configure Lenis to smooth out both mouse wheel and mobile touch gestures
+    // Configure Lenis to smooth out both mouse wheel and mobile touch gestures across the entire window
     const lenis = new Lenis({
       wrapper: wrapper,
       content: content,
-      eventsTarget: wrapper,
-      duration: 1.6, // Slower duration for a premium, heavy feel (like igloo.inc / jaam)
+      eventsTarget: typeof window !== "undefined" ? window : wrapper,
+      duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo curve
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      syncTouch: true, // Crucial: Hijack native mobile momentum scroll
-      syncTouchLerp: 0.05, // Lower factor (e.g. 0.05) creates a slower, extremely smooth touch response
-      touchMultiplier: 0.65, // Limit speed of swipes to prevent fast spinning
-      wheelMultiplier: 0.8, // Elegant, controlled wheel scrolling
+      syncTouch: true,
+      syncTouchLerp: 0.08,
+      wheelMultiplier: 1.0,
     });
 
     lenisRef.current = lenis;
     if (typeof window !== "undefined") {
       (window as any).lenis = lenis;
+    }
+
+    // Disable browser scroll restoration so page always reloads cleanly at start frame
+    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
     }
 
     // Set initial scroll position to frame -493 (offset 0) on first time load
@@ -101,6 +107,7 @@ export const LenisScrollAdapter: React.FC = () => {
       if (initialized) return;
       if (lenis.limit > 0) {
         lenis.scrollTo(0, { immediate: true });
+        wrapper.scrollTop = 0;
         initialized = true;
         console.log(`[LenisScrollAdapter] Initialized scroll to start frame -493 (Offset: 0.0000, Scroll: 0)`);
       } else {
@@ -108,6 +115,19 @@ export const LenisScrollAdapter: React.FC = () => {
       }
     };
     requestAnimationFrame(initScrollToStartFrame);
+
+    // Loop swap helper
+    const triggerLoopTransition = (direction: "forward" | "backward") => {
+      const loopStore = useLoopTransition.getState();
+      if (direction === "forward") {
+        loopStore.transitionToInTouch("forward");
+      } else {
+        loopStore.returnToMainScene("first");
+      }
+    };
+
+    (window as any).triggerLoopTransition = triggerLoopTransition;
+    (window as any).useLoopTransition = useLoopTransition;
 
     // Expose window functions for manual developer console diagnosis
     (window as any).snapToFrame = (frame: number) => {
@@ -124,6 +144,10 @@ export const LenisScrollAdapter: React.FC = () => {
         easing: (t) => 1 - Math.pow(1 - t, 3), // easeOutCubic
         onComplete: () => {
           isSnappingRef.current = false;
+          if (frame >= BLENDER_LAST_FRAME - 50) {
+            useLoopTransition.getState().setActiveScene("inTouch");
+            useLoopTransition.getState().setInTouchState("active");
+          }
         }
       });
     };
@@ -182,15 +206,48 @@ export const LenisScrollAdapter: React.FC = () => {
 
       if (!lenisRef.current || sceneMaxDuration <= 0) return;
       const lenis = lenisRef.current;
+      const now = Date.now();
+      const loopState = useLoopTransition.getState();
 
+      if (loopState.isTransitioning) return;
+
+      // IF IN inTouch SCENE:
+      if (loopState.activeScene === "inTouch") {
+        // Scrolling DOWN (deltaY > 0): Loop to start of journey (frame -493)
+        if (e.deltaY > 0) {
+          if (now - lastSwapTimeRef.current > 400) {
+            lastSwapTimeRef.current = now;
+            loopState.returnToMainScene("first");
+          }
+        }
+        // Scrolling UP (deltaY < 0): Go back into Scene 1 at LAST frame (8871)
+        else if (e.deltaY < 0) {
+          if (now - lastSwapTimeRef.current > 400) {
+            lastSwapTimeRef.current = now;
+            loopState.returnToMainScene("last");
+          }
+        }
+        return;
+      }
+
+      // IF IN main SCENE:
       const totalFrames = sceneMaxDuration * 30;
       const currentOffset = lenis.limit > 0 ? lenis.scroll / lenis.limit : (scroll ? scroll.offset : 0);
       const currentFrame = currentOffset * totalFrames + BLENDER_FRAME_OFFSET;
 
-      if (e.deltaY > 0 && currentFrame >= BLENDER_LAST_FRAME - 20) {
-        lenis.scrollTo(0, { immediate: true });
-      } else if (e.deltaY < 0 && currentFrame <= BLENDER_FRAME_OFFSET + 23) {
-        lenis.scrollTo(lenis.limit, { immediate: true });
+      // Scrolling forward near the end: smoothly transition into inTouch
+      if (e.deltaY > 0 && (currentOffset >= 0.99 || currentFrame >= BLENDER_LAST_FRAME - 35)) {
+        if (now - lastSwapTimeRef.current > 400) {
+          lastSwapTimeRef.current = now;
+          loopState.transitionToInTouch("forward");
+        }
+      }
+      // Scrolling backward at the start: smoothly transition into inTouch
+      else if (e.deltaY < 0 && (currentOffset <= 0.005 || currentFrame <= BLENDER_FRAME_OFFSET + 35)) {
+        if (now - lastSwapTimeRef.current > 400) {
+          lastSwapTimeRef.current = now;
+          loopState.transitionToInTouch("backward");
+        }
       }
     };
 
@@ -208,27 +265,59 @@ export const LenisScrollAdapter: React.FC = () => {
       const lenis = lenisRef.current;
       const touchCurrentY = e.touches[0].clientY;
       const diffY = touchCurrentY - touchStartY;
+      const now = Date.now();
+      const loopState = useLoopTransition.getState();
 
+      if (loopState.isTransitioning) return;
+
+      // IF IN inTouch SCENE:
+      if (loopState.activeScene === "inTouch") {
+        // Swipe up (diffY < -15): loop to start of Scene 1
+        if (diffY < -15) {
+          if (now - lastSwapTimeRef.current > 400) {
+            lastSwapTimeRef.current = now;
+            loopState.returnToMainScene("first");
+            touchStartY = touchCurrentY;
+          }
+        }
+        // Swipe down (diffY > 15): return to LAST frame of Scene 1
+        else if (diffY > 15) {
+          if (now - lastSwapTimeRef.current > 400) {
+            lastSwapTimeRef.current = now;
+            loopState.returnToMainScene("last");
+            touchStartY = touchCurrentY;
+          }
+        }
+        return;
+      }
+
+      // IF IN main SCENE:
       const totalFrames = sceneMaxDuration * 30;
       const currentOffset = lenis.limit > 0 ? lenis.scroll / lenis.limit : (scroll ? scroll.offset : 0);
       const currentFrame = currentOffset * totalFrames + BLENDER_FRAME_OFFSET;
 
-      if (diffY < -15 && currentFrame >= BLENDER_LAST_FRAME - 20) {
-        lenis.scrollTo(0, { immediate: true });
-        touchStartY = touchCurrentY;
-      } else if (diffY > 15 && currentFrame <= BLENDER_FRAME_OFFSET + 23) {
-        lenis.scrollTo(lenis.limit, { immediate: true });
-        touchStartY = touchCurrentY;
+      if (diffY < -15 && (currentOffset >= 0.99 || currentFrame >= BLENDER_LAST_FRAME - 35)) {
+        if (now - lastSwapTimeRef.current > 400) {
+          lastSwapTimeRef.current = now;
+          loopState.transitionToInTouch("forward");
+          touchStartY = touchCurrentY;
+        }
+      } else if (diffY > 15 && (currentOffset <= 0.005 || currentFrame <= BLENDER_FRAME_OFFSET + 35)) {
+        if (now - lastSwapTimeRef.current > 400) {
+          lastSwapTimeRef.current = now;
+          loopState.transitionToInTouch("backward");
+          touchStartY = touchCurrentY;
+        }
       }
     };
 
-    wrapper.addEventListener("wheel", handleWheelInput, { passive: true });
-    wrapper.addEventListener("touchstart", handleTouchStart, { passive: true });
-    wrapper.addEventListener("touchmove", handleTouchMove, { passive: true });
-    wrapper.addEventListener("touchend", handlePointerUp, { passive: true });
-    wrapper.addEventListener("touchcancel", handlePointerUp, { passive: true });
-    wrapper.addEventListener("pointerdown", handlePointerDown, { passive: true });
-    wrapper.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("wheel", handleWheelInput, { passive: true });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("touchend", handlePointerUp, { passive: true });
+    window.addEventListener("touchcancel", handlePointerUp, { passive: true });
+    window.addEventListener("pointerdown", handlePointerDown, { passive: true });
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
     window.addEventListener("pointerup", handlePointerUp, { passive: true });
     window.addEventListener("pointercancel", handlePointerUp, { passive: true });
 
@@ -243,17 +332,18 @@ export const LenisScrollAdapter: React.FC = () => {
     }
 
     return () => {
+      delete (window as any).triggerLoopTransition;
       delete (window as any).snapToFrame;
       delete (window as any).getScrollInfo;
       resizeObserver.disconnect();
       lenis.off("scroll", handleScroll);
-      wrapper.removeEventListener("wheel", handleWheelInput);
-      wrapper.removeEventListener("touchstart", handleTouchStart);
-      wrapper.removeEventListener("touchmove", handleTouchMove);
-      wrapper.removeEventListener("touchend", handlePointerUp);
-      wrapper.removeEventListener("touchcancel", handlePointerUp);
-      wrapper.removeEventListener("pointerdown", handlePointerDown);
-      wrapper.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("wheel", handleWheelInput);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handlePointerUp);
+      window.removeEventListener("touchcancel", handlePointerUp);
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
       lenis.destroy();
@@ -306,20 +396,47 @@ export const LenisScrollAdapter: React.FC = () => {
       );
     }
 
+    // Continuous scroll-driven transition progress
+    const loopStore = useLoopTransition.getState();
+    const isScriptedTransition = loopStore.isTransitioning;
+    const zoneFrames = loopStore.config.zoneFrames ?? 400;
+    let scrollProgress = 0.0;
+
+    // Continuous scroll-driven transition progress (only active during main scene when not in scripted transition)
+    if (loopStore.activeScene === "main" && !isScriptedTransition) {
+      if (rawFrame >= BLENDER_LAST_FRAME - zoneFrames) {
+        // Near last frame: blur and fog smoothly ramp 0.0 -> 1.0 as we approach the end
+        const dist = rawFrame - (BLENDER_LAST_FRAME - zoneFrames);
+        const rawP = Math.max(0, Math.min(1, dist / zoneFrames));
+        scrollProgress = rawP * rawP * (3 - 2 * rawP); // Hermite smoothstep
+      } else {
+        scrollProgress = 0.0;
+      }
+
+      loopStore.setProgress(scrollProgress);
+    }
+
     if (lenisRef.current) {
       const lenis = lenisRef.current;
 
-      // Instant wrap-around loop scroll at frame boundaries (0ms delay)
-      if (lenis.limit > 0 && !isSnappingRef.current && sceneMaxDuration > 0) {
-        if ((rawFrame >= BLENDER_LAST_FRAME - 5 || currentOffset >= 0.999) && lenis.velocity > 0) {
-          lenis.scrollTo(0, { immediate: true });
-        } else if ((rawFrame <= BLENDER_FRAME_OFFSET + 3 || currentOffset <= 0.001) && lenis.velocity < 0) {
-          lenis.scrollTo(lenis.limit, { immediate: true });
+      // Boundary swap for momentum / continuous scroll
+      const now = Date.now();
+      if (lenis.limit > 0 && !isSnappingRef.current && sceneMaxDuration > 0 && now - lastSwapTimeRef.current > 500) {
+        if ((currentOffset >= 0.995 || rawFrame >= BLENDER_LAST_FRAME - 15) && lenis.velocity > 0.5) {
+          lastSwapTimeRef.current = now;
+          if (loopStore.activeScene === "main" && !isScriptedTransition) {
+            loopStore.transitionToInTouch("forward");
+          }
+        } else if (currentOffset <= 0.005 && lenis.velocity < -0.5) {
+          lastSwapTimeRef.current = now;
+          if (loopStore.activeScene === "main" && !isScriptedTransition) {
+            loopStore.transitionToInTouch("backward");
+          }
         }
       }
 
-      // Prevent scroll target from running too far ahead of the current position (only during user manual scroll, NOT during snapping).
-      if (!isSnappingRef.current) {
+      // Prevent scroll target from running too far ahead of the current position (only during main scene user manual scroll).
+      if (!isSnappingRef.current && !isScriptedTransition && loopStore.activeScene === "main") {
         const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
         const capMultiplier = isMobile ? 0.45 : 0.8;
         const maxDistance = typeof window !== "undefined" ? window.innerHeight * capMultiplier : 600;
@@ -358,6 +475,7 @@ export const LenisScrollAdapter: React.FC = () => {
 
       if (
         settings.enableScrollSnap &&
+        scrollProgress < 0.3 &&
         isUserNotInteracting &&
         timeSinceLastInput > 150 &&
         isLowVelocity &&

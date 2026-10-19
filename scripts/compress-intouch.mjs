@@ -1,0 +1,135 @@
+import { NodeIO } from '@gltf-transform/core';
+import {
+  KHRDracoMeshCompression,
+  KHRMeshQuantization,
+  KHRMaterialsUnlit,
+  EXTTextureWebP,
+  KHRLightsPunctual,
+  KHRTextureTransform,
+  KHRMaterialsSpecular,
+  KHRMaterialsIOR,
+  KHRMaterialsVolume,
+  KHRMaterialsTransmission,
+  KHRMaterialsClearcoat,
+  KHRMaterialsSheen,
+  KHRMaterialsIridescence,
+  KHRMaterialsEmissiveStrength,
+  KHRMaterialsAnisotropy
+} from '@gltf-transform/extensions';
+import { prune, dedup, resample } from '@gltf-transform/functions';
+import sharp from 'sharp';
+import draco3d from 'draco3dgltf';
+import fs from 'fs';
+import path from 'path';
+
+async function main() {
+  console.log('1. Initializing NodeIO for inTouch.glb...');
+  const dracoDecoder = await draco3d.createDecoderModule();
+  const dracoEncoder = await draco3d.createEncoderModule();
+
+  const io = new NodeIO()
+    .registerExtensions([
+      KHRDracoMeshCompression,
+      KHRMeshQuantization,
+      KHRMaterialsUnlit,
+      EXTTextureWebP,
+      KHRLightsPunctual,
+      KHRTextureTransform,
+      KHRMaterialsSpecular,
+      KHRMaterialsIOR,
+      KHRMaterialsVolume,
+      KHRMaterialsTransmission,
+      KHRMaterialsClearcoat,
+      KHRMaterialsSheen,
+      KHRMaterialsIridescence,
+      KHRMaterialsEmissiveStrength,
+      KHRMaterialsAnisotropy
+    ])
+    .registerDependencies({
+      'draco3d.decoder': dracoDecoder,
+      'draco3d.encoder': dracoEncoder,
+    });
+
+  const targetGlbPath = path.resolve('public/inTouch.glb');
+  const originalGlbPath = path.resolve('public/inTouch_original.glb');
+  const rawGlbPath = path.resolve('public/inTouch_raw.glb');
+
+  // Determine source file: check for uncompressed raw sources (inTouch_original.glb, inTouch_raw.glb)
+  // If present, pick the raw file with latest modification time. If not, use inTouch.glb.
+  let sourcePath = targetGlbPath;
+  const rawCandidates = [originalGlbPath, rawGlbPath].filter(p => fs.existsSync(p));
+
+  if (rawCandidates.length > 0) {
+    rawCandidates.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+    sourcePath = rawCandidates[0];
+  } else if (!fs.existsSync(targetGlbPath)) {
+    throw new Error('No input GLB found at public/inTouch_original.glb, public/inTouch_raw.glb, or public/inTouch.glb');
+  }
+
+  const sourceSizeMb = (fs.statSync(sourcePath).size / 1024 / 1024).toFixed(2);
+  console.log(`2. Reading input GLB "${sourcePath}" (${sourceSizeMb} MB)...`);
+  const document = await io.read(sourcePath);
+
+  console.log('3. Checking and resizing image textures with Sharp...');
+  const textures = document.getRoot().listTextures();
+  console.log(`Found ${textures.length} textures.`);
+
+  let textureIndex = 0;
+  for (const texture of textures) {
+    textureIndex++;
+    const name = texture.getName() || `texture_${textureIndex}`;
+    const imageBuffer = texture.getImage();
+    if (!imageBuffer || imageBuffer.length === 0) continue;
+
+    try {
+      const sharpImage = sharp(imageBuffer);
+      const metadata = await sharpImage.metadata();
+
+      let targetWidth = metadata.width;
+      let targetHeight = metadata.height;
+
+      const MAX_SIZE = 2048;
+      if (targetWidth > MAX_SIZE || targetHeight > MAX_SIZE) {
+        if (targetWidth >= targetHeight) {
+          targetHeight = Math.round((targetHeight * MAX_SIZE) / targetWidth);
+          targetWidth = MAX_SIZE;
+        } else {
+          targetWidth = Math.round((targetWidth * MAX_SIZE) / targetHeight);
+          targetHeight = MAX_SIZE;
+        }
+      }
+
+      const compressedBuffer = await sharpImage
+        .resize(targetWidth, targetHeight, { fit: 'inside', withoutEnlargement: true })
+        .toFormat('webp', { quality: 85, reductionEffort: 6 })
+        .toBuffer();
+
+      texture.setImage(compressedBuffer);
+      texture.setMimeType('image/webp');
+    } catch (err) {
+      console.warn(`  [${textureIndex}/${textures.length}] Warning on ${name}: ${err.message}`);
+    }
+  }
+
+  console.log('4. Pruning unused nodes, deduplicating accessors and animations...');
+  await document.transform(
+    prune(),
+    dedup(),
+    resample()
+  );
+
+  console.log(`5. Overwriting "${targetGlbPath}" with compressed model...`);
+  const outBuffer = await io.writeBinary(document);
+  fs.writeFileSync(targetGlbPath, outBuffer);
+
+  const initialSizeMb = (fs.statSync(sourcePath).size / 1024 / 1024).toFixed(2);
+  const finalSizeMb = (outBuffer.length / 1024 / 1024).toFixed(2);
+  console.log(`\n🎉 Optimization Complete!`);
+  console.log(`Input GLB Size:      ${initialSizeMb} MB`);
+  console.log(`Compressed GLB Size: ${finalSizeMb} MB`);
+}
+
+main().catch(err => {
+  console.error('Error optimizing GLB:', err);
+  process.exit(1);
+});

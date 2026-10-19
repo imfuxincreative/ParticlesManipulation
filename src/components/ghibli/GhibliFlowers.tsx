@@ -150,11 +150,15 @@ export const GhibliFlowers: React.FC<GhibliFlowersProps> = ({
         varying float vGrowthFactor;
 
         void main() {
-          #ifdef USE_INSTANCING
+          #if defined(USE_INSTANCING_COLOR)
             vColor = instanceColor;
+          #else
+            vColor = vec3(1.0, 0.45, 0.45);
+          #endif
+
+          #ifdef USE_INSTANCING
             vec4 worldPos = modelMatrix * instanceMatrix * vec4(position * uFlowerScale, 1.0);
           #else
-            vColor = vec3(1.0);
             vec4 worldPos = modelMatrix * vec4(position * uFlowerScale, 1.0);
           #endif
 

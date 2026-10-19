@@ -3,6 +3,7 @@
 import React from "react";
 import { useAtmosphere, AtmosphereConfig, deriveFogColorHex, REFERENCE_PRESET, DEFAULT_SKY_KEYFRAMES } from "@/lib/atmosphere";
 import { Sparkles, Cloud, Sun, Eye, Sliders, RotateCcw, Plus, Trash2, Play, Palette } from "lucide-react";
+import { useLoopTransition } from "@/components/transitions/transitionConfig";
 
 interface ToggleRowProps {
   label: string;
@@ -15,14 +16,12 @@ const ToggleRow: React.FC<ToggleRowProps> = ({ label, value, onChange }) => (
     <span className="text-slate-400 font-mono text-[10px]">{label}</span>
     <button
       onClick={() => onChange(!value)}
-      className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${
-        value ? "bg-emerald-600" : "bg-slate-800"
-      }`}
+      className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${value ? "bg-emerald-600" : "bg-slate-800"
+        }`}
     >
       <div
-        className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${
-          value ? "translate-x-4" : "translate-x-0"
-        }`}
+        className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${value ? "translate-x-4" : "translate-x-0"
+          }`}
       />
     </button>
   </div>
@@ -97,6 +96,8 @@ const ColorRow: React.FC<ColorRowProps> = ({ label, value, disabled = false, onC
 export const AtmospherePanel: React.FC = () => {
   const atmo = useAtmosphere();
   const set = atmo.set;
+  const loopTransition = useLoopTransition();
+  const loopCfg = loopTransition.config;
 
   const derivedFogHex = deriveFogColorHex(atmo);
 
@@ -261,17 +262,15 @@ export const AtmospherePanel: React.FC = () => {
           <div className="grid grid-cols-2 gap-1 bg-slate-950 p-0.5 rounded border border-white/10">
             <button
               onClick={() => set("glowMode", "tracked")}
-              className={`px-2 py-0.5 rounded text-[9px] cursor-pointer ${
-                atmo.glowMode === "tracked" ? "bg-emerald-600 text-white font-bold" : "text-slate-400"
-              }`}
+              className={`px-2 py-0.5 rounded text-[9px] cursor-pointer ${atmo.glowMode === "tracked" ? "bg-emerald-600 text-white font-bold" : "text-slate-400"
+                }`}
             >
               TRACKED
             </button>
             <button
               onClick={() => set("glowMode", "fixed")}
-              className={`px-2 py-0.5 rounded text-[9px] cursor-pointer ${
-                atmo.glowMode === "fixed" ? "bg-emerald-600 text-white font-bold" : "text-slate-400"
-              }`}
+              className={`px-2 py-0.5 rounded text-[9px] cursor-pointer ${atmo.glowMode === "fixed" ? "bg-emerald-600 text-white font-bold" : "text-slate-400"
+                }`}
             >
               FIXED
             </button>
@@ -399,22 +398,88 @@ export const AtmospherePanel: React.FC = () => {
           <div className="grid grid-cols-2 gap-1 bg-slate-950 p-0.5 rounded border border-white/10">
             <button
               onClick={() => set("quality", "high")}
-              className={`px-2 py-0.5 rounded text-[9px] cursor-pointer ${
-                atmo.quality === "high" ? "bg-emerald-600 text-white font-bold" : "text-slate-400"
-              }`}
+              className={`px-2 py-0.5 rounded text-[9px] cursor-pointer ${atmo.quality === "high" ? "bg-emerald-600 text-white font-bold" : "text-slate-400"
+                }`}
             >
               HIGH
             </button>
             <button
               onClick={() => set("quality", "low")}
-              className={`px-2 py-0.5 rounded text-[9px] cursor-pointer ${
-                atmo.quality === "low" ? "bg-emerald-600 text-white font-bold" : "text-slate-400"
-              }`}
+              className={`px-2 py-0.5 rounded text-[9px] cursor-pointer ${atmo.quality === "low" ? "bg-emerald-600 text-white font-bold" : "text-slate-400"
+                }`}
             >
               LOW
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Loop Transition (Scene Blur) */}
+      <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-emerald-400 tracking-wider">
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Instant Loop Transition (Blur)</span>
+          </div>
+          <button
+            onClick={() => {
+              const trigger = (window as any).triggerLoopTransition;
+              if (trigger) trigger("forward");
+              else loopTransition.triggerTransition("forward");
+            }}
+            disabled={loopTransition.isTransitioning}
+            className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 text-white text-[9px] font-mono rounded font-medium transition-colors cursor-pointer"
+          >
+            {loopTransition.isTransitioning ? "BLURRING..." : "TEST LOOP"}
+          </button>
+        </div>
+
+        <ToggleRow
+          label="ENABLE LOOP TRANSITION"
+          value={loopCfg.enabled}
+          onChange={(v) => loopTransition.updateConfig({ enabled: v })}
+        />
+        <SliderRow
+          label="MAX BLUR (PX)"
+          value={loopCfg.maxBlurPx}
+          min={10}
+          max={80}
+          step={2}
+          unit="px"
+          onChange={(v) => loopTransition.updateConfig({ maxBlurPx: v })}
+        />
+        <SliderRow
+          label="RAMP ZONE (FRAMES)"
+          value={loopCfg.zoneFrames ?? 200}
+          min={40}
+          max={400}
+          step={10}
+          unit=" fr"
+          onChange={(v) => loopTransition.updateConfig({ zoneFrames: v })}
+        />
+        <SliderRow
+          label="FOG VEIL DENSITY"
+          value={loopCfg.maxFogDensity ?? 0.075}
+          min={0.01}
+          max={0.15}
+          step={0.005}
+          unit=""
+          onChange={(v) => loopTransition.updateConfig({ maxFogDensity: v })}
+        />
+        <SliderRow
+          label="TEST LOOP DURATION"
+          value={loopCfg.duration}
+          min={300}
+          max={1500}
+          step={50}
+          unit="ms"
+          onChange={(v) => loopTransition.updateConfig({ duration: v })}
+        />
+        <ToggleRow
+          label="WEBGL OPTICAL BOKEH PASS"
+          value={loopCfg.useShaderBlur}
+          onChange={(v) => loopTransition.updateConfig({ useShaderBlur: v })}
+        />
       </div>
     </div>
   );
