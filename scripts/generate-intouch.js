@@ -54,7 +54,7 @@ if (!code.startsWith('// @ts-nocheck')) {
 if (!code.includes("useThree")) {
   code = code.replace(
     "import { useGLTF, PerspectiveCamera, useAnimations } from '@react-three/drei'",
-    "import { useGLTF, PerspectiveCamera, useAnimations } from '@react-three/drei'\nimport { useFrame, useThree } from '@react-three/fiber'"
+    "import { useGLTF, PerspectiveCamera, useAnimations } from '@react-three/drei'\nimport { useFrame, useThree } from '@react-three/fiber'\nimport { useLoopTransition } from '@/components/transitions/transitionConfig'"
   );
 }
 
@@ -76,6 +76,9 @@ code = code.replace(
   autoPlayAnimation?: boolean;
   cameraRef?: React.Ref<THREE.PerspectiveCamera>;
   makeDefaultCamera?: boolean;
+  subjectRef?: React.Ref<THREE.Group>;
+  activeAnimation?: string;
+  hoverProximity?: number;
 }
 
 export function Model(props: InTouchModelGeneratedProps)`
@@ -84,23 +87,56 @@ export function Model(props: InTouchModelGeneratedProps)`
 // Fix useRef typing for React 19
 code = code.replace(/const group = React\.useRef<THREE\.Group>\(\)/g, "const group = React.useRef<THREE.Group>(null)");
 
+// Wire props.subjectRef to the subject group
+code = code.replace(/<group name="subject"/g, '<group ref={props.subjectRef} name="subject"');
+
 // Inject animation auto-play and onLoaded callback hook
 const autoPlaySnippet = `  const { actions } = useAnimations(animations, group)
+  const hoverWeightRef = React.useRef(0);
 
   // Auto-play primary animation and notify parent of loaded nodes
   React.useEffect(() => {
     if (props.onLoaded) {
       props.onLoaded({ nodes, materials, actions });
     }
-    if (props.autoPlayAnimation !== false) {
-      const firstAction = Object.values(actions)[0];
-      if (firstAction) {
-        firstAction.reset().fadeIn(0.6).play();
-        firstAction.setLoop(THREE.LoopRepeat, Infinity);
-        firstAction.timeScale = 0.95;
+    if (props.autoPlayAnimation !== false && actions) {
+      const defAction = actions['default'] || actions['mixamo.com'] || Object.values(actions)[0];
+      const hovAction = actions['hover'];
+
+      if (defAction) {
+        defAction.reset().fadeIn(0.5).play();
+        defAction.setLoop(THREE.LoopRepeat, Infinity);
+        defAction.setEffectiveWeight(1.0);
+        defAction.timeScale = 0.95;
+      }
+      if (hovAction && hovAction !== defAction) {
+        hovAction.reset().play();
+        hovAction.setLoop(THREE.LoopRepeat, Infinity);
+        hovAction.setEffectiveWeight(0.0);
+        hovAction.timeScale = 0.95;
       }
     }
-  }, [actions, nodes, materials, props.onLoaded, props.autoPlayAnimation])`;
+  }, [actions, nodes, materials, props.onLoaded, props.autoPlayAnimation]);
+
+  // Frame-by-frame smooth cross-fade driven by proximity to Get In Touch button
+  useFrame((_, delta) => {
+    if (!actions) return;
+    const defAction = actions['default'] || actions['mixamo.com'];
+    const hovAction = actions['hover'];
+    if (!hovAction || !defAction) return;
+
+    // Read proximity (0.0 = far, 1.0 = hovering button) from props or transition store
+    const target = typeof props.hoverProximity === 'number'
+      ? props.hoverProximity
+      : (typeof useLoopTransition !== 'undefined' ? (useLoopTransition.getState?.()?.inTouchHoverProximity ?? 0) : 0);
+
+    const safeDelta = Math.min(delta, 0.1);
+    hoverWeightRef.current = THREE.MathUtils.damp(hoverWeightRef.current, target, 5.0, safeDelta);
+
+    const hw = THREE.MathUtils.clamp(hoverWeightRef.current, 0, 1);
+    hovAction.setEffectiveWeight(hw);
+    defAction.setEffectiveWeight(Math.max(0.002, 1.0 - hw));
+  });`;
 
 code = code.replace(/const \{ actions \} = useAnimations\(animations, group\)/, autoPlaySnippet);
 

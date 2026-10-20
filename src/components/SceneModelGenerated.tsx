@@ -473,8 +473,6 @@ type ActionName =
   | 'polySurface3490.007'
   | 'polySurface3490_concrete_02.3_0.006'
   | 'polySurface3490_rooftop_01.1_0.006'
-  | 'flying car.005'
-  | 'flying car.006'
   | 'FootballBall_Black_0.001'
   | 'jpbuilding.002'
   | 'root.008'
@@ -3330,6 +3328,9 @@ type ActionName =
   | 'Object_2.001'
   | 'Object_3.003'
   | 'scull.001'
+  | 'SGOBJ.obj.cleaner.materialmerger.gles.001'
+  | 'Object_2.006'
+  | 'Object_3.004'
   | 'sttu'
   | 'Collada visual scene group'
   | 'Statue'
@@ -3344,9 +3345,20 @@ interface GLTFAction extends THREE.AnimationClip {
 
 type GLTFResult = GLTF & {
   nodes: {
+    body: THREE.Mesh
+    LED: THREE.Mesh
+    body001: THREE.Mesh
+    LED001: THREE.Mesh
+    body002: THREE.Mesh
+    LED002: THREE.Mesh
+    body003: THREE.Mesh
+    LED003: THREE.Mesh
+    body004: THREE.Mesh
+    LED004: THREE.Mesh
+    body005: THREE.Mesh
+    LED005: THREE.Mesh
     Object_5006: THREE.Mesh
     Object_6002: THREE.Mesh
-    Object_6003: THREE.Mesh
     group26_2_rooftop_0123_0007: THREE.Mesh
     pCube116_2_rooftop_0124_0007: THREE.Mesh
     pCube117_2_rooftop_0121_0007: THREE.Mesh
@@ -3507,7 +3519,6 @@ type GLTFResult = GLTF & {
     apartment_02_fine_concrete_02_0002: THREE.Mesh
     apartment_02_fine_concrete_fine_0002: THREE.Mesh
     Background_building_by_JJ_Empty001_0: THREE.Mesh
-    Mountain: THREE.Mesh
     Object_4007: THREE.Mesh
     Object_5002: THREE.Mesh
     Object_6006: THREE.Mesh
@@ -7716,8 +7727,6 @@ type GLTFResult = GLTF & {
     wood_doors__0002: THREE.Mesh
     wood_pant__0002: THREE.Mesh
     wooden_cabinet__0002: THREE.Mesh
-    flying_car005: THREE.Mesh
-    flying_car006: THREE.Mesh
     lambert1001: THREE.Mesh
     Plane002: THREE.Mesh
     FootballBall_Black_0001: THREE.Mesh
@@ -7993,10 +8002,6 @@ type GLTFResult = GLTF & {
     Object_7006: THREE.Mesh
     Object_9001: THREE.Mesh
     dustbin: THREE.Mesh
-    flying_car: THREE.Mesh
-    flying_car001: THREE.Mesh
-    flying_car002: THREE.Mesh
-    flying_car003: THREE.Mesh
     lambert1: THREE.Mesh
     Object_2004: THREE.Mesh
     Object_4001: THREE.Mesh
@@ -8004,14 +8009,8 @@ type GLTFResult = GLTF & {
     Object_5004: THREE.Mesh
     Object_6: THREE.Mesh
     Plane006: THREE.Mesh
-    Plane_Material001_0: THREE.Mesh
-    Plane_Material001_0001: THREE.Mesh
-    Plane_Material001_0003: THREE.Mesh
-    Plane_Material001_0004: THREE.Mesh
-    Plane_Material001_0005: THREE.Mesh
     FootballBall_Black_0: THREE.Mesh
     ['Object005_Material_#107_0']: THREE.Mesh
-    Object_122001: THREE.Mesh
     Object_134001: THREE.Mesh
     Object_142001: THREE.Mesh
     Object_144001: THREE.Mesh
@@ -8081,15 +8080,34 @@ export function Model(props: React.ComponentPropsWithoutRef<'group'>) {
   return (
     <group ref={group} {...props} dispose={null}>
       <group name="Scene">
+        <group name="flying-car" position={[103.862, 86.453, 51.719]}>
+          <mesh name="body" geometry={nodes.body?.geometry} material={nodes.body?.material} position={[-0.047, 1.044, -10.375]} rotation={[1.547, 0.008, 0.003]} scale={1.204} />
+          <mesh name="LED" geometry={nodes.LED?.geometry} material={nodes.LED?.material} position={[-0.069, 1.095, -0.433]} rotation={[-0.024, -0.003, 0.008]} scale={[4.627, 1.588, 10.369]} />
+        </group>
+        <group name="flying-car001" position={[288.375, 86.453, -122.792]} rotation={[Math.PI, -0.015, Math.PI]}>
+          <mesh name="body001" geometry={nodes.body001?.geometry} material={nodes.body001?.material} position={[-0.047, 1.044, -10.375]} rotation={[1.547, 0.008, 0.003]} scale={1.204} />
+          <mesh name="LED001" geometry={nodes.LED001?.geometry} material={nodes.LED001?.material} position={[-0.069, 1.095, -0.433]} rotation={[-0.024, -0.003, 0.008]} scale={[4.627, 1.588, 10.369]} />
+        </group>
+        <group name="flying-car002" position={[288.375, 86.453, -122.792]} rotation={[Math.PI, -0.015, Math.PI]}>
+          <mesh name="body002" geometry={nodes.body002?.geometry} material={nodes.body002?.material} position={[-0.047, 1.044, -10.375]} rotation={[1.547, 0.008, 0.003]} scale={1.204} />
+          <mesh name="LED002" geometry={nodes.LED002?.geometry} material={nodes.LED002?.material} position={[-0.069, 1.095, -0.433]} rotation={[-0.024, -0.003, 0.008]} scale={[4.627, 1.588, 10.369]} />
+        </group>
+        <group name="flying-car003" position={[456.768, 86.453, -68.829]} rotation={[Math.PI, -0.015, Math.PI]}>
+          <mesh name="body003" geometry={nodes.body003?.geometry} material={nodes.body003?.material} position={[-0.047, 1.044, -10.375]} rotation={[1.547, 0.008, 0.003]} scale={1.204} />
+          <mesh name="LED003" geometry={nodes.LED003?.geometry} material={nodes.LED003?.material} position={[-0.069, 1.095, -0.433]} rotation={[-0.024, -0.003, 0.008]} scale={[4.627, 1.588, 10.369]} />
+        </group>
+        <group name="flying-car004" position={[1113.023, 578.815, -68.829]} rotation={[Math.PI, -1.543, Math.PI]}>
+          <mesh name="body004" geometry={nodes.body004?.geometry} material={nodes.body004?.material} position={[-0.047, 1.044, -10.375]} rotation={[1.547, 0.008, 0.003]} scale={1.204} />
+          <mesh name="LED004" geometry={nodes.LED004?.geometry} material={nodes.LED004?.material} position={[-0.069, 1.095, -0.434]} rotation={[-0.024, -0.003, 0.008]} scale={[4.627, 1.588, 10.369]} />
+        </group>
+        <group name="flying-car005" position={[1085.466, 578.815, 42.687]} rotation={[Math.PI, -1.543, Math.PI]}>
+          <mesh name="body005" geometry={nodes.body005?.geometry} material={nodes.body005?.material} position={[-0.047, 1.044, -10.375]} rotation={[1.547, 0.008, 0.003]} scale={1.204} />
+          <mesh name="LED005" geometry={nodes.LED005?.geometry} material={nodes.LED005?.material} position={[-0.069, 1.095, -0.433]} rotation={[-0.024, -0.003, 0.008]} scale={[4.627, 1.588, 10.369]} />
+        </group>
         <group name="_1002" position={[0, 0, -6.045]} scale={3.331}>
           <group name="mesh_0_0002" position={[-0.951, -0.297, -0.291]} scale={0}>
             <mesh name="Object_5006" geometry={nodes.Object_5006?.geometry} material={nodes.Object_5006?.material} position={[-675467.563, 784952.375, 4511500]} rotation={[0.012, 0.864, -0.184]} scale={0.593} />
             <mesh name="Object_6002" geometry={nodes.Object_6002?.geometry} material={nodes.Object_6002?.material} position={[-675467.563, 784952.375, 4511500]} rotation={[0.012, 0.864, -0.184]} scale={0.593} />
-          </group>
-        </group>
-        <group name="_1003" position={[0, 0, -6.044]} scale={3.331}>
-          <group name="mesh_0_0003" position={[-0.951, -0.297, -0.291]} scale={0}>
-            <mesh name="Object_6003" geometry={nodes.Object_6003?.geometry} material={nodes.Object_6003?.material} position={[-648.746, 1159.567, -1027.888]} rotation={[-0.028, -0.004, -0.059]} scale={0.97} />
           </group>
         </group>
         <group name="asianbuilding" position={[232.512, 0, -44.577]} rotation={[-Math.PI / 2, 0, 0]} scale={0.319}>
@@ -8577,9 +8595,6 @@ export function Model(props: React.ComponentPropsWithoutRef<'group'>) {
               </group>
             </group>
           </group>
-        </group>
-        <group name="Ground_city" position={[352.798, -42.459, -6.748]}>
-          <mesh name="Mountain" geometry={nodes.Mountain?.geometry} material={nodes.Mountain?.material} position={[814.215, 163.32, -1166.881]} rotation={[Math.PI, 0, -0.005]} scale={[3301.946, 3301.946, 3301.945]} />
         </group>
         <group name="jpbuilding" position={[45.933, 0, 37.559]} rotation={[-Math.PI / 2, 0, -1.582]} scale={3.208}>
           <group name="root011">
@@ -21218,8 +21233,6 @@ export function Model(props: React.ComponentPropsWithoutRef<'group'>) {
                 </group>
               </group>
             </group>
-            <mesh name="flying_car005" geometry={nodes.flying_car005?.geometry} material={nodes.flying_car005?.material} position={[-35.881, 82.318, -34.556]} rotation={[Math.PI / 2, 0, -0.03]} scale={1.392} />
-            <mesh name="flying_car006" geometry={nodes.flying_car006?.geometry} material={nodes.flying_car006?.material} position={[271.238, 97.637, -21.208]} rotation={[Math.PI / 2, 0, -3.125]} scale={2.034} />
             <mesh name="lambert1001" geometry={nodes.lambert1001?.geometry} material={nodes.lambert1001?.material} position={[17.733, -3.927, 15.772]} scale={0.338} />
             <mesh name="Plane002" geometry={nodes.Plane002?.geometry} material={nodes.Plane002?.material} position={[-59.402, 22.357, 28.23]} rotation={[1.641, 0, 0]} />
             <mesh name="FootballBall_Black_0001" geometry={nodes.FootballBall_Black_0001?.geometry} material={nodes.FootballBall_Black_0001?.material} position={[-161.378, -8.729, -6.492]} scale={0.168} />
@@ -21589,7 +21602,7 @@ export function Model(props: React.ComponentPropsWithoutRef<'group'>) {
               <mesh name="Object_3003" geometry={nodes.Object_3003?.geometry} material={nodes.Object_3003?.material} />
             </group>
           </group>
-          <group name="scull001" position={[-196.714, 454.928, 140.372]} rotation={[0.772, -0.005, -1.967]} scale={25.933}>
+          <group name="scull001" position={[28.71, 453.261, 140.372]} rotation={[0.772, -0.005, -1.967]} scale={8.318}>
             <group name="SGOBJobjcleanermaterialmergergles001">
               <mesh name="Object_2006" geometry={nodes.Object_2006?.geometry} material={nodes.Object_2006?.material} />
               <mesh name="Object_3004" geometry={nodes.Object_3004?.geometry} material={nodes.Object_3004?.material} />
@@ -21672,10 +21685,6 @@ export function Model(props: React.ComponentPropsWithoutRef<'group'>) {
         </group>
         <PerspectiveCamera name="Camera" makeDefault={true} near={0.1} fov={53.702} position={[-65.934, 15.831, -5.523]} rotation={[0, -Math.PI / 2, 0]} />
         <mesh name="dustbin" geometry={nodes.dustbin?.geometry} material={nodes.dustbin?.material} position={[1493.807, 502.883, 9.936]} rotation={[-1.571, 0, 0]} scale={0.116} />
-        <mesh name="flying_car" geometry={nodes.flying_car?.geometry} material={nodes.flying_car?.material} position={[130.297, 86.406, -34.066]} rotation={[Math.PI / 2, 0, -0.03]} scale={1.392} />
-        <mesh name="flying_car001" geometry={nodes.flying_car001?.geometry} material={nodes.flying_car001?.material} position={[437.416, 101.725, -20.717]} rotation={[Math.PI / 2, 0, -3.125]} scale={2.034} />
-        <mesh name="flying_car002" geometry={nodes.flying_car002?.geometry} material={nodes.flying_car002?.material} position={[1004.319, 101.725, 30.176]} rotation={[Math.PI / 2, 0, -3.125]} scale={2.034} />
-        <mesh name="flying_car003" geometry={nodes.flying_car003?.geometry} material={nodes.flying_car003?.material} position={[635.358, 173.955, -34.066]} rotation={[Math.PI / 2, 0, -0.03]} scale={1.392} />
         <mesh name="lambert1" geometry={nodes.lambert1?.geometry} material={nodes.lambert1?.material} position={[183.912, 0.161, 16.262]} scale={0.338} />
         <mesh name="Object_2004" geometry={nodes.Object_2004?.geometry} material={nodes.Object_2004?.material} />
         <mesh name="Object_4001" geometry={nodes.Object_4001?.geometry} material={nodes.Object_4001?.material} position={[531.427, 2.927, -5.733]} rotation={[-Math.PI, 0, -Math.PI]} scale={[-12.89, -0.601, -12.89]} />
@@ -21683,14 +21692,8 @@ export function Model(props: React.ComponentPropsWithoutRef<'group'>) {
         <mesh name="Object_5004" geometry={nodes.Object_5004?.geometry} material={nodes.Object_5004?.material} position={[3194.358, 56.096, 1088.748]} rotation={[0.002, 1.568, -3.142]} scale={0} />
         <mesh name="Object_6" geometry={nodes.Object_6?.geometry} material={nodes.Object_6?.material} position={[3194.358, 56.096, 1088.748]} rotation={[0.002, 1.568, -3.142]} scale={0} />
         <mesh name="Plane006" geometry={nodes.Plane006?.geometry} material={nodes.Plane006?.material} position={[106.776, 26.445, 28.721]} rotation={[1.641, 0, 0]} />
-        <mesh name="Plane_Material001_0" geometry={nodes.Plane_Material001_0?.geometry} material={nodes.Plane_Material001_0?.material} />
-        <mesh name="Plane_Material001_0001" geometry={nodes.Plane_Material001_0001?.geometry} material={nodes.Plane_Material001_0001?.material} />
-        <mesh name="Plane_Material001_0003" geometry={nodes.Plane_Material001_0003?.geometry} material={nodes.Plane_Material001_0003?.material} />
-        <mesh name="Plane_Material001_0004" geometry={nodes.Plane_Material001_0004?.geometry} material={nodes.Plane_Material001_0004?.material} />
-        <mesh name="Plane_Material001_0005" geometry={nodes.Plane_Material001_0005?.geometry} material={nodes.Plane_Material001_0005?.material} />
         <mesh name="FootballBall_Black_0" geometry={nodes.FootballBall_Black_0?.geometry} material={nodes.FootballBall_Black_0?.material} position={[4.801, -4.641, -6.002]} scale={0.168} />
         <mesh name="Object005_Material_#107_0" geometry={nodes['Object005_Material_#107_0']?.geometry} material={nodes['Object005_Material_#107_0']?.material} position={[190.545, 1.946, -35.216]} rotation={[-1.566, 0, -0.336]} scale={0.102} />
-        <mesh name="Object_122001" geometry={nodes.Object_122001?.geometry} material={nodes.Object_122001?.material} />
         <mesh name="Object_134001" geometry={nodes.Object_134001?.geometry} material={nodes.Object_134001?.material} />
         <mesh name="Object_142001" geometry={nodes.Object_142001?.geometry} material={nodes.Object_142001?.material} />
         <mesh name="Object_144001" geometry={nodes.Object_144001?.geometry} material={nodes.Object_144001?.material} />

@@ -36,6 +36,7 @@ export interface LoopTransitionState {
   // Active scene lifecycle
   activeScene: ActiveSceneId;
   inTouchState: InTouchPhase;
+  inTouchHoverProximity: number; // 0.0 (far) to 1.0 (on 'Get in touch' button)
 
   // Actions
   updateConfig: (partial: Partial<LoopTransitionConfig>) => void;
@@ -43,6 +44,7 @@ export interface LoopTransitionState {
   setProgress: (progress: number, phase?: "idle" | "in" | "out") => void;
   setActiveScene: (scene: ActiveSceneId) => void;
   setInTouchState: (state: InTouchPhase) => void;
+  setInTouchHoverProximity: (proximity: number) => void;
   transitionToInTouch: (direction?: "forward" | "backward") => void;
   returnToMainScene: (target?: "last" | "first") => void;
   reset: () => void;
@@ -80,9 +82,16 @@ export const useLoopTransition = create<LoopTransitionState>((set, get) => ({
 
   activeScene: "main",
   inTouchState: "idle",
+  inTouchHoverProximity: 0.0,
 
   setActiveScene: (scene) => set({ activeScene: scene }),
   setInTouchState: (state) => set({ inTouchState: state }),
+  setInTouchHoverProximity: (proximity) => {
+    const clamped = Math.max(0, Math.min(1, proximity));
+    if (Math.abs(get().inTouchHoverProximity - clamped) > 0.002) {
+      set({ inTouchHoverProximity: clamped });
+    }
+  },
 
   updateConfig: (partial) => {
     set((state) => ({
@@ -119,6 +128,7 @@ export const useLoopTransition = create<LoopTransitionState>((set, get) => ({
       fogDensityMultiplier: 1.0,
       activeScene: "main",
       inTouchState: "idle",
+      inTouchHoverProximity: 0.0,
     });
   },
 

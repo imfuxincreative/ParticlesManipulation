@@ -9,9 +9,10 @@ import React from 'react'
 import { useGraph } from '@react-three/fiber'
 import { useGLTF, PerspectiveCamera, useAnimations } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
+import { useLoopTransition } from '@/components/transitions/transitionConfig'
 import { GLTF, SkeletonUtils } from 'three-stdlib'
 
-type ActionName = 'mixamo.com'
+type ActionName = 'default' | 'hover'
 
 interface GLTFAction extends THREE.AnimationClip {
   name: ActionName
@@ -39,29 +40,61 @@ export interface InTouchModelGeneratedProps extends React.ComponentPropsWithoutR
   cameraRef?: React.Ref<THREE.PerspectiveCamera>;
   makeDefaultCamera?: boolean;
   subjectRef?: React.Ref<THREE.Group>;
+  activeAnimation?: string;
+  hoverProximity?: number;
 }
 
 export function Model(props: InTouchModelGeneratedProps) {
   const group = React.useRef<THREE.Group>(null)
-  const { scene, animations } = useGLTF('/inTouch.glb?v=1792407654805')
+  const { scene, animations } = useGLTF('/inTouch.glb?v=1792474431637')
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { nodes, materials } = useGraph(clone) as GLTFResult
     const { actions } = useAnimations(animations, group)
+  const hoverWeightRef = React.useRef(0);
 
   // Auto-play primary animation and notify parent of loaded nodes
   React.useEffect(() => {
     if (props.onLoaded) {
       props.onLoaded({ nodes, materials, actions });
     }
-    if (props.autoPlayAnimation !== false) {
-      const firstAction = Object.values(actions)[0];
-      if (firstAction) {
-        firstAction.reset().fadeIn(0.6).play();
-        firstAction.setLoop(THREE.LoopRepeat, Infinity);
-        firstAction.timeScale = 0.95;
+    if (props.autoPlayAnimation !== false && actions) {
+      const defAction = actions['default'] || actions['mixamo.com'] || Object.values(actions)[0];
+      const hovAction = actions['hover'];
+
+      if (defAction) {
+        defAction.reset().fadeIn(0.5).play();
+        defAction.setLoop(THREE.LoopRepeat, Infinity);
+        defAction.setEffectiveWeight(1.0);
+        defAction.timeScale = 0.95;
+      }
+      if (hovAction && hovAction !== defAction) {
+        hovAction.reset().play();
+        hovAction.setLoop(THREE.LoopRepeat, Infinity);
+        hovAction.setEffectiveWeight(0.0);
+        hovAction.timeScale = 0.95;
       }
     }
-  }, [actions, nodes, materials, props.onLoaded, props.autoPlayAnimation])
+  }, [actions, nodes, materials, props.onLoaded, props.autoPlayAnimation]);
+
+  // Frame-by-frame smooth cross-fade driven by proximity to Get In Touch button
+  useFrame((_, delta) => {
+    if (!actions) return;
+    const defAction = actions['default'] || actions['mixamo.com'];
+    const hovAction = actions['hover'];
+    if (!hovAction || !defAction) return;
+
+    // Read proximity (0.0 = far, 1.0 = hovering button) from props or transition store
+    const target = typeof props.hoverProximity === 'number'
+      ? props.hoverProximity
+      : (typeof useLoopTransition !== 'undefined' ? (useLoopTransition.getState?.()?.inTouchHoverProximity ?? 0) : 0);
+
+    const safeDelta = Math.min(delta, 0.1);
+    hoverWeightRef.current = THREE.MathUtils.damp(hoverWeightRef.current, target, 5.0, safeDelta);
+
+    const hw = THREE.MathUtils.clamp(hoverWeightRef.current, 0, 1);
+    hovAction.setEffectiveWeight(hw);
+    defAction.setEffectiveWeight(Math.max(0.002, 1.0 - hw));
+  });
   return (
     <group ref={group} {...props} dispose={null}>
       <group name="Scene">
@@ -76,10 +109,10 @@ export function Model(props: InTouchModelGeneratedProps) {
           <skinnedMesh name="Object_8" geometry={nodes.Object_8?.geometry} material={props.customMaterial !== undefined ? (props.customMaterial || undefined) : nodes.Object_8?.material} skeleton={nodes.Object_8.skeleton} />
         </group>
         
-        <PerspectiveCamera name="Camera" ref={props.cameraRef} makeDefault={props.makeDefaultCamera !== false} far={100} near={0.1} fov={61.555} position={[-0.26, 5.941, 3.703]} rotation={[0.029, -0.069, 0.002]} />
+        <PerspectiveCamera name="Camera" ref={props.cameraRef} makeDefault={props.makeDefaultCamera !== false} far={100} near={0.1} fov={61.555} position={[-0.345, 5.958, 4.075]} rotation={[0.029, -0.069, 0.002]} />
       </group>
     </group>
   )
 }
 
-useGLTF.preload('/inTouch.glb?v=1792407654805')
+useGLTF.preload('/inTouch.glb?v=1792474431637')

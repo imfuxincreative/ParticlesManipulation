@@ -19,6 +19,11 @@ interface InTouchModelProps {
    * If true (default), enables subtle procedural mouse hover tracking across subject body and head.
    */
   enableMouseTracking?: boolean;
+  /**
+   * Optional specific animation action to play ('default', 'hover', etc.).
+   * If omitted, 'default' is played automatically.
+   */
+  activeAnimation?: string;
 }
 
 interface InTouchMouseProceduralRigProps {
@@ -65,6 +70,17 @@ const InTouchMouseProceduralRig: React.FC<InTouchMouseProceduralRigProps> = ({
     []
   );
   const swayQuat = useMemo(() => new THREE.Quaternion(), []);
+
+  // Per-bone cache storing base animated rotation and last written rotation to prevent accumulation
+  const boneCache = useRef(
+    new Map<
+      THREE.Bone,
+      {
+        baseQuat: THREE.Quaternion;
+        lastAppliedQuat: THREE.Quaternion;
+      }
+    >()
+  );
 
   useFrame((state, delta) => {
     // 1. Maintain contact tracking for frosted glass wall
@@ -147,12 +163,36 @@ const InTouchMouseProceduralRig: React.FC<InTouchMouseProceduralRigProps> = ({
       rollWeight: number
     ) => {
       if (!bone) return;
+      let cache = boneCache.current.get(bone);
+      if (!cache) {
+        cache = {
+          baseQuat: bone.quaternion.clone(),
+          lastAppliedQuat: bone.quaternion.clone(),
+        };
+        boneCache.current.set(bone, cache);
+      }
+
+      // If bone.quaternion equals lastAppliedQuat, the mixer did not evaluate a new keyframe
+      // on this frame (static clip or gap). Restore baseQuat first so rotation NEVER accumulates!
+      const isDirtyFromLastFrame =
+        Math.abs(bone.quaternion.x - cache.lastAppliedQuat.x) < 1e-5 &&
+        Math.abs(bone.quaternion.y - cache.lastAppliedQuat.y) < 1e-5 &&
+        Math.abs(bone.quaternion.z - cache.lastAppliedQuat.z) < 1e-5 &&
+        Math.abs(bone.quaternion.w - cache.lastAppliedQuat.w) < 1e-5;
+
+      if (isDirtyFromLastFrame) {
+        bone.quaternion.copy(cache.baseQuat);
+      } else {
+        cache.baseQuat.copy(bone.quaternion);
+      }
+
       const yaw = px * yawWeight;
       const pitch = -py * pitchWeight;
       const roll = -px * rollWeight;
       tempEuler.set(pitch, yaw, roll, "YXZ");
       tempQuat.setFromEuler(tempEuler);
       bone.quaternion.multiply(tempQuat);
+      cache.lastAppliedQuat.copy(bone.quaternion);
     };
 
     // Distributed look-at and spinal lean
@@ -171,6 +211,7 @@ export const InTouchModel: React.FC<InTouchModelProps> = ({
   useOriginalMaterials = false,
   cameraRef,
   enableMouseTracking = true,
+  activeAnimation,
 }) => {
   const groupRef = useRef<THREE.Group>(null);
   const zenithColor = useAtmosphere((s) => s.zenithColor);
@@ -259,6 +300,7 @@ export const InTouchModel: React.FC<InTouchModelProps> = ({
         onLoaded={handleLoaded}
         autoPlayAnimation={true}
         cameraRef={cameraRef}
+        activeAnimation={activeAnimation}
       />
       <InTouchMouseProceduralRig
         subjectGroupRef={subjectGroupRef}
