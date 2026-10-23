@@ -103,7 +103,8 @@ export const TargetOverlayBridge: React.FC<TargetOverlayBridgeProps> = ({
     const positions: Record<string, { x: number; y: number }> = {};
 
     for (const [id, obj] of targetObjectsRef.current) {
-      // Read the updated world position (accounts for animations, parenting, etc.)
+      // Ensure world matrix is fresh (accounts for animations, skeletal rigs, parenting)
+      obj.updateWorldMatrix(true, false);
       obj.getWorldPosition(_worldPos);
 
       const screenPos = projectToScreen(_worldPos, camera, size);

@@ -216,7 +216,7 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
   const framesToSimRef = useRef(MORPH_FRAMES);
   const physicsReady = useRef(false);
 
-  const isDraggingRef = useRef(false);
+  const isHoveredRef = useRef(false);
   const lastPointerPosRef = useRef<THREE.Vector3>(new THREE.Vector3());
   const pointerVelocityRef = useRef<THREE.Vector3>(new THREE.Vector3());
   const currentPointerLocalRef = useRef<THREE.Vector3>(new THREE.Vector3());
@@ -253,10 +253,84 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     }
   }, [modelIndex, allModelData]);
 
-  const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation();
-    isDraggingRef.current = true;
+  const handlePointerEnter = useCallback((e: ThreeEvent<PointerEvent>) => {
+    // If mouse button is held down (e.g. dragging camera/scene), do not animate
+    const isMouseDrag = e.pointerType === "mouse" && (e.buttons > 0 || (e.nativeEvent && (e.nativeEvent as PointerEvent).buttons > 0));
+    if (isMouseDrag) {
+      isHoveredRef.current = false;
+      return;
+    }
 
+    if (!groupRef.current) return;
+
+    const worldPos = new THREE.Vector3();
+    groupRef.current.getWorldPosition(worldPos);
+    const camDir = new THREE.Vector3();
+    camera.getWorldDirection(camDir);
+    dragPlaneRef.current.setFromNormalAndCoplanarPoint(camDir.negate(), worldPos);
+
+    const intersection = new THREE.Vector3();
+    raycaster.ray.intersectPlane(dragPlaneRef.current, intersection);
+    if (intersection) {
+      groupRef.current.worldToLocal(intersection);
+      lastPointerPosRef.current.copy(intersection);
+      currentPointerLocalRef.current.copy(intersection);
+      pointerVelocityRef.current.set(0, 0, 0);
+      isHoveredRef.current = true;
+    }
+  }, [camera, raycaster]);
+
+  const handlePointerMove = useCallback((e: ThreeEvent<PointerEvent>) => {
+    // If dragging with mouse button pressed, do not animate on drag
+    const isMouseDrag = e.pointerType === "mouse" && (e.buttons > 0 || (e.nativeEvent && (e.nativeEvent as PointerEvent).buttons > 0));
+    if (isMouseDrag) {
+      isHoveredRef.current = false;
+      pointerVelocityRef.current.set(0, 0, 0);
+      return;
+    }
+
+    if (!groupRef.current) return;
+
+    const worldPos = new THREE.Vector3();
+    groupRef.current.getWorldPosition(worldPos);
+    const camDir = new THREE.Vector3();
+    camera.getWorldDirection(camDir);
+    dragPlaneRef.current.setFromNormalAndCoplanarPoint(camDir.negate(), worldPos);
+
+    const intersection = new THREE.Vector3();
+    raycaster.ray.intersectPlane(dragPlaneRef.current, intersection);
+
+    if (intersection) {
+      groupRef.current.worldToLocal(intersection);
+
+      if (!isHoveredRef.current) {
+        lastPointerPosRef.current.copy(intersection);
+        currentPointerLocalRef.current.copy(intersection);
+        pointerVelocityRef.current.set(0, 0, 0);
+        isHoveredRef.current = true;
+      } else {
+        pointerVelocityRef.current.subVectors(intersection, lastPointerPosRef.current);
+        pointerVelocityRef.current.clampLength(0, 2.5);
+        lastPointerPosRef.current.copy(intersection);
+        currentPointerLocalRef.current.copy(intersection);
+      }
+    }
+  }, [camera, raycaster]);
+
+  const handlePointerLeave = useCallback(() => {
+    isHoveredRef.current = false;
+    pointerVelocityRef.current.set(0, 0, 0);
+  }, []);
+
+  const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
+    // On mouse click/drag, cancel hover animation so dragging doesn't trigger particle motion
+    if (e.pointerType === "mouse") {
+      isHoveredRef.current = false;
+      pointerVelocityRef.current.set(0, 0, 0);
+    }
+  }, []);
+
+  const handlePointerUp = useCallback((e: ThreeEvent<PointerEvent>) => {
     if (groupRef.current) {
       const worldPos = new THREE.Vector3();
       groupRef.current.getWorldPosition(worldPos);
@@ -271,38 +345,21 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
         lastPointerPosRef.current.copy(intersection);
         currentPointerLocalRef.current.copy(intersection);
         pointerVelocityRef.current.set(0, 0, 0);
+        isHoveredRef.current = true;
       }
     }
-  };
-
-  const handlePointerUp = () => {
-    isDraggingRef.current = false;
-    pointerVelocityRef.current.set(0, 0, 0);
-  };
-
-  const handlePointerMove = () => {
-    if (!isDraggingRef.current || !groupRef.current) return;
-
-    const intersection = new THREE.Vector3();
-    raycaster.ray.intersectPlane(dragPlaneRef.current, intersection);
-
-    if (intersection) {
-      groupRef.current.worldToLocal(intersection);
-      pointerVelocityRef.current.subVectors(intersection, lastPointerPosRef.current);
-      lastPointerPosRef.current.copy(intersection);
-      currentPointerLocalRef.current.copy(intersection);
-    }
-  };
+  }, [camera, raycaster]);
 
   useEffect(() => {
-    const onGlobalUp = () => {
-      isDraggingRef.current = false;
+    const onBlurOrLeave = () => {
+      isHoveredRef.current = false;
+      pointerVelocityRef.current.set(0, 0, 0);
     };
-    window.addEventListener("pointerup", onGlobalUp);
-    window.addEventListener("pointercancel", onGlobalUp);
+    window.addEventListener("blur", onBlurOrLeave);
+    document.addEventListener("mouseleave", onBlurOrLeave);
     return () => {
-      window.removeEventListener("pointerup", onGlobalUp);
-      window.removeEventListener("pointercancel", onGlobalUp);
+      window.removeEventListener("blur", onBlurOrLeave);
+      document.removeEventListener("mouseleave", onBlurOrLeave);
     };
   }, []);
 
@@ -453,7 +510,7 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     const morphEase = settings.loaderMorphSpeed ?? 0.025;
     const damping = settings.fluidDamping ?? 0.88;
 
-    const isDragging = isDraggingRef.current;
+    const isHovered = isHoveredRef.current;
     const pLoc = currentPointerLocalRef.current;
     const pVel = pointerVelocityRef.current;
     const pSpeed = pVel.length();
@@ -465,7 +522,7 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     for (let i = 0; i < count; i++) {
       const ix = i * 3, iy = ix + 1, iz = ix + 2;
 
-      if (isDragging && pSpeed > 0.001) {
+      if (isHovered && pSpeed > 0.001) {
         const dx = pos[ix] - pLoc.x;
         const dy = pos[iy] - pLoc.y;
         const dz = pos[iz] - pLoc.z;
@@ -542,13 +599,15 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
   return (
     <group ref={groupRef} position={position} rotation={rotation}>
       <mesh
+        onPointerEnter={handlePointerEnter}
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
-        onPointerMove={handlePointerMove}
         visible={false}
       >
         <sphereGeometry args={[5.0, 16, 16]} />
-        <meshBasicMaterial transparent opacity={0} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
       <points ref={pointsRef} frustumCulled={false}>

@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { CalloutTargetConfig } from "@/config/targetConfig";
+import ScrambleTitle from "../ui/ScrambleTitle";
 
 /**
  * CalloutLabel
@@ -19,6 +20,8 @@ interface CalloutLabelProps {
   config: CalloutTargetConfig;
   /** Whether the label is visible */
   visible: boolean;
+  /** Scroll-driven progress (0.0 to 1.0) */
+  progress?: number;
 }
 
 export const CalloutLabel: React.FC<CalloutLabelProps> = ({
@@ -26,9 +29,19 @@ export const CalloutLabel: React.FC<CalloutLabelProps> = ({
   y,
   config,
   visible,
+  progress,
 }) => {
   const isLeft = config.direction === "left";
   const color = config.accentColor ?? "rgba(255, 255, 255, 0.9)";
+
+  const isScrollDriven = progress !== undefined;
+  // Label starts revealing as horizontal line reaches out (from 35% to 100% of line draw)
+  const labelProgress = isScrollDriven
+    ? Math.max(0, Math.min(1, (progress - 0.35) / 0.65))
+    : (visible ? 1 : 0);
+
+  const labelOpacity = isScrollDriven ? Math.min(1, labelProgress * 2) : (visible ? 1 : 0);
+  const isInteractive = isScrollDriven ? progress > 0.8 : visible;
 
   return (
     <div
@@ -44,9 +57,11 @@ export const CalloutLabel: React.FC<CalloutLabelProps> = ({
         // Add small gap from line end
         paddingLeft: isLeft ? 0 : 10,
         paddingRight: isLeft ? 10 : 0,
-        pointerEvents: visible ? "auto" : "none",
-        opacity: visible ? 1 : 0,
-        transition: visible
+        pointerEvents: isInteractive ? "auto" : "none",
+        opacity: labelOpacity,
+        transition: isScrollDriven
+          ? "none"
+          : visible
           ? "opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s"
           : "opacity 0.3s ease",
         willChange: "opacity, transform",
@@ -54,7 +69,6 @@ export const CalloutLabel: React.FC<CalloutLabelProps> = ({
     >
       <div
         style={{
-          fontFamily: "var(--font-geist-mono), 'Courier New', monospace",
           color,
           userSelect: "none",
           whiteSpace: "nowrap",
@@ -65,12 +79,15 @@ export const CalloutLabel: React.FC<CalloutLabelProps> = ({
         <h3
           style={{
             fontSize: "12px",
-
             textTransform: "uppercase",
             lineHeight: "1.3",
           }}
         >
-          {config.label}
+          <ScrambleTitle
+            title={config.label}
+            visible={isScrollDriven ? progress > 0.35 : visible}
+            progress={isScrollDriven ? labelProgress : undefined}
+          />
         </h3>
 
         {/* Sublabel */}
@@ -85,10 +102,14 @@ export const CalloutLabel: React.FC<CalloutLabelProps> = ({
               marginTop: "2px",
             }}
           >
-            {config.sublabel}
+            <ScrambleTitle
+              title={config.sublabel}
+              visible={isScrollDriven ? progress > 0.35 : visible}
+              progress={isScrollDriven ? labelProgress : undefined}
+            />
           </h5>
         )}
       </div>
-    </div >
+    </div>
   );
 };

@@ -20,6 +20,37 @@ interface TargetScreenPositions {
   [targetId: string]: { x: number; y: number };
 }
 
+/**
+ * Calculates continuous scroll-scrub progress (0.0 to 1.0) across the target's frame range:
+ * - 0.0 before frameStart
+ * - 0.0 -> 1.0 smoothly over fadeFrames as scroll enters frameStart
+ * - 1.0 stable plateau across the middle
+ * - 1.0 -> 0.0 smoothly over fadeFrames as scroll reaches frameEnd
+ * - 0.0 past frameEnd
+ */
+export function calculateCalloutProgress(
+  currentFrame: number,
+  frameStart: number,
+  frameEnd: number,
+  fadeFrames: number = 150
+): number {
+  if (currentFrame < frameStart || currentFrame > frameEnd) return 0;
+  const span = frameEnd - frameStart;
+  if (span <= 0) return 0;
+
+  // Allow up to half the span for transition so in and out don't overlap
+  const effFade = Math.min(fadeFrames, Math.floor(span * 0.48));
+  if (effFade <= 0) return 1;
+
+  if (currentFrame < frameStart + effFade) {
+    return Math.max(0, Math.min(1, (currentFrame - frameStart) / effFade));
+  }
+  if (currentFrame > frameEnd - effFade) {
+    return Math.max(0, Math.min(1, (frameEnd - currentFrame) / effFade));
+  }
+  return 1;
+}
+
 export const CalloutOverlaySystem: React.FC = () => {
   const [positions, setPositions] = useState<TargetScreenPositions>({});
   const [currentFrame, setCurrentFrame] = useState<number>(0);
@@ -80,9 +111,14 @@ export const CalloutOverlaySystem: React.FC = () => {
     };
   }, [scheduleUpdate]);
 
-  // Determine visibility for each target based on current frame
-  const getVisibility = (config: CalloutTargetConfig): boolean => {
-    return currentFrame >= config.frameStart && currentFrame <= config.frameEnd;
+  // Compute smooth scroll-driven progress (0 to 1) for a target
+  const getTargetProgress = (config: CalloutTargetConfig): number => {
+    return calculateCalloutProgress(
+      currentFrame,
+      config.frameStart,
+      config.frameEnd,
+      config.fadeFrames ?? 150
+    );
   };
 
   return (
@@ -112,13 +148,17 @@ export const CalloutOverlaySystem: React.FC = () => {
           const pos = positions[config.id];
           if (!pos) return null;
 
+          const progress = getTargetProgress(config);
+          if (progress <= 0) return null;
+
           return (
             <SVGCalloutLine
               key={config.id}
               anchorX={pos.x}
               anchorY={pos.y}
               config={config}
-              visible={getVisibility(config)}
+              visible={progress > 0}
+              progress={progress}
               scale={svgScale}
             />
           );
@@ -130,8 +170,10 @@ export const CalloutOverlaySystem: React.FC = () => {
         const pos = positions[config.id];
         if (!pos) return null;
 
+        const progress = getTargetProgress(config);
+        if (progress <= 0) return null;
+
         const labelPos = getLabelPosition(pos.x, pos.y, config, svgScale);
-        const visible = getVisibility(config);
 
         return (
           <CalloutLabel
@@ -139,7 +181,8 @@ export const CalloutOverlaySystem: React.FC = () => {
             x={labelPos.x}
             y={labelPos.y}
             config={config}
-            visible={visible}
+            visible={progress > 0}
+            progress={progress}
           />
         );
       })}

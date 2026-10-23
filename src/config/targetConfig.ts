@@ -22,6 +22,13 @@ export interface CalloutTargetConfig {
   frameEnd: number;
 
   /**
+   * Optional number of scroll frames for the callout to scrub in / out.
+   * Defaults to 80 frames (or ~35% of total span if span is short).
+   * @default 150
+   */
+  fadeFrames?: number;
+
+  /**
    * Direction the horizontal SVG line extends from the diagonal.
    * "left"  → label sits to the LEFT of the target point
    * "right" → label sits to the RIGHT of the target point
@@ -66,8 +73,8 @@ export const CALLOUT_TARGETS: CalloutTargetConfig[] = [
     id: "glass",
     label: "Creative dev & Designer",
     sublabel: "I love to craft visual experience",
-    frameStart: 1473,
-    frameEnd: 1857,
+    frameStart: 1242,
+    frameEnd: 1721,
     direction: "left",
     diagonalLength: 80,
     horizontalLength: 130,
@@ -79,7 +86,8 @@ export const CALLOUT_TARGETS: CalloutTargetConfig[] = [
     label: "Hi, I'm meezan",
     sublabel: "I love to craft visual experience",
     frameStart: 3027,
-    frameEnd: 3216,
+    frameEnd: 3416,
+    fadeFrames: 150,
     direction: "left",
     diagonalLength: 80,
     horizontalLength: 130,
@@ -90,8 +98,8 @@ export const CALLOUT_TARGETS: CalloutTargetConfig[] = [
     id: "nolv",
     label: "nolv",
     sublabel: "No Limit Visual",
-    frameStart: 1473,
-    frameEnd: 1857,
+    frameStart: 1212,
+    frameEnd: 1710,
     direction: "right",
     diagonalLength: 80,
     horizontalLength: 130,
@@ -102,8 +110,8 @@ export const CALLOUT_TARGETS: CalloutTargetConfig[] = [
     id: "screen",
     label: "my pc",
     sublabel: "don't mess with it",
-    frameStart: 3456,
-    frameEnd: 5000,
+    frameStart: 3656,
+    frameEnd: 4050,
     direction: "right",
     diagonalLength: 80,
     horizontalLength: 130,
@@ -113,8 +121,8 @@ export const CALLOUT_TARGETS: CalloutTargetConfig[] = [
   {
     id: "ig",
     label: "@IMFUCXINCREATIVE",
-    frameStart: 1473,
-    frameEnd: 1857,
+    frameStart: 1242,
+    frameEnd: 1721,
     direction: "right",
     diagonalLength: 80,
     horizontalLength: 130,
@@ -126,8 +134,8 @@ export const CALLOUT_TARGETS: CalloutTargetConfig[] = [
     id: "target2",
     label: "    AVAILABLE TO HIRE",
     sublabel: "CREATIVE DEV / FRONTEND DEV",
-    frameStart: 3613,
-    frameEnd: 3784,
+    frameStart: 1212,
+    frameEnd: 1721,
     direction: "right",
     diagonalLength: 70,
     horizontalLength: 140,

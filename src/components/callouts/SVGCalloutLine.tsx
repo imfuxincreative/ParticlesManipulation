@@ -23,6 +23,8 @@ interface SVGCalloutLineProps {
   visible: boolean;
   /** Responsive multiplier for line lengths (1 = full size, 0.5 = half). @default 1 */
   scale?: number;
+  /** Scroll-driven progress (0.0 to 1.0) */
+  progress?: number;
 }
 
 export const SVGCalloutLine: React.FC<SVGCalloutLineProps> = ({
@@ -31,6 +33,7 @@ export const SVGCalloutLine: React.FC<SVGCalloutLineProps> = ({
   config,
   visible,
   scale = 1,
+  progress,
 }) => {
   const diagonalLength = (config.diagonalLength ?? 80) * scale;
   const horizontalLength = (config.horizontalLength ?? 120) * scale;
@@ -54,12 +57,17 @@ export const SVGCalloutLine: React.FC<SVGCalloutLineProps> = ({
   // SVG path: M anchor → L diagonal end → L horizontal end
   const pathD = `M ${anchorX} ${anchorY} L ${diagEndX} ${diagEndY} L ${horizEndX} ${horizEndY}`;
 
+  // If progress is provided, line is scrubbed directly by scroll; otherwise use binary visibility transition
+  const isScrollDriven = progress !== undefined;
+  const currentOffset = isScrollDriven ? 1 - progress : (visible ? 0 : 1);
+  const dotOpacity = isScrollDriven ? Math.min(1, progress * 4) : (visible ? 1 : 0);
+  const jointOpacity = isScrollDriven
+    ? (progress >= 0.35 ? Math.min(0.7, (progress - 0.35) * 4) : 0)
+    : (visible ? 0.7 : 0);
+
   return (
     <>
-      {/* Main line path with draw-in/draw-out animation.
-          pathLength="1" normalizes the total length to 1 regardless of actual geometry,
-          so dasharray/dashoffset stay fixed at 0 or 1 and the CSS transition is never
-          interrupted by position updates during scrolling. */}
+      {/* Main line path with draw-in/draw-out */}
       <path
         d={pathD}
         fill="none"
@@ -69,9 +77,11 @@ export const SVGCalloutLine: React.FC<SVGCalloutLineProps> = ({
         strokeLinejoin="round"
         pathLength={1}
         strokeDasharray={1}
-        strokeDashoffset={visible ? 0 : 1}
+        strokeDashoffset={currentOffset}
         style={{
-          transition: visible
+          transition: isScrollDriven
+            ? "none"
+            : visible
             ? "stroke-dashoffset 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
             : "stroke-dashoffset 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53)",
           filter: "drop-shadow(0 0 3px rgba(255,255,255,0.15))",
@@ -85,8 +95,8 @@ export const SVGCalloutLine: React.FC<SVGCalloutLineProps> = ({
         r={2}
         fill={color}
         style={{
-          opacity: visible ? 1 : 0,
-          transition: "opacity 0.4s ease",
+          opacity: dotOpacity,
+          transition: isScrollDriven ? "none" : "opacity 0.4s ease",
           filter: "drop-shadow(0 0 4px rgba(255,255,255,0.3))",
         }}
       />
@@ -96,8 +106,8 @@ export const SVGCalloutLine: React.FC<SVGCalloutLineProps> = ({
         points={`${diagEndX},${diagEndY - 3} ${diagEndX + 3},${diagEndY} ${diagEndX},${diagEndY + 3} ${diagEndX - 3},${diagEndY}`}
         fill={color}
         style={{
-          opacity: visible ? 0.7 : 0,
-          transition: "opacity 0.6s ease 0.2s",
+          opacity: jointOpacity,
+          transition: isScrollDriven ? "none" : "opacity 0.6s ease 0.2s",
         }}
       />
     </>

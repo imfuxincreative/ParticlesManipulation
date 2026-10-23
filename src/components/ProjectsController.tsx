@@ -5,6 +5,78 @@ import { useSimulation } from "@/context/SimulationContext";
 import { MODEL_NAMES } from "@/config/projectModels";
 import { ScrambleTitle } from "./ui/ScrambleTitle";
 
+// Custom hook to trigger random 2 to 4 opacity glitch flickers
+function useArrowGlitch(visible: boolean) {
+  const [opacity, setOpacity] = useState(0);
+  const timersRef = useRef<NodeJS.Timeout[]>([]);
+
+  const clearAllTimers = () => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+  };
+
+  const runGlitch = useCallback((targetVisible: boolean) => {
+    clearAllTimers();
+    // 2 to 4 random flickers
+    const flickers = Math.floor(Math.random() * 3) + 2;
+    let time = 0;
+
+    for (let i = 0; i < flickers; i++) {
+      // Off / dim step
+      const offDuration = Math.floor(Math.random() * 35) + 25;
+      time += offDuration;
+      const t1 = setTimeout(() => {
+        setOpacity(Math.random() < 0.6 ? 0 : 0.2);
+      }, time);
+      timersRef.current.push(t1);
+
+      // On / bright step
+      const onDuration = Math.floor(Math.random() * 45) + 30;
+      time += onDuration;
+      const t2 = setTimeout(() => {
+        setOpacity(Math.random() < 0.3 ? 0.7 : 1);
+      }, time);
+      timersRef.current.push(t2);
+    }
+
+    // Final settle
+    const finalT = setTimeout(() => {
+      setOpacity(targetVisible ? 1 : 0);
+    }, time + 30);
+    timersRef.current.push(finalT);
+  }, []);
+
+  const prevVisibleRef = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (prevVisibleRef.current === null) {
+      prevVisibleRef.current = visible;
+      if (visible) {
+        runGlitch(true);
+      } else {
+        setOpacity(0);
+      }
+      return;
+    }
+
+    if (visible !== prevVisibleRef.current) {
+      prevVisibleRef.current = visible;
+      runGlitch(visible);
+    }
+  }, [visible, runGlitch]);
+
+  useEffect(() => {
+    return () => clearAllTimers();
+  }, []);
+
+  const triggerFlicker = useCallback(() => {
+    if (!visible) return;
+    runGlitch(true);
+  }, [visible, runGlitch]);
+
+  return { opacity, triggerFlicker };
+}
+
 // Architectural minimalist navigation arrows matching user reference
 export const MinimalArrowLeft: React.FC<{ className?: string }> = ({ className = "" }) => (
   <svg
@@ -42,11 +114,6 @@ export const MinimalArrowRight: React.FC<{ className?: string }> = ({ className 
   </svg>
 );
 
-function getItemWidth(title: string, windowWidth: number): number {
-  const estimatedCharWidth = Math.min(32, Math.max(14, windowWidth * 0.016));
-  return Math.max(50, title.length * estimatedCharWidth + 24);
-}
-
 export interface ProjectsControllerProps {
   startFrame?: number;
   endFrame?: number;
@@ -62,65 +129,43 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
   startFrame = 7435,
   endFrame = 7800,
   targetFrame,
-  fadeInStart,
-  fullStart,
-  fullEnd,
-  fadeOutEnd,
-  fadeDuration = 25,
 }) => {
   const effStart = startFrame ?? targetFrame ?? 7435;
-  const effEnd = endFrame ?? targetFrame ?? 7500;
-  const effFadeInStart = fadeInStart ?? (effStart - fadeDuration);
-  const effFullStart = fullStart ?? effStart;
-  const effFullEnd = fullEnd ?? effEnd;
-  const effFadeOutEnd = fadeOutEnd ?? (effEnd + fadeDuration);
+  const effEnd = endFrame ?? targetFrame ?? 7800;
 
   const { settings, updateSetting } = useSimulation();
-  const [opacity, setOpacity] = useState<number>(0);
-  const [windowWidth, setWindowWidth] = useState<number>(() =>
-    typeof window !== "undefined" ? window.innerWidth : 1200
-  );
+  const [isInRange, setIsInRange] = useState<boolean>(false);
+
+  const leftArrow = useArrowGlitch(isInRange);
+  const rightArrow = useArrowGlitch(isInRange);
 
   useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    const computeOpacity = (frame: number): number => {
-      if (frame < effFadeInStart || frame > effFadeOutEnd) return 0;
-      if (frame >= effFullStart && frame <= effFullEnd) return 1;
-      if (frame < effFullStart) {
-        const t = (frame - effFadeInStart) / (effFullStart - effFadeInStart);
-        return Math.max(0, Math.min(1, t));
-      } else {
-        const t = (frame - effFullEnd) / (effFadeOutEnd - effFullEnd);
-        return Math.max(0, Math.min(1, 1 - t));
-      }
+    const checkFrame = (frame: number) => {
+      const inRange = frame >= effStart && frame <= effEnd;
+      setIsInRange(inRange);
     };
 
     const handleFrameChange = (e: Event) => {
       const customEvent = e as CustomEvent<{ frame: number }>;
       const frame = customEvent.detail?.frame;
       if (typeof frame === "number" && !isNaN(frame)) {
-        setOpacity(computeOpacity(frame));
+        checkFrame(frame);
       }
     };
 
     window.addEventListener("scroll-frame-change", handleFrameChange);
 
-    // Initial frame sync on mount
+    // Initial sync on mount
     if (typeof window !== "undefined") {
       const winFrame = (window as any).particlesCurrentFrame;
       if (typeof winFrame === "number" && !isNaN(winFrame)) {
-        setOpacity(computeOpacity(winFrame));
+        checkFrame(winFrame);
       } else {
         const frameValEl = document.getElementById("overlay-frame-val");
         if (frameValEl) {
           const parsed = parseFloat(frameValEl.innerText);
           if (!isNaN(parsed)) {
-            setOpacity(computeOpacity(parsed));
+            checkFrame(parsed);
           }
         }
       }
@@ -129,7 +174,7 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
     return () => {
       window.removeEventListener("scroll-frame-change", handleFrameChange);
     };
-  }, [effFadeInStart, effFullStart, effFullEnd, effFadeOutEnd]);
+  }, [effStart, effEnd]);
 
   // Forward wheel events over buttons to Lenis so scrolling on arrows doesn't stall
   const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -148,130 +193,79 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
   const handlePrev = () => handleSelect((activeIndex - 1 + projects.length) % projects.length);
   const handleNext = () => handleSelect((activeIndex + 1) % projects.length);
 
-  const isInteractive = opacity > 0.02;
-  const scale = 0.9 + 0.1 * opacity;
-
-  // ── Dynamic measurement & responsive layout ──
-  const offsets = projects.length === 1 ? [0] : [-2, -1, 0, 1, 2];
-  const itemRefs = useRef<Record<number, HTMLDivElement | null>>({});
-  const [measuredWidths, setMeasuredWidths] = useState<Record<number, number>>({});
-  const [measuredHeight, setMeasuredHeight] = useState<number>(24);
-
-  // Measure actual rendered widths using ResizeObserver so any font size change recalculates spacing
-  useEffect(() => {
-    const updateMeasurements = () => {
-      const nextWidths: Record<number, number> = {};
-      let maxH = 24;
-      offsets.forEach((offset) => {
-        const el = itemRefs.current[offset];
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          const w = Math.ceil(rect.width);
-          const h = Math.ceil(rect.height);
-          if (w > 0) nextWidths[offset] = w;
-          if (h > maxH) maxH = h;
-        }
-      });
-
-      setMeasuredHeight(maxH);
-      setMeasuredWidths((prev) => {
-        const hasDiff = offsets.some((off) => prev[off] !== nextWidths[off]);
-        return hasDiff ? nextWidths : prev;
-      });
-    };
-
-    updateMeasurements();
-
-    const ro = new ResizeObserver(updateMeasurements);
-    offsets.forEach((offset) => {
-      const el = itemRefs.current[offset];
-      if (el) ro.observe(el);
-    });
-
-    window.addEventListener("resize", updateMeasurements);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", updateMeasurements);
-    };
-  }, [activeIndex, projects]);
-
-  // Gap adapts proportionally to font size (measured height)
-  const gap = Math.max(10, Math.round(measuredHeight * 0.0));
-
-  const itemWidths: Record<number, number> = {};
-  offsets.forEach((offset) => {
-    const targetIndex = (activeIndex + offset + projects.length * 100) % projects.length;
-    itemWidths[offset] =
-      measuredWidths[offset] || getItemWidth(projects[targetIndex], windowWidth);
-  });
-
-  const xOffsets: Record<number, number> = { 0: 0 };
-  if (itemWidths[1] !== undefined) {
-    xOffsets[1] = (itemWidths[0] + itemWidths[1]) / 2 + gap;
-  }
-  if (itemWidths[2] !== undefined && itemWidths[1] !== undefined) {
-    xOffsets[2] = xOffsets[1] + (itemWidths[1] + itemWidths[2]) / 2 + gap;
-  }
-  if (itemWidths[-1] !== undefined) {
-    xOffsets[-1] = -((itemWidths[0] + itemWidths[-1]) / 2 + gap);
-  }
-  if (itemWidths[-2] !== undefined && itemWidths[-1] !== undefined) {
-    xOffsets[-2] = xOffsets[-1] - ((itemWidths[-1] + itemWidths[-2]) / 2 + gap);
-  }
+  // Simple, robust layout: show [previous, active, next] titles with flex gap
+  const offsets = projects.length === 1 ? [0] : [-1, 0, 1];
 
   return (
-    <div
-      className="fixed inset-0 z-40 flex items-center justify-between px-6 md:px-12 pointer-events-none select-none transition-all duration-300 ease-out"
-      style={{
-        opacity: opacity,
-        transform: `scale(${scale})`,
-        pointerEvents: "none",
-      }}
-    >
-      {/* Left Navigation Arrow */}
-      <button
-        onClick={handlePrev}
-        onWheel={handleWheel}
-        aria-label="Previous Project"
-        title="Previous Project"
-        style={{ pointerEvents: isInteractive ? "auto" : "none" }}
-        className="group relative p-2 md:p-3 text-white/80 hover:text-white transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer"
-      >
-        <MinimalArrowLeft className="w-14 h-5 md:w-20 md:h-7 transition-all duration-300 group-hover:-translate-x-1.5 group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]" />
-      </button>
+    <div className="fixed inset-0 z-40 pointer-events-none select-none">
+      {/* Navigation Arrows: edge-to-edge on mobile, narrower gap on desktop */}
+      <div className="w-full h-full max-w-full md:max-w-2xl lg:max-w-3xl mx-auto flex items-center justify-between px-4 sm:px-6 md:px-8 pointer-events-none">
+        {/* Left Navigation Arrow */}
+        <button
+          onClick={() => {
+            leftArrow.triggerFlicker();
+            handlePrev();
+          }}
+          onMouseEnter={leftArrow.triggerFlicker}
+          onWheel={handleWheel}
+          aria-label="Previous Project"
+          title="Previous Project"
+          style={{
+            opacity: leftArrow.opacity,
+            pointerEvents: isInRange ? "auto" : "none",
+          }}
+          className="group relative w-20 h-14 sm:w-24 sm:h-16 md:w-28 md:h-16 flex items-center justify-center text-white/80 hover:text-white cursor-pointer select-none transition-colors duration-150"
+        >
+          <MinimalArrowLeft className="pointer-events-none w-14 h-5 md:w-20 md:h-7 transition-transform duration-200 group-hover:-translate-x-1.5 group-active:scale-95 group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]" />
+        </button>
+
+        {/* Right Navigation Arrow */}
+        <button
+          onClick={() => {
+            rightArrow.triggerFlicker();
+            handleNext();
+          }}
+          onMouseEnter={rightArrow.triggerFlicker}
+          onWheel={handleWheel}
+          aria-label="Next Project"
+          title="Next Project"
+          style={{
+            opacity: rightArrow.opacity,
+            pointerEvents: isInRange ? "auto" : "none",
+          }}
+          className="group relative w-20 h-14 sm:w-24 sm:h-16 md:w-28 md:h-16 flex items-center justify-center text-white/80 hover:text-white cursor-pointer select-none transition-colors duration-150"
+        >
+          <MinimalArrowRight className="pointer-events-none w-14 h-5 md:w-20 md:h-7 transition-transform duration-200 group-hover:translate-x-1.5 group-active:scale-95 group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]" />
+        </button>
+      </div>
 
       {/* ── Bottom HUD Title Menu ── */}
       <div
         onWheel={handleWheel}
         className="absolute left-0 right-0 bottom-8 sm:bottom-14 flex items-center justify-center pointer-events-none px-4"
       >
-        <div
-          className="relative w-full max-w-xs sm:max-w-xl md:max-w-3xl flex items-center justify-center overflow-hidden [mask-image:linear-gradient(to_right,transparent_0%,black_15%,black_85%,transparent_100%)]"
-          style={{ minHeight: `${Math.max(44, measuredHeight + 16)}px` }}
-        >
+        <div className="flex items-center justify-center gap-6 sm:gap-8">
           {offsets.map((offset) => {
             const targetIndex = (activeIndex + offset + projects.length * 100) % projects.length;
             const title = projects[targetIndex];
             const isActive = offset === 0;
-            const distance = Math.abs(offset);
 
-            // Dynamic horizontal offset relative to center with measured gap
-            const xOffset = xOffsets[offset] ?? 0;
-
-            // Opacity: 1 for active center, 0.85 for distance 1 (gradient text handles falloff), 0 for distance >= 2
-            let itemOpacity = 0;
-            if (distance === 0) itemOpacity = 1;
-            else if (distance === 1) itemOpacity = 0.85;
-
-            // Gradient fade styling for unselected titles
             let titleStyle: React.CSSProperties = {
-              letterSpacing: "0.03em",
+              fontSize: "18px",
+              textTransform: "uppercase",
+              lineHeight: "1.2",
+              fontFamily: "var(--font-satoshi)",
+              letterSpacing: "0.1px",
+              display: "inline-flex",
+              alignItems: "center",
+              verticalAlign: "middle",
             };
 
             if (isActive) {
               titleStyle = {
                 ...titleStyle,
                 color: "#ffffff",
+                opacity: 1,
                 filter: "drop-shadow(0 0 8px rgba(255,255,255,0.4))",
               };
             } else if (offset < 0) {
@@ -279,9 +273,7 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
               titleStyle = {
                 ...titleStyle,
                 background:
-                  distance === 1
-                    ? "linear-gradient(to right, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.55) 100%)"
-                    : "linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 100%)",
+                  "linear-gradient(to right, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.65) 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               };
@@ -290,9 +282,7 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
               titleStyle = {
                 ...titleStyle,
                 background:
-                  distance === 1
-                    ? "linear-gradient(to right, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.08) 100%)"
-                    : "linear-gradient(to right, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 100%)",
+                  "linear-gradient(to right, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.15) 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               };
@@ -301,51 +291,27 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
             return (
               <div
                 key={offset}
-                className="group absolute left-1/2 top-1/2 flex items-center justify-center cursor-pointer transition-all duration-200 hover:opacity-100"
+                className="group flex items-center justify-center cursor-pointer transition-opacity duration-200 hover:brightness-125"
                 style={{
-                  transform: `translate(calc(-50% + ${xOffset}px), -50%)`,
-                  opacity: itemOpacity,
-                  pointerEvents: isInteractive && itemOpacity > 0 ? "auto" : "none",
+                  pointerEvents: isInRange ? "auto" : "none",
                 }}
                 onClick={() => (isActive ? undefined : handleSelect(targetIndex))}
                 title={isActive ? title : `Switch to ${title}`}
               >
-                <div
-                  ref={(el) => {
-                    itemRefs.current[offset] = el;
-                  }}
-                  className="relative py-1 px-2 sm:px-3 flex items-center justify-center whitespace-nowrap"
-                >
-                  <ScrambleTitle
-                    title={title}
-                    fontSize="clamp(13px, 18px, 57px)"
-                    uppercase={false}
-                    scrambleOnHover={true}
-                    style={titleStyle}
-                    triggerKey={activeIndex}
-                    scrambleOptions={{
-                      scrambleOnMount: false,
-                      animateOnChange: true, // triggers shuffle animation when model changes
-                    }}
-                  />
+                <div className="relative py-1 px-2 flex items-center justify-center whitespace-nowrap">
+                  <h5 className="inline-flex items-center justify-center" style={titleStyle}>
+                    <ScrambleTitle
+                      title={title}
+                      visible={isInRange}
+                      triggerKey={activeIndex}
+                    />
+                  </h5>
                 </div>
               </div>
             );
           })}
         </div>
       </div>
-
-      {/* Right Navigation Arrow */}
-      <button
-        onClick={handleNext}
-        onWheel={handleWheel}
-        aria-label="Next Project"
-        title="Next Project"
-        style={{ pointerEvents: isInteractive ? "auto" : "none" }}
-        className="group relative p-2 md:p-3 text-white/80 hover:text-white transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer"
-      >
-        <MinimalArrowRight className="w-14 h-5 md:w-20 md:h-7 transition-all duration-300 group-hover:translate-x-1.5 group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]" />
-      </button>
     </div>
   );
 };

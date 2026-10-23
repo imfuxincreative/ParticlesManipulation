@@ -157,7 +157,7 @@ export const InTouchHUD: React.FC = () => {
 
               {/* Button Text */}
               <div className="flex flex-col text-left">
-                <span className="text-xs sm:text-sm font-semibold py-1 px-2 opacity-[0.66] hover:opacity-[1] duration-300 tracking-[0.22em] uppercase text-red-50">
+                <span className="text-[15px]  py-1 px-2 opacity-[0.66] hover:opacity-[1] duration-300  uppercase text-red-50">
                   Get in touch
                 </span>
 

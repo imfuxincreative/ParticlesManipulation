@@ -84,9 +84,10 @@ export interface OverlayConfig {
 export const OVERLAY_CONFIGS: OverlayConfig[] = [
   {
     id: "projects-ui",
-    startFrame: 7435,
-    endFrame: 7800,
+    startFrame: 7410,
+    endFrame: 7830,
     component: <ProjectsController startFrame={7435} endFrame={7800} />,
+    fadeDuration: 200,
   },
   // Future overlays can be registered here:
   // {
