@@ -8,6 +8,8 @@ import { SimonGlowSystem } from "./SimonGlowSystem";
 import { GridFloorMeshSystem } from "./GridFloorMeshSystem";
 import { TargetOverlayBridge } from "./callouts/TargetOverlayBridge";
 import { InteractiveSceneParticleSystem } from "./InteractiveSceneParticleSystem";
+import { FlyingCarsSystem } from "./FlyingCarsSystem";
+import { FlyingCarLedGlowSystem } from "./FlyingCarLedGlowSystem";
 import { CALLOUT_TARGETS } from "@/config/targetConfig";
 import { useSimulation } from "@/context/SimulationContext";
 import { patchMaterialWithAtmosphere } from "@/lib/patchAtmosphere";
@@ -218,13 +220,18 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           "bodypart",
           "bodypart2",
           "shirt2",
+          "shirt3",
+
           "shirt2.001",
           "tshirt",
           "pant",
+          "pant3",
           "pant2",
           "shoe2",
+          "shoe3",
           "sneaker",
           "hair",
+          "hair3",
           "hair.001",
           "hair2",
           "hair2.001",
@@ -261,6 +268,23 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
             child.frustumCulled = false;
           }
           return;
+        }
+
+        // Check if mesh is an LED belonging to a flying car (handled by FlyingCarLedGlowSystem)
+        if (childName.startsWith("led") || /^led(\d+)?$/i.test(child.name)) {
+          let cNode: THREE.Object3D | null = child.parent;
+          let isCarLed = false;
+          while (cNode) {
+            const pName = cNode.name ? cNode.name.toLowerCase() : "";
+            if (pName.startsWith("flying-car") || pName.startsWith("flying_car") || /^flying[-_]?car/i.test(cNode.name)) {
+              isCarLed = true;
+              break;
+            }
+            cNode = cNode.parent;
+          }
+          if (isCarLed) {
+            return;
+          }
         }
 
         if (config.hasParticleTarget) {
@@ -527,6 +551,8 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
 
       <TargetOverlayBridge scene={gltf.scene} />
       <InteractiveSceneParticleSystem position={[1047.551, 398.157, 2.997]} />
+      <FlyingCarsSystem scene={gltf.scene} />
+      <FlyingCarLedGlowSystem scene={gltf.scene} />
     </group>
   );
 };

@@ -130,6 +130,18 @@ export interface SimulationSettings {
   ghibliPaletteKey: string;
   groundColor: string;
   groundOpacity: number;
+  // Flying Cars Traffic
+  enableFlyingCars: boolean;
+  flyingCarsBaseSpeed: number;
+  flyingCarsSpeedVariance: number;
+  flyingCarsMaxDistance: number;
+  flyingCarsHoverBobbing: boolean;
+  flyingCarsBobbingStrength: number;
+  invertFlyingCarsDirection: boolean;
+  carLedIntensity: number;
+  carLedColor: string;
+  carLedPulse: boolean;
+  carLedPulseSpeed: number;
   isLoading: boolean;
   isSceneLoaded: boolean;
   sceneLoadProgress: number;
@@ -155,13 +167,13 @@ const defaultSettings: SimulationSettings = {
   scatterStrength: 3,
   noiseStrength: 0.1,
   noiseSpeed: 0.4,
-  pointSize: 2.5,
+  pointSize: 3.6,
   focusDepth: 14,
   focusRange: 2,
   bokehScale: 4,
   hazeColor: "#1a0505",
   hazeDensity: 0.1,
-  tintColor: "#a855f7",
+  tintColor: "#000000",
   tintMix: 0,
   opacity: 1,
   densityControl: 0,
@@ -214,26 +226,26 @@ const defaultSettings: SimulationSettings = {
   fogNear: 40,
   fogFar: 350,
   fogAmount: 1,
-  modelFlowSpeed: 0.15,
-  modelFlowStrength: 0.4,
-  modelFlowFrequency: 0.72,
+  modelFlowSpeed: 0.23,
+  modelFlowStrength: 0.15,
+  modelFlowFrequency: 1.15,
   modelFlowNormalLimit: 0,
-  modelScatterColorScale: 0.04,
+  modelScatterColorScale: 0.41,
   modelFlowClumping: 0,
-  fluidDragRadius: 4,
-  fluidDragStrength: 1.2,
-  fluidDamping: 0.88,
+  fluidDragRadius: 5.0,
+  fluidDragStrength: 0.7,
+  fluidDamping: 0.8,
   fluidSpiralSuppression: 1,
-  fluidRadialExpansion: 0.45,
+  fluidRadialExpansion: 0.15,
   fluidTurbulenceSwirl: 0.35,
-  fluidDirectionalBias: 0.4,
-  burnSensitivity: 2.5,
-  burnThreshold: 0.05,
+  fluidDirectionalBias: 0.65,
+  burnSensitivity: 2.3,
+  burnThreshold: 0.08,
   burnExponent: 1.5,
   burnMidThreshold: 0.25,
   burnMaxThreshold: 0.7,
-  burnColorPrimary: "#e91e63",
-  burnColorSecondary: "#00ffff",
+  burnColorPrimary: "#000000",
+  burnColorSecondary: "#000000",
   cityHologramOpacity: 0.84,
   scrollSpeed: 0.5,
   scrollDamping: 0.05,
@@ -243,7 +255,7 @@ const defaultSettings: SimulationSettings = {
   modelOffsetX: 0,
   modelOffsetY: 0,
   modelOffsetZ: 0,
-  modelScale: 1,
+  modelScale: 5.2,
   modelAutoRotateSpeedX: 0.3,
   modelBaseRotationX: -1.5707963267948966,
   modelBaseRotationY: 0,
@@ -270,6 +282,17 @@ const defaultSettings: SimulationSettings = {
   ghibliPaletteKey: "obsidian",
   groundColor: "#000000",
   groundOpacity: 1.0,
+  enableFlyingCars: true,
+  flyingCarsBaseSpeed: 35,
+  flyingCarsSpeedVariance: 0.35,
+  flyingCarsMaxDistance: 800,
+  flyingCarsHoverBobbing: true,
+  flyingCarsBobbingStrength: 0.8,
+  invertFlyingCarsDirection: false,
+  carLedIntensity: 3.5,
+  carLedColor: "#00f0ff",
+  carLedPulse: true,
+  carLedPulseSpeed: 2.5,
   isLoading: true,
   isSceneLoaded: false,
   sceneLoadProgress: 0,

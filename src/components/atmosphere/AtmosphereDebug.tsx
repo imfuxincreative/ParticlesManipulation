@@ -11,7 +11,7 @@ export const AtmosphereDebug: React.FC = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 z-50 px-2 py-1 bg-black/70 text-[10px] font-mono text-red-400 border border-red-500/30 rounded hover:bg-black/90 cursor-pointer"
+        className="fixed bottom-4 opacity-0 right-4 z-50 px-2 py-1 bg-black/70 text-[10px] font-mono text-red-400 border border-red-500/30 rounded hover:bg-black/90 cursor-pointer"
       >
         🔍 ATMO DEBUG
       </button>

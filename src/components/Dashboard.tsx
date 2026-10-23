@@ -14,7 +14,10 @@ import {
   Check,
   Upload,
   Trees,
-  Sun
+  Sun,
+  Navigation,
+  RotateCcw,
+  Zap
 } from "lucide-react";
 import Link from "next/link";
 import { GHIBLI_PALETTES } from "@/shaders/ghibliShader";
@@ -88,6 +91,12 @@ export const Dashboard: React.FC = () => {
       grainAmount: rawAtmo.grainAmount,
       godRays: rawAtmo.godRays,
       quality: rawAtmo.quality,
+      brokenLightEnabled: rawAtmo.brokenLightEnabled,
+      brokenLightIntensity: rawAtmo.brokenLightIntensity,
+      brokenLightSpeed: rawAtmo.brokenLightSpeed,
+      brokenLightSurge: rawAtmo.brokenLightSurge,
+      brokenLightScope: rawAtmo.brokenLightScope,
+      brokenLightStyle: rawAtmo.brokenLightStyle,
     };
 
     const { atmosphere: _pollutedAtmo, ...cleanSimSettings } = settings as any;
@@ -165,7 +174,9 @@ export const Dashboard: React.FC = () => {
       {/* Main HUD Controls Sidebar */}
       <main className="absolute right-4 md:right-6 top-20 md:top-24 bottom-20 md:bottom-24 flex items-stretch pointer-events-none z-30">
         <div
-          className={`bg-slate-950/85 backdrop-blur-xl border border-white/10 rounded-2xl w-72 md:w-80 p-5 flex flex-col gap-4 transition-all duration-300 overflow-y-auto ${isCollapsed ? "opacity-0 w-0 pointer-events-none translate-x-8" : "opacity-100 pointer-events-auto"
+          data-lenis-prevent
+          onWheel={(e) => e.stopPropagation()}
+          className={`bg-slate-950/85 backdrop-blur-xl border border-white/10 rounded-2xl w-72 md:w-80 p-5 flex flex-col gap-4 transition-all duration-300 overflow-y-auto overscroll-contain ${isCollapsed ? "opacity-0 w-0 pointer-events-none translate-x-8" : "opacity-100 pointer-events-auto"
             }`}
         >
           {/* Header */}
@@ -244,7 +255,11 @@ export const Dashboard: React.FC = () => {
 
           {/* Import JSON Modal */}
           {showImportModal && (
-            <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 pointer-events-auto">
+            <div
+              data-lenis-prevent
+              onWheel={(e) => e.stopPropagation()}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 pointer-events-auto overscroll-contain"
+            >
               <div className="bg-slate-900 border border-emerald-500/40 rounded-xl w-full max-w-lg p-5 flex flex-col gap-4 shadow-2xl">
                 <div className="flex justify-between items-center border-b border-white/10 pb-3">
                   <div className="flex items-center gap-2 text-emerald-300 text-sm font-semibold">
@@ -684,6 +699,245 @@ export const Dashboard: React.FC = () => {
                     className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
                 </div>
+              </div>
+
+              {/* FLYING CARS TRAFFIC */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-emerald-400 tracking-wider">
+                    <Navigation className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Flying Cars Traffic</span>
+                  </div>
+                  <button
+                    onClick={() => updateSetting("enableFlyingCars", !settings.enableFlyingCars)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.enableFlyingCars ? "bg-emerald-600" : "bg-slate-800"
+                      }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.enableFlyingCars ? "translate-x-4" : "translate-x-0"
+                        }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">BASE FLIGHT SPEED</span>
+                    <span className="text-emerald-300">{(settings.flyingCarsBaseSpeed ?? 35).toFixed(0)} u/s</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="5"
+                    max="150"
+                    step="1"
+                    value={settings.flyingCarsBaseSpeed ?? 35}
+                    onChange={(e) => updateSetting("flyingCarsBaseSpeed", parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">SPEED VARIANCE (RANDOM FAIR)</span>
+                    <span className="text-emerald-300">±{((settings.flyingCarsSpeedVariance ?? 0.35) * 100).toFixed(0)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="0.8"
+                    step="0.05"
+                    value={settings.flyingCarsSpeedVariance ?? 0.35}
+                    onChange={(e) => updateSetting("flyingCarsSpeedVariance", parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">LOOP DISTANCE (SCREEN WRAP SPAN)</span>
+                    <span className="text-emerald-300">{(settings.flyingCarsMaxDistance ?? 800).toFixed(0)}u</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="200"
+                    max="2500"
+                    step="50"
+                    value={settings.flyingCarsMaxDistance ?? 800}
+                    onChange={(e) => updateSetting("flyingCarsMaxDistance", parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">INVERT FLIGHT DIRECTION</span>
+                  <button
+                    onClick={() => updateSetting("invertFlyingCarsDirection", !settings.invertFlyingCarsDirection)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.invertFlyingCarsDirection ? "bg-emerald-600" : "bg-slate-800"
+                      }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.invertFlyingCarsDirection ? "translate-x-4" : "translate-x-0"
+                        }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">HOVER BOBBING (FLOATING)</span>
+                  <button
+                    onClick={() => updateSetting("flyingCarsHoverBobbing", !settings.flyingCarsHoverBobbing)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.flyingCarsHoverBobbing ? "bg-emerald-600" : "bg-slate-800"
+                      }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.flyingCarsHoverBobbing ? "translate-x-4" : "translate-x-0"
+                        }`}
+                    />
+                  </button>
+                </div>
+
+                {settings.flyingCarsHoverBobbing && (
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex justify-between font-mono text-[10px]">
+                      <span className="text-slate-400">BOBBING STRENGTH</span>
+                      <span className="text-emerald-300">{(settings.flyingCarsBobbingStrength ?? 0.8).toFixed(1)}u</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="3.0"
+                      step="0.1"
+                      value={settings.flyingCarsBobbingStrength ?? 0.8}
+                      onChange={(e) => updateSetting("flyingCarsBobbingStrength", parseFloat(e.target.value))}
+                      className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                    />
+                  </div>
+                )}
+
+                <button
+                  onClick={() => {
+                    if (typeof (window as any).__resetFlyingCars === "function") {
+                      (window as any).__resetFlyingCars();
+                    }
+                  }}
+                  className="mt-1 py-1 px-2 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded text-[10px] text-slate-300 hover:text-white flex items-center justify-center gap-1 transition-all cursor-pointer font-mono"
+                >
+                  <RotateCcw className="w-3 h-3 text-emerald-400" />
+                  <span>Reset Car Positions</span>
+                </button>
+              </div>
+
+              {/* FLYING CAR LED LIGHTS */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-cyan-400 tracking-wider">
+                    <Zap className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Flying Car LED Lights</span>
+                  </div>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-300">
+                    GLOW SHADER
+                  </span>
+                </div>
+
+                {/* Intensity Slider */}
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">LED LIGHT INTENSITY</span>
+                    <span className="text-cyan-300">{(settings.carLedIntensity ?? 3.5).toFixed(1)}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="10.0"
+                    step="0.1"
+                    value={settings.carLedIntensity ?? 3.5}
+                    onChange={(e) => updateSetting("carLedIntensity", parseFloat(e.target.value))}
+                    className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                {/* Light Color Picker */}
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">LIGHT COLOR</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-5 h-5 rounded border border-white/20 relative overflow-hidden shadow-sm"
+                      style={{ backgroundColor: settings.carLedColor ?? "#00f0ff" }}
+                    >
+                      <input
+                        type="color"
+                        value={settings.carLedColor ?? "#00f0ff"}
+                        onChange={(e) => updateSetting("carLedColor", e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-300 font-mono w-14">
+                      {settings.carLedColor ?? "#00f0ff"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Quick Presets */}
+                <div className="flex flex-col gap-1 pt-0.5">
+                  <span className="text-slate-400 font-mono text-[9px]">COLOR PRESETS</span>
+                  <div className="grid grid-cols-6 gap-1">
+                    {[
+                      { name: "Cyan", color: "#00f0ff" },
+                      { name: "Red", color: "#ff2a4d" },
+                      { name: "Amber", color: "#ffb700" },
+                      { name: "White", color: "#e2f1ff" },
+                      { name: "Violet", color: "#c084fc" },
+                      { name: "Emerald", color: "#10b981" },
+                    ].map((preset) => (
+                      <button
+                        key={preset.name}
+                        title={preset.name}
+                        onClick={() => updateSetting("carLedColor", preset.color)}
+                        className={`h-5 rounded border transition-all cursor-pointer flex items-center justify-center ${
+                          (settings.carLedColor ?? "#00f0ff").toLowerCase() === preset.color.toLowerCase()
+                            ? "border-white scale-105 shadow-md shadow-cyan-500/30"
+                            : "border-white/10 hover:border-white/40"
+                        }`}
+                        style={{ backgroundColor: preset.color }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pulse / Shimmer Toggle */}
+                <div className="flex justify-between items-center py-0.5 border-t border-white/5 pt-1.5 mt-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">BEACON PULSE / SHIMMER</span>
+                  <button
+                    onClick={() => updateSetting("carLedPulse", settings.carLedPulse === false ? true : false)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${
+                      settings.carLedPulse !== false ? "bg-cyan-600" : "bg-slate-800"
+                    }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${
+                        settings.carLedPulse !== false ? "translate-x-4" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {settings.carLedPulse !== false && (
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex justify-between font-mono text-[10px]">
+                      <span className="text-slate-400">PULSE SPEED</span>
+                      <span className="text-cyan-300">{(settings.carLedPulseSpeed ?? 2.5).toFixed(1)}x</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="8.0"
+                      step="0.5"
+                      value={settings.carLedPulseSpeed ?? 2.5}
+                      onChange={(e) => updateSetting("carLedPulseSpeed", parseFloat(e.target.value))}
+                      className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}

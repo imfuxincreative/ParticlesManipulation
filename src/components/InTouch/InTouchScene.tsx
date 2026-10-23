@@ -6,10 +6,14 @@ import * as THREE from "three";
 import { InTouchModel } from "./InTouchModel";
 import { useAtmosphere } from "@/lib/atmosphere";
 import { useLoopTransition } from "@/components/transitions/transitionConfig";
+import { brokenLightEngine } from "@/lib/brokenLightFlicker";
 
 export const InTouchScene: React.FC = () => {
   const { set, size, pointer } = useThree();
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const backDirLightRef = useRef<THREE.DirectionalLight | null>(null);
+  const backPointLightRef = useRef<THREE.PointLight | null>(null);
+  const ambientLightRef = useRef<THREE.AmbientLight | null>(null);
 
   const horizonColor = useAtmosphere((s) => s.horizonColor);
   const glowColor = useAtmosphere((s) => s.glowColor);
@@ -82,23 +86,41 @@ export const InTouchScene: React.FC = () => {
       cam.quaternion.copy(baseCamRot.current);
       cam.updateMatrixWorld();
     }
+
+    // Synchronize red backlights and rim lighting with physical broken light flicker
+    const flicker = brokenLightEngine.getMultiplier();
+    if (backDirLightRef.current) {
+      backDirLightRef.current.intensity = 9.0 * flicker;
+    }
+    if (backPointLightRef.current) {
+      backPointLightRef.current.intensity = 15.0 * flicker;
+    }
+    if (ambientLightRef.current) {
+      ambientLightRef.current.intensity = 0.25 * flicker;
+    }
   });
 
   return (
     <group name="InTouchSceneRoot" visible={activeScene === "inTouch"}>
       {/* Atmospheric Backlight casting character into dramatic red rim silhouette */}
       <directionalLight
+        ref={backDirLightRef}
         position={[0, 6.5, -6.5]}
         intensity={9.0}
         color={horizonColor || "#FF000D"}
       />
       <pointLight
+        ref={backPointLightRef}
         position={[0, 5.0, -3.5]}
         intensity={15.0}
         distance={30}
         color={glowColor || "#FF1A1A"}
       />
-      <ambientLight intensity={0.25} color={horizonColor || "#FF000D"} />
+      <ambientLight
+        ref={ambientLightRef}
+        intensity={0.25}
+        color={horizonColor || "#FF000D"}
+      />
 
       {/* Front Key Light to reveal hands reaching forward and 3D surface depth like Blender */}
       <directionalLight

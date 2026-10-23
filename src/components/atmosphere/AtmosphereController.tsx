@@ -6,10 +6,12 @@ import * as THREE from "three";
 import { useAtmosphere, deriveFogColorHex, getInterpolatedHorizonColor } from "@/lib/atmosphere";
 import { atmosphereUniforms, writeConfigToUniforms } from "@/lib/atmosphereUniforms";
 import { useLoopTransition } from "@/components/transitions/transitionConfig";
+import { brokenLightEngine } from "@/lib/brokenLightFlicker";
 
 const tempColor = new THREE.Color();
 const tempZenithColor = new THREE.Color();
 const tempFogColor = new THREE.Color();
+const tempFlickerBgColor = new THREE.Color();
 
 export const AtmosphereController: React.FC = () => {
   const { scene, camera } = useThree();
@@ -77,6 +79,17 @@ export const AtmosphereController: React.FC = () => {
 
     atmosphereUniforms.uFogDensity.value = effectiveFogDensity;
 
+    // Evaluate broken light physical flicker
+    const isInScope =
+      (config.brokenLightScope ?? "inTouch") === "all" ||
+      ((config.brokenLightScope ?? "inTouch") === "inTouch" && isInTouch);
+    const flicker = brokenLightEngine.update(delta, config, isInScope);
+
+    // Synchronize CSS variable so 2D mist veil & overlays match instantaneous 60fps lighting
+    if (typeof document !== "undefined") {
+      document.documentElement.style.setProperty("--broken-light-mult", flicker.toFixed(3));
+    }
+
     // Single source of truth for scene fog & background
     let fogLinearColor: THREE.Color;
     if (config.decoupleFog) {
@@ -89,11 +102,16 @@ export const AtmosphereController: React.FC = () => {
       atmosphereUniforms.uFogColor.value.copy(fogLinearColor);
     }
 
+    // Modulate background & fog by broken light flicker
+    const effectiveBgColor = isInScope
+      ? tempFlickerBgColor.copy(fogLinearColor).multiplyScalar(flicker)
+      : fogLinearColor;
+
     if (config.fogEnabled || loopProgress > 0.001) {
       if (!scene.fog || !(scene.fog instanceof THREE.FogExp2)) {
-        scene.fog = new THREE.FogExp2(fogLinearColor, effectiveFogDensity);
+        scene.fog = new THREE.FogExp2(effectiveBgColor, effectiveFogDensity);
       } else {
-        scene.fog.color.copy(fogLinearColor);
+        scene.fog.color.copy(effectiveBgColor);
         scene.fog.density = effectiveFogDensity;
       }
     } else {
@@ -101,15 +119,15 @@ export const AtmosphereController: React.FC = () => {
     }
 
     if (scene.background && (scene.background as any).isColor) {
-      (scene.background as THREE.Color).copy(fogLinearColor);
+      (scene.background as THREE.Color).copy(effectiveBgColor);
     } else {
-      scene.background = fogLinearColor.clone();
+      scene.background = effectiveBgColor.clone();
     }
 
     // Keep lighting vibrant and visible during loop transition (no blackout),
     // and gently lift ambient lighting so shadowed faces catch radiant atmosphere tone
     const ambientBoost = 1.0 + loopProgress * 0.45;
-    atmosphereUniforms.uSkyExposure.value = config.skyExposure;
+    atmosphereUniforms.uSkyExposure.value = config.skyExposure * (isInScope ? flicker : 1.0);
     atmosphereUniforms.uAmbientIntensity.value = config.ambientIntensity * ambientBoost;
     atmosphereUniforms.uRimIntensity.value = config.rimIntensity;
   });

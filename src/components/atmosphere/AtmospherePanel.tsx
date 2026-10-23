@@ -2,8 +2,9 @@
 
 import React from "react";
 import { useAtmosphere, AtmosphereConfig, deriveFogColorHex, REFERENCE_PRESET, DEFAULT_SKY_KEYFRAMES } from "@/lib/atmosphere";
-import { Sparkles, Cloud, Sun, Eye, Sliders, RotateCcw, Plus, Trash2, Play, Palette } from "lucide-react";
+import { Sparkles, Cloud, Sun, Eye, Sliders, RotateCcw, Plus, Trash2, Play, Palette, Zap } from "lucide-react";
 import { useLoopTransition } from "@/components/transitions/transitionConfig";
+import { brokenLightEngine } from "@/lib/brokenLightFlicker";
 
 interface ToggleRowProps {
   label: string;
@@ -221,6 +222,112 @@ export const AtmospherePanel: React.FC = () => {
           disabled={!atmo.decoupleFog}
           onChange={(v) => atmo.decoupleFog && set("fogColorOverride", v)}
         />
+      </div>
+
+      {/* SECTION 1.5: BROKEN LIGHT / FAULTY NEON FLICKER */}
+      <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-red-500/30 rounded-xl shadow-lg shadow-red-950/20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-red-400 tracking-wider">
+            <Zap className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+            <span>Broken Light / Faulty Neon</span>
+          </div>
+          <button
+            onClick={() => brokenLightEngine.triggerSparkBurst()}
+            className="py-0.5 px-2 bg-red-900/60 hover:bg-red-800/90 border border-red-500/50 rounded text-red-200 text-[9px] font-mono flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+            title="Trigger an instant violent electric spark burst"
+          >
+            <span>SPARK ⚡</span>
+          </button>
+        </div>
+
+        <ToggleRow
+          label="ENABLE BROKEN LIGHT FLICKER"
+          value={atmo.brokenLightEnabled ?? true}
+          onChange={(v) => set("brokenLightEnabled", v)}
+        />
+
+        {(atmo.brokenLightEnabled ?? true) && (
+          <div className="flex flex-col gap-2 pt-1 border-t border-white/10">
+            {/* SCOPE SELECTOR */}
+            <div className="flex justify-between items-center py-0.5 font-mono text-[10px]">
+              <span className="text-slate-400">ACTIVE SCENE</span>
+              <div className="grid grid-cols-2 gap-1 bg-slate-950 p-0.5 rounded border border-white/10">
+                <button
+                  onClick={() => set("brokenLightScope", "inTouch")}
+                  className={`px-2 py-0.5 rounded text-[9px] cursor-pointer ${
+                    (atmo.brokenLightScope ?? "inTouch") !== "all"
+                      ? "bg-red-600 text-white font-bold"
+                      : "text-slate-400"
+                  }`}
+                >
+                  IN TOUCH
+                </button>
+                <button
+                  onClick={() => set("brokenLightScope", "all")}
+                  className={`px-2 py-0.5 rounded text-[9px] cursor-pointer ${
+                    atmo.brokenLightScope === "all"
+                      ? "bg-red-600 text-white font-bold"
+                      : "text-slate-400"
+                  }`}
+                >
+                  ALL SCENES
+                </button>
+              </div>
+            </div>
+
+            {/* STYLE SELECTOR */}
+            <div className="flex flex-col gap-1 font-mono text-[10px]">
+              <span className="text-slate-400">FLICKER STYLE</span>
+              <div className="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded border border-white/10">
+                {[
+                  { id: "faulty_neon", label: "FAULTY NEON" },
+                  { id: "fluorescent_arc", label: "FLUORESCENT" },
+                  { id: "erratic_strobe", label: "ERRATIC STROBE" },
+                  { id: "electrical_short", label: "ELECTRIC SHORT" },
+                ].map((st) => (
+                  <button
+                    key={st.id}
+                    onClick={() => set("brokenLightStyle", st.id as any)}
+                    className={`py-1 px-1.5 rounded text-[9px] text-center cursor-pointer transition-colors ${
+                      (atmo.brokenLightStyle || "faulty_neon") === st.id
+                        ? "bg-red-700/80 text-white font-bold border border-red-500/60"
+                        : "text-slate-400 hover:text-slate-200 bg-slate-900/50"
+                    }`}
+                  >
+                    {st.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <SliderRow
+              label="FLICKER INTENSITY"
+              value={atmo.brokenLightIntensity ?? 0.9}
+              min={0.1}
+              max={1.0}
+              step={0.05}
+              onChange={(v) => set("brokenLightIntensity", v)}
+            />
+            <SliderRow
+              label="GLITCH SPEED / FREQ"
+              value={atmo.brokenLightSpeed ?? 1.0}
+              min={0.2}
+              max={3.0}
+              step={0.1}
+              unit="x"
+              onChange={(v) => set("brokenLightSpeed", v)}
+            />
+            <SliderRow
+              label="ARC OVERDRIVE SURGE"
+              value={atmo.brokenLightSurge ?? 1.85}
+              min={1.1}
+              max={2.5}
+              step={0.05}
+              unit="x"
+              onChange={(v) => set("brokenLightSurge", v)}
+            />
+          </div>
+        )}
       </div>
 
       {/* SECTION 2: FOG */}

@@ -6,29 +6,18 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import Lenis from "lenis";
 import { useSimulation } from "@/context/SimulationContext";
-import { getFocalLengthAtFrame, focalLengthToFov } from "@/config/navigationConfig";
+import {
+  getFocalLengthAtFrame,
+  focalLengthToFov,
+  SNAP_RANGES,
+  SnapRange,
+} from "@/config/navigationConfig";
 import { useLoopTransition } from "./transitions/transitionConfig";
-
-interface SnapRange {
-  start: number;
-  end: number;
-}
 
 // Blender frame offset: GLTF scroll offset 0.0 maps to Blender frame -493
 const BLENDER_FRAME_OFFSET = -493;
 const BLENDER_LAST_FRAME = 8871;
 const TOTAL_BLENDER_FRAMES = BLENDER_LAST_FRAME - BLENDER_FRAME_OFFSET; // 8840
-
-// Configurable checkpoints for magnetic snapping (in Blender frame numbers)
-const SNAP_RANGES: SnapRange[] = [
-  { start: -493, end: 0 },
-  { start: 720, end: 1212 },
-  { start: 1857, end: 2493 },
-  { start: 3116, end: 3613 },
-  { start: 3613, end: 3846 },
-  { start: 3846, end: 4057 },
-  { start: 4057, end: 4561 },
-];
 
 export const LenisScrollAdapter: React.FC = () => {
   const scroll = useScroll();
@@ -128,6 +117,7 @@ export const LenisScrollAdapter: React.FC = () => {
 
     (window as any).triggerLoopTransition = triggerLoopTransition;
     (window as any).useLoopTransition = useLoopTransition;
+    (window as any).SNAP_RANGES = SNAP_RANGES;
 
     // Expose window functions for manual developer console diagnosis
     (window as any).snapToFrame = (frame: number) => {
@@ -183,7 +173,8 @@ export const LenisScrollAdapter: React.FC = () => {
     lenis.on("scroll", handleScroll);
 
     // Track pointer and touch interactions to prevent snapping while holding/dragging
-    const handlePointerDown = () => {
+    const handlePointerDown = (e?: any) => {
+      if (e && (e.target as HTMLElement)?.closest?.('[data-lenis-prevent]')) return;
       isInteractingRef.current = true;
       isSnappingRef.current = false;
       lastInputTimeRef.current = Date.now();
@@ -201,6 +192,7 @@ export const LenisScrollAdapter: React.FC = () => {
     };
 
     const handleWheelInput = (e: WheelEvent) => {
+      if ((e.target as HTMLElement)?.closest?.('[data-lenis-prevent]')) return;
       isSnappingRef.current = false;
       lastInputTimeRef.current = Date.now();
 
@@ -253,13 +245,15 @@ export const LenisScrollAdapter: React.FC = () => {
 
     let touchStartY = 0;
     const handleTouchStart = (e: TouchEvent) => {
-      handlePointerDown();
+      if ((e.target as HTMLElement)?.closest?.('[data-lenis-prevent]')) return;
+      handlePointerDown(e);
       if (e.touches && e.touches.length > 0) {
         touchStartY = e.touches[0].clientY;
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
+      if ((e.target as HTMLElement)?.closest?.('[data-lenis-prevent]')) return;
       handlePointerMove();
       if (!lenisRef.current || !e.touches || e.touches.length === 0 || sceneMaxDuration <= 0) return;
       const lenis = lenisRef.current;
@@ -335,6 +329,7 @@ export const LenisScrollAdapter: React.FC = () => {
       delete (window as any).triggerLoopTransition;
       delete (window as any).snapToFrame;
       delete (window as any).getScrollInfo;
+      delete (window as any).SNAP_RANGES;
       resizeObserver.disconnect();
       lenis.off("scroll", handleScroll);
       window.removeEventListener("wheel", handleWheelInput);

@@ -4,6 +4,7 @@ import React, { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAtmosphere } from "@/lib/atmosphere";
+import { brokenLightEngine } from "@/lib/brokenLightFlicker";
 
 export const AtmosphereLighting: React.FC = () => {
   const ambientIntensity = useAtmosphere((s) => s.ambientIntensity);
@@ -18,7 +19,9 @@ export const AtmosphereLighting: React.FC = () => {
   const keyFillPositionOffset = useAtmosphere((s) => s.keyFillPositionOffset ?? [45, -50, 72]);
   const quality = useAtmosphere((s) => s.quality);
 
+  const ambientLightRef = useRef<THREE.AmbientLight>(null);
   const rimLightRef = useRef<THREE.DirectionalLight>(null);
+  const topGlowLightRef = useRef<THREE.PointLight>(null);
   const heroTargetRef = useRef<THREE.Object3D>(null);
 
   const ambientColor = useMemo(() => {
@@ -31,6 +34,16 @@ export const AtmosphereLighting: React.FC = () => {
     return cGlow.lerp(cWhite, rimWhiteMix);
   }, [glowColorHex, rimWhiteMix]);
 
+  useFrame(() => {
+    const atmo = useAtmosphere.getState();
+    const isBrokenScope = atmo.brokenLightEnabled && atmo.brokenLightScope === "all";
+    const mult = isBrokenScope ? brokenLightEngine.getMultiplier() : 1.0;
+
+    if (ambientLightRef.current) ambientLightRef.current.intensity = ambientIntensity * mult;
+    if (rimLightRef.current) rimLightRef.current.intensity = rimIntensity * mult;
+    if (topGlowLightRef.current) topGlowLightRef.current.intensity = topGlowIntensity * mult;
+  });
+
   const mapSize = quality === "low" ? 1024 : 2048;
 
   return (
@@ -39,7 +52,7 @@ export const AtmosphereLighting: React.FC = () => {
       <object3D ref={heroTargetRef} position={heroTopPosition} />
 
       {/* Ambient fill tinted toward zenith color */}
-      <ambientLight color={ambientColor} intensity={ambientIntensity} />
+      <ambientLight ref={ambientLightRef} color={ambientColor} intensity={ambientIntensity} />
 
       {/* Rim Directional Backlight */}
       <directionalLight
@@ -66,6 +79,7 @@ export const AtmosphereLighting: React.FC = () => {
 
       {/* Top Hot Point Light over Hero Pillar */}
       <pointLight
+        ref={topGlowLightRef}
         position={[
           heroTopPosition[0],
           heroTopPosition[1] + 3,

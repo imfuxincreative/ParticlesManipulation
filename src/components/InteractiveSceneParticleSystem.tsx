@@ -8,17 +8,16 @@ import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { ModelParticleShader } from "@/shaders/modelShader";
 import { useSimulation } from "@/context/SimulationContext";
 import { atmosphereUniforms } from "@/lib/atmosphereUniforms";
+import { INTERACTIVE_MODELS, MODEL_NAMES } from "@/config/projectModels";
 
-const INTERACTIVE_MODELS = ["/heart.glb", "/bird.glb"];
-const MODEL_NAMES = ["Heart", "Bird"];
 const PARTICLE_GRID = 90;
 const PARTICLE_COUNT = PARTICLE_GRID * PARTICLE_GRID;
 const TARGET_SIZE = 6.0;
 const MORPH_FRAMES = 600;
 
 const ROTATION_OFFSETS: [number, number, number][] = [
-  [0, 0, 0],
-  [0, -90, 0],
+  [0, -90, 0], // Heart
+  [0, -90, 0], // Bird
 ];
 
 INTERACTIVE_MODELS.forEach((m) => useGLTF.preload(m));
@@ -128,7 +127,7 @@ function extractAndPrepare(
 
   const ocx = (minX + maxX) / 2, ocy = (minY + maxY) / 2, ocz = (minZ + maxZ) / 2;
 
-  const [rxDeg, ryDeg, rzDeg] = ROTATION_OFFSETS[modelIndex] ?? [0, 0, 0];
+  const [rxDeg, ryDeg, rzDeg] = ROTATION_OFFSETS[modelIndex] ?? [0, -90, 0];
   const euler = new THREE.Euler(
     THREE.MathUtils.degToRad(rxDeg),
     THREE.MathUtils.degToRad(ryDeg),
@@ -188,7 +187,7 @@ export interface InteractiveSceneParticleSystemProps {
 
 export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSystemProps> = ({
   position = [1047.551, 398.157, 2.997],
-  rotation = [-Math.PI / 2, 0, 1.5]
+  rotation = [-Math.PI / 2, -Math.PI / 2, 1.5]
 }) => {
   const { settings, updateSetting } = useSimulation();
   const modelIndex = (settings.currentModelIndex ?? 0) % INTERACTIVE_MODELS.length;
@@ -391,10 +390,10 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     const id = requestAnimationFrame(() => {
       const found = groupRef.current?.parent
         ? (function findInScene(obj: THREE.Object3D): THREE.Object3D | null {
-            let root: THREE.Object3D = obj;
-            while (root.parent) root = root.parent;
-            return root.getObjectByName("Cube005") || root.getObjectByName("Cube.005") || null;
-          })(groupRef.current)
+          let root: THREE.Object3D = obj;
+          while (root.parent) root = root.parent;
+          return root.getObjectByName("Cube005") || root.getObjectByName("Cube.005") || null;
+        })(groupRef.current)
         : null;
       if (found) {
         found.visible = false;
@@ -429,9 +428,10 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
       const baseRotZ = rotation ? rotation[2] : (settings.modelBaseRotationZ ?? 1.5);
       const autoSpeedX = settings.modelAutoRotateSpeedX ?? 0.3;
 
-      groupRef.current.rotation.x = baseRotX + elapsed * autoSpeedX;
-      groupRef.current.rotation.y = baseRotY;
-      groupRef.current.rotation.z = baseRotZ;
+      // Fixed base orientation + horizontal turntable spin around the vertical (Y) axis
+      const qBase = new THREE.Quaternion().setFromEuler(new THREE.Euler(baseRotX, baseRotY, baseRotZ, "XYZ"));
+      const qSpin = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), elapsed * autoSpeedX);
+      groupRef.current.quaternion.copy(qSpin.multiply(qBase));
     }
 
     if (!physicsReady.current || !pointsRef.current) return;

@@ -141,30 +141,31 @@ export const LoopTransitionOverlay: React.FC = () => {
   return (
     <div
       id="loop-transition-overlay"
-      className="fixed inset-0 w-full h-full pointer-events-none select-none z-25 overflow-hidden transition-[backdrop-filter] duration-300 ease-out"
+      className="fixed inset-0 w-full h-full pointer-events-none select-none z-25 overflow-hidden"
       style={{
-        backdropFilter: `blur(${blurPx}px) contrast(${contrast}) brightness(${brightness}) saturate(${saturation})`,
-        WebkitBackdropFilter: `blur(${blurPx}px) contrast(${contrast}) brightness(${brightness}) saturate(${saturation})`,
+        backdropFilter: `blur(${blurPx}px) contrast(${contrast}) brightness(calc(${brightness} * var(--broken-light-mult, 1))) saturate(${saturation})`,
+        WebkitBackdropFilter: `blur(${blurPx}px) contrast(${contrast}) brightness(calc(${brightness} * var(--broken-light-mult, 1))) saturate(${saturation})`,
         willChange: "backdrop-filter, opacity",
       }}
       aria-hidden={!isTypingActive}
     >
       {/* Radiant atmospheric mist veil that smoothly envelopes the viewport into the sky colors */}
       <div
-        className="absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-500 ease-out"
+        className="absolute inset-0 w-full h-full pointer-events-none"
         style={{
           background: `linear-gradient(180deg, ${zenithColor} 0%, ${fogColor} 50%, ${horizonColor} 100%)`,
-          opacity: mistOpacity,
+          opacity: `calc(${mistOpacity} * var(--broken-light-mult, 1))`,
           willChange: "opacity",
         }}
       />
       {/* Subtle optical core bloom to give deep ethereal glow */}
       <div
-        className="absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-500 ease-out"
+        className="absolute inset-0 w-full h-full pointer-events-none"
         style={{
           background: `radial-gradient(circle at 50% 50%, ${horizonColor}99 0%, transparent 70%)`,
-          opacity: isInTouch ? 0.22 : mistOpacity * 0.5,
+          opacity: `calc(${isInTouch ? 0.22 : mistOpacity * 0.5} * var(--broken-light-mult, 1))`,
           mixBlendMode: "screen",
+          willChange: "opacity",
         }}
       />
 

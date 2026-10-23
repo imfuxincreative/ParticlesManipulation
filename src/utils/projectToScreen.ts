@@ -17,8 +17,8 @@ export function projectToScreen(
   // Clone to avoid mutating the original vector
   const projected = worldPos.clone().project(camera);
 
-  // Behind the camera — NDC z > 1 means behind the near plane
-  if (projected.z > 1) return null;
+  // Behind the camera / beyond far plane with small float epsilon tolerance
+  if (projected.z > 1.05) return null;
 
   // Convert NDC (-1..1) to pixel coordinates (top-left origin)
   const x = (projected.x * 0.5 + 0.5) * size.width;

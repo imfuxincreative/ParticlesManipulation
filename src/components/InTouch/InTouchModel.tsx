@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useMemo, useCallback } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAtmosphere } from "@/lib/atmosphere";
+import { brokenLightEngine } from "@/lib/brokenLightFlicker";
 import { Model as InTouchGeneratedModel } from "./InTouchModelGenerated";
 
 interface InTouchModelProps {
@@ -241,6 +242,11 @@ export const InTouchModel: React.FC<InTouchModelProps> = ({
   useEffect(() => {
     silhouetteMaterial.emissive.set(zenithColor).lerp(new THREE.Color("#000000"), 0.85);
   }, [silhouetteMaterial, zenithColor]);
+
+  // Synchronize subtle rim emissive glow with broken light flash
+  useFrame(() => {
+    silhouetteMaterial.emissiveIntensity = 0.22 * brokenLightEngine.getMultiplier();
+  });
 
   // Extract bones and nodes once generated model is mounted
   const handleLoaded = useCallback(

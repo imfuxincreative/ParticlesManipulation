@@ -63,7 +63,7 @@ export interface CalloutTargetConfig {
 
 export const CALLOUT_TARGETS: CalloutTargetConfig[] = [
   {
-    id: "target1",
+    id: "glass",
     label: "Creative dev & Designer",
     sublabel: "I love to craft visual experience",
     frameStart: 1473,
@@ -75,7 +75,43 @@ export const CALLOUT_TARGETS: CalloutTargetConfig[] = [
     meshVisible: false, // hidden anchor point
   },
   {
-    id: "target3",
+    id: "glass.001",
+    label: "Hi, I'm meezan",
+    sublabel: "I love to craft visual experience",
+    frameStart: 3027,
+    frameEnd: 3216,
+    direction: "left",
+    diagonalLength: 80,
+    horizontalLength: 130,
+    diagonalAngle: 35,
+    meshVisible: false, // hidden anchor point
+  },
+  {
+    id: "nolv",
+    label: "nolv",
+    sublabel: "No Limit Visual",
+    frameStart: 1473,
+    frameEnd: 1857,
+    direction: "right",
+    diagonalLength: 80,
+    horizontalLength: 130,
+    diagonalAngle: 35,
+    meshVisible: false, // hidden anchor point
+  },
+  {
+    id: "screen",
+    label: "my pc",
+    sublabel: "don't mess with it",
+    frameStart: 3456,
+    frameEnd: 5000,
+    direction: "right",
+    diagonalLength: 80,
+    horizontalLength: 130,
+    diagonalAngle: 35,
+    meshVisible: false, // hidden anchor point
+  },
+  {
+    id: "ig",
     label: "@IMFUCXINCREATIVE",
     frameStart: 1473,
     frameEnd: 1857,

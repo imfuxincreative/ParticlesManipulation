@@ -63,7 +63,18 @@ export interface AtmosphereConfig {
   grainAmount: number;      // 0.12
   godRays: boolean;         // false
   quality: AtmosphereQuality;
+
+  // Broken Light / Faulty Neon Flicker
+  brokenLightEnabled: boolean;
+  brokenLightIntensity: number;       // 0.0 - 1.0 (depth of blackout drops, default 0.90)
+  brokenLightSpeed: number;           // 0.2 - 3.0 (event frequency, default 1.0)
+  brokenLightSurge: number;           // 1.1 - 2.5 (overvoltage spike brightness, default 1.85)
+  brokenLightScope: BrokenLightScope; // "inTouch" | "all"
+  brokenLightStyle: BrokenLightStyle; // "faulty_neon" | "fluorescent_arc" | "erratic_strobe" | "electrical_short"
 }
+
+export type BrokenLightStyle = "faulty_neon" | "fluorescent_arc" | "erratic_strobe" | "electrical_short";
+export type BrokenLightScope = "inTouch" | "all";
 
 export const DEFAULT_SKY_KEYFRAMES: SkyColorKeyframe[] = [
   { id: "kf-1", frame: -493, color: "#FF000D" },
@@ -117,6 +128,13 @@ export const REFERENCE_PRESET: AtmosphereConfig = {
   grainAmount: 0.23,
   godRays: false,
   quality: "high",
+
+  brokenLightEnabled: true,
+  brokenLightIntensity: 0.90,
+  brokenLightSpeed: 1.0,
+  brokenLightSurge: 1.85,
+  brokenLightScope: "inTouch",
+  brokenLightStyle: "faulty_neon",
 };
 
 const tempLerpC1 = new THREE.Color();

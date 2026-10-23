@@ -5,6 +5,35 @@
  * and keyframed lens focal length (in mm) conversion to degrees FOV.
  */
 
+export interface SnapRange {
+  start: number
+  end: number
+}
+
+// Centralized navigation checkpoints & magnetic snapping ranges (in Blender frame numbers)
+export const SNAP_RANGES: SnapRange[] = [
+  { start: -493, end: 0 },
+  { start: 720, end: 1212 },
+  { start: 1212, end: 1464 },
+  { start: 1464, end: 1721 },
+
+
+  { start: 1857, end: 2493 },
+  { start: 2493, end: 3216 },
+
+  { start: 3216, end: 3846 },
+  { start: 3846, end: 5075 },
+  { start: 5133, end: 5744 },
+  { start: 6297, end: 7435 },
+
+  // { start: 3613, end: 3846 },
+  { start: 4057, end: 4561 },
+]
+
+export const CHECKPOINTS: number[] = Array.from(
+  new Set(SNAP_RANGES.flatMap((range) => [range.start, range.end]))
+).sort((a, b) => a - b)
+
 export interface SectionConfig {
   name: string
   slug: string
@@ -13,14 +42,12 @@ export interface SectionConfig {
   index: number
 }
 
-export const CHECKPOINTS = [-493, 720, 1212, 1857, 2493, 3116, 3613, 3846, 4057, 4561, 8347]
-
 export const SECTIONS: SectionConfig[] = [
   { name: "Home", slug: "home", frame: -493, checkpointIndex: 0, index: 0 },
-  { name: "Overview", slug: "overview", frame: 720, checkpointIndex: 1, index: 1 },
-  { name: "Showcase", slug: "showcase", frame: 1857, checkpointIndex: 3, index: 2 },
-  { name: "Architecture", slug: "architecture", frame: 3116, checkpointIndex: 5, index: 3 },
-  { name: "Contact", slug: "contact", frame: 4057, checkpointIndex: 7, index: 4 },
+  { name: "Overview", slug: "overview", frame: 720, checkpointIndex: 2, index: 1 },
+  { name: "Showcase", slug: "showcase", frame: 1857, checkpointIndex: 6, index: 2 },
+  { name: "Architecture", slug: "architecture", frame: 3216, checkpointIndex: 8, index: 3 },
+  { name: "Contact", slug: "contact", frame: 4057, checkpointIndex: 10, index: 4 },
 ]
 
 export const SLUG_ALIASES: Record<string, number> = {
@@ -58,29 +85,43 @@ export interface FocalLengthKeyframe {
 
 export const FOCAL_LENGTH_KEYFRAMES: FocalLengthKeyframe[] = [
   { frame: -493, focalLength: 30 },
+  { frame: 0, focalLength: 30 },
   { frame: 720, focalLength: 20 },
   { frame: 1212, focalLength: 20 },
+  { frame: 1464, focalLength: 25 },
+  { frame: 1721, focalLength: 30 },
   { frame: 1857, focalLength: 30 },
   { frame: 2493, focalLength: 30 },
-  { frame: 3116, focalLength: 20 },
-  { frame: 3613, focalLength: 10 },
+  { frame: 3216, focalLength: 20 },
   { frame: 3846, focalLength: 15 },
   { frame: 4057, focalLength: 15 },
   { frame: 4561, focalLength: 20 },
+  { frame: 5075, focalLength: 20 },
+  { frame: 5133, focalLength: 20 },
+  { frame: 5744, focalLength: 20 },
+  { frame: 6297, focalLength: 20 },
+  { frame: 7435, focalLength: 20 },
   { frame: 8347, focalLength: 20 },
 ]
 
 export const MOBILE_FOCAL_LENGTH_KEYFRAMES: FocalLengthKeyframe[] = [
   { frame: -493, focalLength: 28 },
+  { frame: 0, focalLength: 28 },
   { frame: 720, focalLength: 64 },
   { frame: 1212, focalLength: 64 },
+  { frame: 1464, focalLength: 66 },
+  { frame: 1721, focalLength: 68 },
   { frame: 1857, focalLength: 68 },
   { frame: 2493, focalLength: 68 },
-  { frame: 3116, focalLength: 64 },
-  { frame: 3613, focalLength: 34 },
+  { frame: 3216, focalLength: 64 },
   { frame: 3846, focalLength: 44 },
   { frame: 4057, focalLength: 44 },
   { frame: 4561, focalLength: 54 },
+  { frame: 5075, focalLength: 54 },
+  { frame: 5133, focalLength: 54 },
+  { frame: 5744, focalLength: 54 },
+  { frame: 6297, focalLength: 54 },
+  { frame: 7435, focalLength: 54 },
   { frame: 8347, focalLength: 54 },
 ]
 

@@ -1,45 +1,101 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSimulation } from "@/context/SimulationContext";
+import { MODEL_NAMES } from "@/config/projectModels";
+import { ScrambleTitle } from "./ui/ScrambleTitle";
+
+// Architectural minimalist navigation arrows matching user reference
+export const MinimalArrowLeft: React.FC<{ className?: string }> = ({ className = "" }) => (
+  <svg
+    viewBox="0 0 68 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    aria-hidden="true"
+  >
+    <path
+      d="M 18 5 L 4 19 H 64"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const MinimalArrowRight: React.FC<{ className?: string }> = ({ className = "" }) => (
+  <svg
+    viewBox="0 0 68 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    aria-hidden="true"
+  >
+    <path
+      d="M 4 19 H 64 L 50 5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+function getItemWidth(title: string, windowWidth: number): number {
+  const estimatedCharWidth = Math.min(32, Math.max(14, windowWidth * 0.016));
+  return Math.max(50, title.length * estimatedCharWidth + 24);
+}
 
 export interface ProjectsControllerProps {
+  startFrame?: number;
+  endFrame?: number;
   targetFrame?: number;
   fadeInStart?: number;
   fullStart?: number;
   fullEnd?: number;
   fadeOutEnd?: number;
+  fadeDuration?: number;
 }
 
 export const ProjectsController: React.FC<ProjectsControllerProps> = ({
-  targetFrame = 3846,
-  fadeInStart = 3780, // Starts appearing close to project checkpoint 3846
-  fullStart = 3830,   // Reaches full opacity right before 3846
-  fullEnd = 3860,     // Stays full opacity centered around 3846
-  fadeOutEnd = 3910,  // Disappears cleanly as you move past 3846
+  startFrame = 7435,
+  endFrame = 7800,
+  targetFrame,
+  fadeInStart,
+  fullStart,
+  fullEnd,
+  fadeOutEnd,
+  fadeDuration = 25,
 }) => {
-  const { settings, updateSetting } = useSimulation();
-  const [currentFrame, setCurrentFrame] = useState<number>(-999);
-  const [opacity, setOpacity] = useState<number>(0);
+  const effStart = startFrame ?? targetFrame ?? 7435;
+  const effEnd = endFrame ?? targetFrame ?? 7500;
+  const effFadeInStart = fadeInStart ?? (effStart - fadeDuration);
+  const effFullStart = fullStart ?? effStart;
+  const effFullEnd = fullEnd ?? effEnd;
+  const effFadeOutEnd = fadeOutEnd ?? (effEnd + fadeDuration);
 
-  // Derive project / model names from settings.models array
-  const projectLabels = useMemo(() => {
-    return settings.models.map((path) => {
-      const filename = path.split("/").pop()?.replace(".glb", "") || "Project";
-      return filename.charAt(0).toUpperCase() + filename.slice(1);
-    });
-  }, [settings.models]);
+  const { settings, updateSetting } = useSimulation();
+  const [opacity, setOpacity] = useState<number>(0);
+  const [windowWidth, setWindowWidth] = useState<number>(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1200
+  );
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const computeOpacity = (frame: number): number => {
-      if (frame < fadeInStart || frame > fadeOutEnd) return 0;
-      if (frame >= fullStart && frame <= fullEnd) return 1;
-      if (frame < fullStart) {
-        const t = (frame - fadeInStart) / (fullStart - fadeInStart);
+      if (frame < effFadeInStart || frame > effFadeOutEnd) return 0;
+      if (frame >= effFullStart && frame <= effFullEnd) return 1;
+      if (frame < effFullStart) {
+        const t = (frame - effFadeInStart) / (effFullStart - effFadeInStart);
         return Math.max(0, Math.min(1, t));
       } else {
-        const t = (frame - fullEnd) / (fadeOutEnd - fullEnd);
+        const t = (frame - effFullEnd) / (effFadeOutEnd - effFullEnd);
         return Math.max(0, Math.min(1, 1 - t));
       }
     };
@@ -48,7 +104,6 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
       const customEvent = e as CustomEvent<{ frame: number }>;
       const frame = customEvent.detail?.frame;
       if (typeof frame === "number" && !isNaN(frame)) {
-        setCurrentFrame(frame);
         setOpacity(computeOpacity(frame));
       }
     };
@@ -59,14 +114,12 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
     if (typeof window !== "undefined") {
       const winFrame = (window as any).particlesCurrentFrame;
       if (typeof winFrame === "number" && !isNaN(winFrame)) {
-        setCurrentFrame(winFrame);
         setOpacity(computeOpacity(winFrame));
       } else {
         const frameValEl = document.getElementById("overlay-frame-val");
         if (frameValEl) {
           const parsed = parseFloat(frameValEl.innerText);
           if (!isNaN(parsed)) {
-            setCurrentFrame(parsed);
             setOpacity(computeOpacity(parsed));
           }
         }
@@ -76,18 +129,7 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
     return () => {
       window.removeEventListener("scroll-frame-change", handleFrameChange);
     };
-  }, [fadeInStart, fullStart, fullEnd, fadeOutEnd]);
-
-  const handleNext = () => {
-    const nextIndex = (settings.currentModelIndex + 1) % settings.models.length;
-    updateSetting("currentModelIndex", nextIndex);
-  };
-
-  const handlePrev = () => {
-    const prevIndex =
-      (settings.currentModelIndex - 1 + settings.models.length) % settings.models.length;
-    updateSetting("currentModelIndex", prevIndex);
-  };
+  }, [effFadeInStart, effFullStart, effFullEnd, effFadeOutEnd]);
 
   // Forward wheel events over buttons to Lenis so scrolling on arrows doesn't stall
   const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -97,14 +139,85 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
     }
   }, []);
 
-  if (!settings.models || settings.models.length === 0) return null;
+  const projects = MODEL_NAMES;
+  if (!projects.length) return null;
+
+  const activeIndex = ((settings.currentModelIndex ?? 0) % projects.length + projects.length) % projects.length;
+
+  const handleSelect = (index: number) => updateSetting("currentModelIndex", index);
+  const handlePrev = () => handleSelect((activeIndex - 1 + projects.length) % projects.length);
+  const handleNext = () => handleSelect((activeIndex + 1) % projects.length);
 
   const isInteractive = opacity > 0.02;
   const scale = 0.9 + 0.1 * opacity;
-  const currentProjectName = projectLabels[settings.currentModelIndex] || "Project";
-  const projectNumberStr = `${String(settings.currentModelIndex + 1).padStart(2, "0")} / ${String(
-    settings.models.length
-  ).padStart(2, "0")}`;
+
+  // ── Dynamic measurement & responsive layout ──
+  const offsets = projects.length === 1 ? [0] : [-2, -1, 0, 1, 2];
+  const itemRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const [measuredWidths, setMeasuredWidths] = useState<Record<number, number>>({});
+  const [measuredHeight, setMeasuredHeight] = useState<number>(24);
+
+  // Measure actual rendered widths using ResizeObserver so any font size change recalculates spacing
+  useEffect(() => {
+    const updateMeasurements = () => {
+      const nextWidths: Record<number, number> = {};
+      let maxH = 24;
+      offsets.forEach((offset) => {
+        const el = itemRefs.current[offset];
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          const w = Math.ceil(rect.width);
+          const h = Math.ceil(rect.height);
+          if (w > 0) nextWidths[offset] = w;
+          if (h > maxH) maxH = h;
+        }
+      });
+
+      setMeasuredHeight(maxH);
+      setMeasuredWidths((prev) => {
+        const hasDiff = offsets.some((off) => prev[off] !== nextWidths[off]);
+        return hasDiff ? nextWidths : prev;
+      });
+    };
+
+    updateMeasurements();
+
+    const ro = new ResizeObserver(updateMeasurements);
+    offsets.forEach((offset) => {
+      const el = itemRefs.current[offset];
+      if (el) ro.observe(el);
+    });
+
+    window.addEventListener("resize", updateMeasurements);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", updateMeasurements);
+    };
+  }, [activeIndex, projects]);
+
+  // Gap adapts proportionally to font size (measured height)
+  const gap = Math.max(10, Math.round(measuredHeight * 0.0));
+
+  const itemWidths: Record<number, number> = {};
+  offsets.forEach((offset) => {
+    const targetIndex = (activeIndex + offset + projects.length * 100) % projects.length;
+    itemWidths[offset] =
+      measuredWidths[offset] || getItemWidth(projects[targetIndex], windowWidth);
+  });
+
+  const xOffsets: Record<number, number> = { 0: 0 };
+  if (itemWidths[1] !== undefined) {
+    xOffsets[1] = (itemWidths[0] + itemWidths[1]) / 2 + gap;
+  }
+  if (itemWidths[2] !== undefined && itemWidths[1] !== undefined) {
+    xOffsets[2] = xOffsets[1] + (itemWidths[1] + itemWidths[2]) / 2 + gap;
+  }
+  if (itemWidths[-1] !== undefined) {
+    xOffsets[-1] = -((itemWidths[0] + itemWidths[-1]) / 2 + gap);
+  }
+  if (itemWidths[-2] !== undefined && itemWidths[-1] !== undefined) {
+    xOffsets[-2] = xOffsets[-1] - ((itemWidths[-1] + itemWidths[-2]) / 2 + gap);
+  }
 
   return (
     <div
@@ -122,34 +235,103 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
         aria-label="Previous Project"
         title="Previous Project"
         style={{ pointerEvents: isInteractive ? "auto" : "none" }}
-        className="group relative p-4 md:p-5 rounded-full bg-slate-950/70 hover:bg-purple-950/80 backdrop-blur-xl border border-purple-500/30 hover:border-purple-400/80 text-purple-200 hover:text-white shadow-2xl shadow-purple-950/50 transition-all duration-300 transform hover:scale-115 active:scale-90 flex items-center justify-center cursor-pointer"
+        className="group relative p-2 md:p-3 text-white/80 hover:text-white transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer"
       >
-        <div className="absolute inset-0 rounded-full bg-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity blur-md" />
-        <ChevronLeft className="w-7 h-7 md:w-9 md:h-9 transition-transform group-hover:-translate-x-0.5" />
+        <MinimalArrowLeft className="w-14 h-5 md:w-20 md:h-7 transition-all duration-300 group-hover:-translate-x-1.5 group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]" />
       </button>
 
-      {/* Center Projects Controller Status Pill */}
+      {/* ── Bottom HUD Title Menu ── */}
       <div
         onWheel={handleWheel}
-        style={{ pointerEvents: isInteractive ? "auto" : "none" }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-slate-950/80 backdrop-blur-2xl border border-purple-500/40 px-5 py-2.5 rounded-full shadow-2xl shadow-purple-950/60"
+        className="absolute left-0 right-0 bottom-8 sm:bottom-14 flex items-center justify-center pointer-events-none px-4"
       >
-        <div className="p-1.5 rounded-full bg-purple-900/50 text-purple-400">
-          <Sparkles className="w-4 h-4 animate-pulse" />
-        </div>
-        <div className="flex flex-col text-left">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono tracking-widest text-purple-400 uppercase font-semibold">
-              PROJECT CONTROLLER
-            </span>
-            <span className="text-[10px] font-mono text-slate-500">•</span>
-            <span className="text-[10px] font-mono tracking-wider text-slate-400">
-              {projectNumberStr}
-            </span>
-          </div>
-          <span className="text-xs font-mono font-bold tracking-wider text-white uppercase drop-shadow">
-            {currentProjectName}
-          </span>
+        <div
+          className="relative w-full max-w-xs sm:max-w-xl md:max-w-3xl flex items-center justify-center overflow-hidden [mask-image:linear-gradient(to_right,transparent_0%,black_15%,black_85%,transparent_100%)]"
+          style={{ minHeight: `${Math.max(44, measuredHeight + 16)}px` }}
+        >
+          {offsets.map((offset) => {
+            const targetIndex = (activeIndex + offset + projects.length * 100) % projects.length;
+            const title = projects[targetIndex];
+            const isActive = offset === 0;
+            const distance = Math.abs(offset);
+
+            // Dynamic horizontal offset relative to center with measured gap
+            const xOffset = xOffsets[offset] ?? 0;
+
+            // Opacity: 1 for active center, 0.85 for distance 1 (gradient text handles falloff), 0 for distance >= 2
+            let itemOpacity = 0;
+            if (distance === 0) itemOpacity = 1;
+            else if (distance === 1) itemOpacity = 0.85;
+
+            // Gradient fade styling for unselected titles
+            let titleStyle: React.CSSProperties = {
+              letterSpacing: "0.03em",
+            };
+
+            if (isActive) {
+              titleStyle = {
+                ...titleStyle,
+                color: "#ffffff",
+                filter: "drop-shadow(0 0 8px rgba(255,255,255,0.4))",
+              };
+            } else if (offset < 0) {
+              // Left side titles: opacity fades out towards the left
+              titleStyle = {
+                ...titleStyle,
+                background:
+                  distance === 1
+                    ? "linear-gradient(to right, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.55) 100%)"
+                    : "linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.18) 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              };
+            } else {
+              // Right side titles: opacity fades out towards the right
+              titleStyle = {
+                ...titleStyle,
+                background:
+                  distance === 1
+                    ? "linear-gradient(to right, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.08) 100%)"
+                    : "linear-gradient(to right, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              };
+            }
+
+            return (
+              <div
+                key={offset}
+                className="group absolute left-1/2 top-1/2 flex items-center justify-center cursor-pointer transition-all duration-200 hover:opacity-100"
+                style={{
+                  transform: `translate(calc(-50% + ${xOffset}px), -50%)`,
+                  opacity: itemOpacity,
+                  pointerEvents: isInteractive && itemOpacity > 0 ? "auto" : "none",
+                }}
+                onClick={() => (isActive ? undefined : handleSelect(targetIndex))}
+                title={isActive ? title : `Switch to ${title}`}
+              >
+                <div
+                  ref={(el) => {
+                    itemRefs.current[offset] = el;
+                  }}
+                  className="relative py-1 px-2 sm:px-3 flex items-center justify-center whitespace-nowrap"
+                >
+                  <ScrambleTitle
+                    title={title}
+                    fontSize="clamp(13px, 18px, 57px)"
+                    uppercase={false}
+                    scrambleOnHover={true}
+                    style={titleStyle}
+                    triggerKey={activeIndex}
+                    scrambleOptions={{
+                      scrambleOnMount: false,
+                      animateOnChange: true, // triggers shuffle animation when model changes
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -160,10 +342,9 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
         aria-label="Next Project"
         title="Next Project"
         style={{ pointerEvents: isInteractive ? "auto" : "none" }}
-        className="group relative p-4 md:p-5 rounded-full bg-slate-950/70 hover:bg-purple-950/80 backdrop-blur-xl border border-purple-500/30 hover:border-purple-400/80 text-purple-200 hover:text-white shadow-2xl shadow-purple-950/50 transition-all duration-300 transform hover:scale-115 active:scale-90 flex items-center justify-center cursor-pointer"
+        className="group relative p-2 md:p-3 text-white/80 hover:text-white transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center cursor-pointer"
       >
-        <div className="absolute inset-0 rounded-full bg-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity blur-md" />
-        <ChevronRight className="w-7 h-7 md:w-9 md:h-9 transition-transform group-hover:translate-x-0.5" />
+        <MinimalArrowRight className="w-14 h-5 md:w-20 md:h-7 transition-all duration-300 group-hover:translate-x-1.5 group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]" />
       </button>
     </div>
   );

@@ -131,97 +131,48 @@ export const InTouchHUD: React.FC = () => {
   return (
     <>
       <div
-        className={`fixed inset-0 pointer-events-none z-30 flex flex-col justify-between items-center p-6 md:p-8 select-none transition-opacity duration-1000 ${
-          visible && !isTransitioning ? "opacity-100" : "opacity-0"
-        }`}
+        className={`fixed inset-0 pointer-events-none z-30 flex flex-col justify-between items-center p-6 md:p-8 select-none transition-opacity duration-1000 ${visible && !isTransitioning ? "opacity-100" : "opacity-0"
+          }`}
       >
-        {/* Top Atmosphere Subtitle & Interactive State Badge */}
-        <div className="pt-2 flex flex-col items-center gap-1.5 pointer-events-auto">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/40 border border-red-500/20 backdrop-blur-md">
-            <span
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                proximity > 0.05
-                  ? "bg-red-400 shadow-[0_0_10px_#ff0033] animate-pulse"
-                  : "bg-red-500/50"
-              }`}
-            />
-            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-red-200/80 font-mono">
-              Interactive Scene // inTouch
-            </p>
-          </div>
-        </div>
+
 
         {/* Center-Bottom Floating "Get in touch" Interactive Trigger */}
         <div className="my-auto pb-4 flex flex-col items-center gap-3 pointer-events-auto">
           <div className="relative group">
             {/* Ambient Dynamic Crimson Radial Aura (scales & glows with proximity) */}
             <div
-              className="absolute -inset-3 rounded-full bg-gradient-to-r from-red-600 via-rose-500 to-red-600 transition-all duration-150 pointer-events-none"
-              style={{
-                opacity: Math.max(0.12, proximity * 0.85),
-                transform: `scale(${1.0 + proximity * 0.22})`,
-                filter: `blur(${16 + proximity * 18}px)`,
-              }}
+
+
             />
 
             {/* Main "Get in touch" Button */}
             <button
               ref={buttonRef}
-              onClick={() => setShowContactModal(true)}
-              className="relative flex items-center gap-3 px-7 py-3 sm:px-9 sm:py-3.5 rounded-full bg-gradient-to-r from-black/85 via-red-950/70 to-black/85 border border-red-500/30 hover:border-red-400 backdrop-blur-2xl text-red-100 tracking-wider transition-all duration-300 shadow-[0_8px_32px_rgba(255,0,30,0.2)] hover:shadow-[0_8px_45px_rgba(255,0,30,0.55)] cursor-pointer"
-              style={{
-                borderColor: `rgba(255, ${60 + proximity * 140}, ${70 + proximity * 120}, ${
-                  0.3 + proximity * 0.65
-                })`,
-                boxShadow: `0 8px 32px rgba(255, 0, 30, ${0.15 + proximity * 0.45})`,
-                transform: `scale(${1.0 + proximity * 0.04})`,
-              }}
+
+              className="group flex items-center gap-2 px-4 py-2 rounded-full bg-red-950/30 hover:bg-red-900/50 border border-red-500/20 hover:border-red-400/40 backdrop-blur-md text-red-200/90 text-xs tracking-wider transition-all duration-300 cursor-pointer"
+
+
             >
               {/* Dynamic Sparkle / Contact Icon */}
-              <div
-                className="relative flex items-center justify-center w-6 h-6 rounded-full bg-red-500/20 text-red-300 transition-transform duration-300"
-                style={{
-                  transform: `rotate(${proximity * 45}deg) scale(${1.0 + proximity * 0.15})`,
-                  backgroundColor: `rgba(255, 0, 30, ${0.15 + proximity * 0.35})`,
-                }}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-red-400" />
-              </div>
 
               {/* Button Text */}
               <div className="flex flex-col text-left">
-                <span className="text-xs sm:text-sm font-semibold tracking-[0.22em] uppercase text-red-50">
+                <span className="text-xs sm:text-sm font-semibold py-1 px-2 opacity-[0.66] hover:opacity-[1] duration-300 tracking-[0.22em] uppercase text-red-50">
                   Get in touch
                 </span>
-                <span className="text-[9px] sm:text-[10px] tracking-widest text-red-300/60 font-mono">
-                  {proximity > 0.08
-                    ? `Reaching out • ${(proximity * 100).toFixed(0)}%`
-                    : "Reach across the glass"}
-                </span>
+
               </div>
 
-              {/* Arrow Indicator */}
-              <ArrowUpRight
-                className="w-4 h-4 text-red-400/80 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                style={{
-                  opacity: 0.6 + proximity * 0.4,
-                  transform: `translate(${proximity * 2}px, ${-proximity * 2}px)`,
-                }}
-              />
+
             </button>
           </div>
 
           {/* Micro guidance notice */}
-          <p
-            className="text-[10px] sm:text-xs text-red-300/40 tracking-widest font-mono text-center transition-opacity duration-300"
-            style={{ opacity: Math.max(0.35, 1 - proximity * 0.6) }}
-          >
-            Move cursor closer to initiate hand gesture
-          </p>
+
         </div>
 
         {/* Bottom Controls / Journey Loop */}
-        <div className="pb-2 flex flex-col items-center gap-2.5 pointer-events-auto">
+        {/* <div className="pb-2 flex flex-col items-center gap-2.5 pointer-events-auto">
           <button
             onClick={() => returnToMainScene("first")}
             className="group flex items-center gap-2 px-4 py-2 rounded-full bg-red-950/30 hover:bg-red-900/50 border border-red-500/20 hover:border-red-400/40 backdrop-blur-md text-red-200/90 text-xs tracking-wider transition-all duration-300 cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
@@ -233,7 +184,7 @@ export const InTouchHUD: React.FC = () => {
           <p className="text-[9px] sm:text-[11px] text-red-300/35 tracking-widest font-mono">
             Scroll down or click to loop &bull; Scroll up to return
           </p>
-        </div>
+        </div> */}
       </div>
 
       {/* Floating Glassmorphic Contact Dialog */}
