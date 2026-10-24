@@ -142,6 +142,11 @@ export interface SimulationSettings {
   carLedColor: string;
   carLedPulse: boolean;
   carLedPulseSpeed: number;
+  tvScreenIntensity: number;
+  tvScreenColor: string;
+  tvScreenFlicker: boolean;
+  tvScreenScanlines: boolean;
+  tvScreenMode: "shader" | "native";
   isLoading: boolean;
   isSceneLoaded: boolean;
   sceneLoadProgress: number;
@@ -167,7 +172,7 @@ const defaultSettings: SimulationSettings = {
   scatterStrength: 3,
   noiseStrength: 0.1,
   noiseSpeed: 0.4,
-  pointSize: 3.6,
+  pointSize: 2.8,
   focusDepth: 14,
   focusRange: 2,
   bokehScale: 4,
@@ -226,7 +231,7 @@ const defaultSettings: SimulationSettings = {
   fogNear: 40,
   fogFar: 350,
   fogAmount: 1,
-  modelFlowSpeed: 0.23,
+  modelFlowSpeed: 0.15,
   modelFlowStrength: 0.15,
   modelFlowFrequency: 1.15,
   modelFlowNormalLimit: 0,
@@ -293,6 +298,11 @@ const defaultSettings: SimulationSettings = {
   carLedColor: "#00f0ff",
   carLedPulse: true,
   carLedPulseSpeed: 2.5,
+  tvScreenIntensity: 3.5,
+  tvScreenColor: "#ffffff",
+  tvScreenFlicker: true,
+  tvScreenScanlines: true,
+  tvScreenMode: "shader",
   isLoading: true,
   isSceneLoaded: false,
   sceneLoadProgress: 0,

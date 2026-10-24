@@ -939,6 +939,137 @@ export const Dashboard: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* 5. TV SCREENS LED GLOW (EMISSION) */}
+              <div className="flex flex-col gap-2 p-2.5 bg-slate-900/60 border border-white/5 rounded-xl">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-cyan-400 tracking-wider">
+                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-sm shadow-cyan-400" />
+                  <span>TV Screens Glow (EMISSION)</span>
+                </div>
+
+                {/* Mode Selector */}
+                <div className="flex bg-black/40 p-0.5 rounded-lg border border-white/5 font-mono text-[9px]">
+                  <button
+                    onClick={() => updateSetting("tvScreenMode", "shader")}
+                    className={`flex-1 py-1 rounded text-center transition-all cursor-pointer ${
+                      settings.tvScreenMode !== "native"
+                        ? "bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    LED SHADER + TEXTURE
+                  </button>
+                  <button
+                    onClick={() => updateSetting("tvScreenMode", "native")}
+                    className={`flex-1 py-1 rounded text-center transition-all cursor-pointer ${
+                      settings.tvScreenMode === "native"
+                        ? "bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    NATIVE EMISSION
+                  </button>
+                </div>
+
+                {/* Intensity Slider */}
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">SCREEN GLOW INTENSITY</span>
+                    <span className="text-cyan-300">{(settings.tvScreenIntensity ?? 3.5).toFixed(1)}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="10.0"
+                    step="0.1"
+                    value={settings.tvScreenIntensity ?? 3.5}
+                    onChange={(e) => updateSetting("tvScreenIntensity", parseFloat(e.target.value))}
+                    className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                {/* Glow Color Picker */}
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">SCREEN TINT</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-5 h-5 rounded border border-white/20 relative overflow-hidden shadow-sm"
+                      style={{ backgroundColor: settings.tvScreenColor ?? "#ffffff" }}
+                    >
+                      <input
+                        type="color"
+                        value={settings.tvScreenColor ?? "#ffffff"}
+                        onChange={(e) => updateSetting("tvScreenColor", e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-300 font-mono w-14">
+                      {settings.tvScreenColor ?? "#ffffff"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Quick Color Presets */}
+                <div className="flex flex-col gap-1 pt-0.5">
+                  <span className="text-slate-400 font-mono text-[9px]">COLOR PRESETS</span>
+                  <div className="grid grid-cols-6 gap-1">
+                    {[
+                      { name: "Ice Blue", color: "#a2e6ff" },
+                      { name: "Cyan", color: "#00f0ff" },
+                      { name: "Pure White", color: "#ffffff" },
+                      { name: "Warm Amber", color: "#ffc266" },
+                      { name: "Neon Magenta", color: "#ff4da6" },
+                      { name: "Matrix Green", color: "#39ff14" },
+                    ].map((preset) => (
+                      <button
+                        key={preset.name}
+                        title={preset.name}
+                        onClick={() => updateSetting("tvScreenColor", preset.color)}
+                        className={`h-5 rounded border transition-all cursor-pointer flex items-center justify-center ${
+                          (settings.tvScreenColor ?? "#a2e6ff").toLowerCase() === preset.color.toLowerCase()
+                            ? "border-white scale-105 shadow-md shadow-cyan-500/30"
+                            : "border-white/10 hover:border-white/40"
+                        }`}
+                        style={{ backgroundColor: preset.color }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Scanlines Toggle */}
+                <div className="flex justify-between items-center py-0.5 border-t border-white/5 pt-1.5 mt-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">RASTER SCANLINES</span>
+                  <button
+                    onClick={() => updateSetting("tvScreenScanlines", settings.tvScreenScanlines === false ? true : false)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${
+                      settings.tvScreenScanlines !== false ? "bg-cyan-600" : "bg-slate-800"
+                    }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${
+                        settings.tvScreenScanlines !== false ? "translate-x-4" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Hardware Refresh Micro-Flicker */}
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">HARDWARE FLICKER / NOISE</span>
+                  <button
+                    onClick={() => updateSetting("tvScreenFlicker", settings.tvScreenFlicker === false ? true : false)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${
+                      settings.tvScreenFlicker !== false ? "bg-cyan-600" : "bg-slate-800"
+                    }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${
+                        settings.tvScreenFlicker !== false ? "translate-x-4" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

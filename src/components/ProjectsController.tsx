@@ -199,7 +199,7 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
   return (
     <div className="fixed inset-0 z-40 pointer-events-none select-none">
       {/* Navigation Arrows: edge-to-edge on mobile, narrower gap on desktop */}
-      <div className="w-full h-full max-w-full md:max-w-2xl lg:max-w-3xl mx-auto flex items-center justify-between px-4 sm:px-6 md:px-8 pointer-events-none">
+      <div className="w-full h-full max-w-full md:max-w-2xl lg:max-w-3xl mx-auto flex items-center justify-between  md:px-2 pointer-events-none">
         {/* Left Navigation Arrow */}
         <button
           onClick={() => {
@@ -251,7 +251,7 @@ export const ProjectsController: React.FC<ProjectsControllerProps> = ({
             const isActive = offset === 0;
 
             let titleStyle: React.CSSProperties = {
-              fontSize: "18px",
+              fontSize: "16px",
               textTransform: "uppercase",
               lineHeight: "1.2",
               fontFamily: "var(--font-satoshi)",

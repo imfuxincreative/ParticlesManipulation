@@ -10,6 +10,7 @@ import { TargetOverlayBridge } from "./callouts/TargetOverlayBridge";
 import { InteractiveSceneParticleSystem } from "./InteractiveSceneParticleSystem";
 import { FlyingCarsSystem } from "./FlyingCarsSystem";
 import { FlyingCarLedGlowSystem } from "./FlyingCarLedGlowSystem";
+import { TvScreensGlowSystem } from "./TvScreensGlowSystem";
 import { CALLOUT_TARGETS } from "@/config/targetConfig";
 import { useSimulation } from "@/context/SimulationContext";
 import { patchMaterialWithAtmosphere } from "@/lib/patchAtmosphere";
@@ -29,7 +30,14 @@ const BLENDER_FPS = 30;
 // Frame-gated groups (GLTFLoader strips '.' from names, so "Skycity.001" -> "Skycity001")
 const SKYCITY_SHOW_FRAME = 5057; // Skycity.001 renders from this Blender frame onwards
 const SKYCITY_NAMES = ["Skycity.001", "Skycity001"];
-const GROUNDCITY_NAMES = ["groundCity", "groundcity", "GroundCity"]; // hidden from SKYCITY_SHOW_FRAME onwards
+const GROUNDCITY_NAMES = [
+  "groundCity",
+  "groundcity",
+  "GroundCity",
+  "Ground city",
+  "Ground_city",
+  "ground_city",
+]; // hidden from SKYCITY_SHOW_FRAME onwards
 
 export interface SceneVisualOverrides {
   xrayFillOpacity?: number;
@@ -91,9 +99,16 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
   // Resolve frame-gated groups once (no per-frame traversal). Missing groups are simply ignored.
   const { skycityNodes, groundCityNodes } = useMemo(() => {
     const find = (names: string[]) => {
+      const lowerNames = names.map((n) => n.toLowerCase());
+      const cleanNames = names.map((n) => n.toLowerCase().replace(/[\s_.]/g, ""));
       const found: THREE.Object3D[] = [];
       gltf.scene.traverse((o) => {
-        if (names.includes(o.name)) found.push(o);
+        const raw = o.name || "";
+        const lower = raw.toLowerCase();
+        const clean = lower.replace(/[\s_.]/g, "");
+        if (names.includes(raw) || lowerNames.includes(lower) || cleanNames.includes(clean)) {
+          found.push(o);
+        }
       });
       return found;
     };
@@ -285,6 +300,17 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           if (isCarLed) {
             return;
           }
+        }
+
+        // Check if mesh is a TV screen (handled by TvScreensGlowSystem)
+        const isTvScreen =
+          childName === "screenoftvs" ||
+          (child.material &&
+            (Array.isArray(child.material)
+              ? child.material.some((m) => m?.name === "EMISSION")
+              : (child.material as THREE.Material).name === "EMISSION"));
+        if (isTvScreen) {
+          return;
         }
 
         if (config.hasParticleTarget) {
@@ -553,6 +579,7 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       <InteractiveSceneParticleSystem position={[1047.551, 398.157, 2.997]} />
       <FlyingCarsSystem scene={gltf.scene} />
       <FlyingCarLedGlowSystem scene={gltf.scene} />
+      <TvScreensGlowSystem scene={gltf.scene} />
     </group>
   );
 };

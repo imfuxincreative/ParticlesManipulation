@@ -19,15 +19,15 @@ export const SNAP_RANGES: SnapRange[] = [
 
 
   { start: 1857, end: 2493 },
-  { start: 2493, end: 3216 },
 
-  { start: 3216, end: 3846 },
   { start: 3846, end: 5075 },
   { start: 5133, end: 5744 },
+  { start: 5744, end: 6297 },
   { start: 6297, end: 7435 },
-
+  { start: 7435, end: 8700 },
   // { start: 3613, end: 3846 },
   { start: 4057, end: 4561 },
+
 ]
 
 export const CHECKPOINTS: number[] = Array.from(
