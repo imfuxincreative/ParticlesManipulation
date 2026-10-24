@@ -7,6 +7,7 @@ import { useAtmosphere, deriveFogColorHex, getInterpolatedHorizonColor } from "@
 import { atmosphereUniforms, writeConfigToUniforms } from "@/lib/atmosphereUniforms";
 import { useLoopTransition } from "@/components/transitions/transitionConfig";
 import { brokenLightEngine } from "@/lib/brokenLightFlicker";
+import { inTouchAudioEngine } from "@/lib/audio/InTouchAudioEngine";
 
 const tempColor = new THREE.Color();
 const tempZenithColor = new THREE.Color();
@@ -88,6 +89,32 @@ export const AtmosphereController: React.FC = () => {
     // Synchronize CSS variable so 2D mist veil & overlays match instantaneous 60fps lighting
     if (typeof document !== "undefined") {
       document.documentElement.style.setProperty("--broken-light-mult", flicker.toFixed(3));
+    }
+
+    // Synchronize real-time isolation blur audio and light glitch audio
+    inTouchAudioEngine.updateIsolation({
+      transitionProgress: loopProgress,
+      isInTouch,
+      isTransitioning,
+      phase: loopStore.phase,
+      inTouchState: loopStore.inTouchState,
+    });
+
+    if (isInScope) {
+      const glitchState = brokenLightEngine.getState();
+      inTouchAudioEngine.updateLightGlitch({
+        flicker,
+        isGlitching: glitchState.isGlitching,
+        eventType: glitchState.activeEventType,
+        delta,
+      });
+    } else {
+      inTouchAudioEngine.updateLightGlitch({
+        flicker: 1.0,
+        isGlitching: false,
+        eventType: null,
+        delta,
+      });
     }
 
     // Single source of truth for scene fog & background

@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { GHIBLI_PALETTES } from "@/shaders/ghibliShader";
+import { ParticleSoundControls } from "./audio/ParticleSoundControls";
 
 export const Dashboard: React.FC = () => {
   const { settings, updateSetting, updateSettings } = useSimulation();
@@ -163,11 +164,10 @@ export const Dashboard: React.FC = () => {
 
         <button
           onClick={() => updateSetting("particleSoundEnabled", !settings.particleSoundEnabled)}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border backdrop-blur-md text-xs font-semibold tracking-wide transition-all shadow-lg cursor-pointer ${
-            settings.particleSoundEnabled
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border backdrop-blur-md text-xs font-semibold tracking-wide transition-all shadow-lg cursor-pointer ${settings.particleSoundEnabled
               ? "bg-purple-950/80 hover:bg-purple-900/90 border-purple-500/50 text-purple-200 hover:text-white shadow-purple-900/30"
               : "bg-slate-900/80 hover:bg-slate-800 border-white/10 text-slate-400 hover:text-slate-200"
-          }`}
+            }`}
           title={settings.particleSoundEnabled ? "Mute Particle Audio" : "Unmute Particle Audio"}
         >
           {settings.particleSoundEnabled ? (
@@ -912,11 +912,10 @@ export const Dashboard: React.FC = () => {
                         key={preset.name}
                         title={preset.name}
                         onClick={() => updateSetting("carLedColor", preset.color)}
-                        className={`h-5 rounded border transition-all cursor-pointer flex items-center justify-center ${
-                          (settings.carLedColor ?? "#00f0ff").toLowerCase() === preset.color.toLowerCase()
+                        className={`h-5 rounded border transition-all cursor-pointer flex items-center justify-center ${(settings.carLedColor ?? "#00f0ff").toLowerCase() === preset.color.toLowerCase()
                             ? "border-white scale-105 shadow-md shadow-cyan-500/30"
                             : "border-white/10 hover:border-white/40"
-                        }`}
+                          }`}
                         style={{ backgroundColor: preset.color }}
                       />
                     ))}
@@ -928,14 +927,12 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-400 font-mono text-[10px]">BEACON PULSE / SHIMMER</span>
                   <button
                     onClick={() => updateSetting("carLedPulse", settings.carLedPulse === false ? true : false)}
-                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${
-                      settings.carLedPulse !== false ? "bg-cyan-600" : "bg-slate-800"
-                    }`}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.carLedPulse !== false ? "bg-cyan-600" : "bg-slate-800"
+                      }`}
                   >
                     <div
-                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${
-                        settings.carLedPulse !== false ? "translate-x-4" : "translate-x-0"
-                      }`}
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.carLedPulse !== false ? "translate-x-4" : "translate-x-0"
+                        }`}
                     />
                   </button>
                 </div>
@@ -970,21 +967,19 @@ export const Dashboard: React.FC = () => {
                 <div className="flex bg-black/40 p-0.5 rounded-lg border border-white/5 font-mono text-[9px]">
                   <button
                     onClick={() => updateSetting("tvScreenMode", "shader")}
-                    className={`flex-1 py-1 rounded text-center transition-all cursor-pointer ${
-                      settings.tvScreenMode !== "native"
+                    className={`flex-1 py-1 rounded text-center transition-all cursor-pointer ${settings.tvScreenMode !== "native"
                         ? "bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30"
                         : "text-slate-400 hover:text-slate-200"
-                    }`}
+                      }`}
                   >
                     LED SHADER + TEXTURE
                   </button>
                   <button
                     onClick={() => updateSetting("tvScreenMode", "native")}
-                    className={`flex-1 py-1 rounded text-center transition-all cursor-pointer ${
-                      settings.tvScreenMode === "native"
+                    className={`flex-1 py-1 rounded text-center transition-all cursor-pointer ${settings.tvScreenMode === "native"
                         ? "bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30"
                         : "text-slate-400 hover:text-slate-200"
-                    }`}
+                      }`}
                   >
                     NATIVE EMISSION
                   </button>
@@ -1044,11 +1039,10 @@ export const Dashboard: React.FC = () => {
                         key={preset.name}
                         title={preset.name}
                         onClick={() => updateSetting("tvScreenColor", preset.color)}
-                        className={`h-5 rounded border transition-all cursor-pointer flex items-center justify-center ${
-                          (settings.tvScreenColor ?? "#a2e6ff").toLowerCase() === preset.color.toLowerCase()
+                        className={`h-5 rounded border transition-all cursor-pointer flex items-center justify-center ${(settings.tvScreenColor ?? "#a2e6ff").toLowerCase() === preset.color.toLowerCase()
                             ? "border-white scale-105 shadow-md shadow-cyan-500/30"
                             : "border-white/10 hover:border-white/40"
-                        }`}
+                          }`}
                         style={{ backgroundColor: preset.color }}
                       />
                     ))}
@@ -1060,14 +1054,12 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-400 font-mono text-[10px]">RASTER SCANLINES</span>
                   <button
                     onClick={() => updateSetting("tvScreenScanlines", settings.tvScreenScanlines === false ? true : false)}
-                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${
-                      settings.tvScreenScanlines !== false ? "bg-cyan-600" : "bg-slate-800"
-                    }`}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.tvScreenScanlines !== false ? "bg-cyan-600" : "bg-slate-800"
+                      }`}
                   >
                     <div
-                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${
-                        settings.tvScreenScanlines !== false ? "translate-x-4" : "translate-x-0"
-                      }`}
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.tvScreenScanlines !== false ? "translate-x-4" : "translate-x-0"
+                        }`}
                     />
                   </button>
                 </div>
@@ -1077,14 +1069,12 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-400 font-mono text-[10px]">HARDWARE FLICKER / NOISE</span>
                   <button
                     onClick={() => updateSetting("tvScreenFlicker", settings.tvScreenFlicker === false ? true : false)}
-                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${
-                      settings.tvScreenFlicker !== false ? "bg-cyan-600" : "bg-slate-800"
-                    }`}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.tvScreenFlicker !== false ? "bg-cyan-600" : "bg-slate-800"
+                      }`}
                   >
                     <div
-                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${
-                        settings.tvScreenFlicker !== false ? "translate-x-4" : "translate-x-0"
-                      }`}
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.tvScreenFlicker !== false ? "translate-x-4" : "translate-x-0"
+                        }`}
                     />
                   </button>
                 </div>
@@ -1110,8 +1100,8 @@ export const Dashboard: React.FC = () => {
                         key={name}
                         onClick={() => updateSetting("currentModelIndex", idx)}
                         className={`px-2 py-1 rounded text-[10px] font-mono cursor-pointer transition-all ${(settings.currentModelIndex ?? 0) === idx
-                            ? "bg-purple-600 text-white font-bold"
-                            : "bg-slate-800 text-slate-400 hover:text-white"
+                          ? "bg-purple-600 text-white font-bold"
+                          : "bg-slate-800 text-slate-400 hover:text-white"
                           }`}
                       >
                         {name}
@@ -1634,101 +1624,20 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* 8. PARTICLE COLLISION SOUND DESIGNER */}
+              {/* 8. SPEED-REACTIVE GRANULAR PARTICLE SOUND DESIGNER */}
+              <ParticleSoundControls
+                settings={settings}
+                updateSetting={updateSetting}
+                updateSettings={updateSettings}
+              />
+
+              {/* 9. ATMOSPHERE & SCENE AUDIO MODULES */}
               <div className="flex flex-col gap-2.5 p-2.5 bg-slate-900/60 border border-purple-500/20 rounded-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-purple-400 tracking-wider">
                     <Volume2 className="w-3.5 h-3.5 text-purple-400" />
-                    <span>Celestial Audio Synthesizer</span>
+                    <span>Atmosphere & Scene Audio</span>
                   </div>
-                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-950/80 border border-purple-500/30 text-purple-300 uppercase">
-                    {(settings.particleSoundPreset ?? "velvet")} AUDIO
-                  </span>
-                </div>
-
-                {/* Sound Preset Selector */}
-                <div className="flex flex-col gap-1">
-                  <span className="text-slate-400 font-mono text-[9px]">SONIC CHARACTER / PRESET</span>
-                  <div className="grid grid-cols-4 gap-1 bg-black/40 p-0.5 rounded-lg border border-white/5 font-mono text-[8.5px] tracking-tight">
-                    {[
-                      { id: "velvet", label: "VELVET" },
-                      { id: "tactile", label: "TACTILE" },
-                      { id: "stardust", label: "STARDUST" },
-                      { id: "plasma", label: "PLASMA" },
-                    ].map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => {
-                          if (p.id === "velvet") {
-                            updateSettings({
-                              particleSoundPreset: "velvet",
-                              particleTactileTexture: 0.35,
-                              particleTactilePitch: 400,
-                              particleTactileResonance: 10.0,
-                              particleTactileSnap: 1.4,
-                              particleSoundPitch: 0.8,
-                              particleSoundShimmer: 0.6,
-                              particleAmbientVolume: 0.025,
-                              particleIdleVolume: 0.025,
-                              particleMotionSensitivity: 0.5,
-                              particleCollisionSensitivity: 0.5,
-                            });
-                          } else if (p.id === "tactile") {
-                            updateSettings({
-                              particleSoundPreset: "tactile",
-                              particleTactileTexture: 0.0,
-                              particleTactilePitch: 2600,
-                              particleTactileResonance: 5.0,
-                              particleTactileSnap: 1.1,
-                              particleSoundShimmer: 0.0,
-                            });
-                          } else if (p.id === "stardust") {
-                            updateSettings({
-                              particleSoundPreset: "stardust",
-                              particleTactileTexture: 0.40,
-                              particleTactilePitch: 3200,
-                              particleTactileResonance: 6.0,
-                              particleTactileSnap: 0.75,
-                              particleSoundShimmer: 0.55,
-                            });
-                          } else if (p.id === "plasma") {
-                            updateSettings({
-                              particleSoundPreset: "plasma",
-                              particleTactileTexture: 0.50,
-                              particleTactilePitch: 1400,
-                              particleTactileResonance: 3.0,
-                              particleTactileSnap: 0.9,
-                              particleSoundShimmer: 0.25,
-                            });
-                          }
-                        }}
-                        className={`py-1 rounded text-center transition-all cursor-pointer ${
-                          (settings.particleSoundPreset ?? "velvet") === p.id
-                            ? "bg-purple-600 text-white font-bold shadow-md shadow-purple-600/30"
-                            : "text-slate-400 hover:text-slate-200"
-                        }`}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Master Sound Toggle */}
-                <div className="flex justify-between items-center py-0.5">
-                  <span className="text-slate-400 font-mono text-[10px]">ENABLE COLLISION AUDIO</span>
-                  <button
-                    onClick={() => updateSetting("particleSoundEnabled", !settings.particleSoundEnabled)}
-                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${
-                      settings.particleSoundEnabled ? "bg-purple-600" : "bg-slate-800"
-                    }`}
-                  >
-                    <div
-                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${
-                        settings.particleSoundEnabled ? "translate-x-4" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
                 </div>
 
                 {/* Text Shuffle Sound Toggle */}
@@ -1736,278 +1645,141 @@ export const Dashboard: React.FC = () => {
                   <span className="text-slate-400 font-mono text-[10px]">TEXT SHUFFLE AUDIO</span>
                   <button
                     onClick={() => updateSetting("textShuffleSoundEnabled", !settings.textShuffleSoundEnabled)}
-                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${
-                      settings.textShuffleSoundEnabled ? "bg-purple-600" : "bg-slate-800"
-                    }`}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.textShuffleSoundEnabled ? "bg-purple-600" : "bg-slate-800"
+                      }`}
                   >
                     <div
-                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${
-                        settings.textShuffleSoundEnabled ? "translate-x-4" : "translate-x-0"
-                      }`}
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.textShuffleSoundEnabled ? "translate-x-4" : "translate-x-0"
+                        }`}
                     />
                   </button>
                 </div>
 
-                {/* Divider: Sound Taste & Tactile Texture */}
+                {/* Text Shuffle Volume */}
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex justify-between font-mono text-[10px]">
+                    <span className="text-slate-400">TEXT SHUFFLE VOLUME</span>
+                    <span className="text-purple-300">{Math.round((settings.textShuffleSoundVolume ?? 1.0) * 100)}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.0"
+                    max="1.0"
+                    step="0.05"
+                    value={settings.textShuffleSoundVolume ?? 1.0}
+                    onChange={(e) => updateSetting("textShuffleSoundVolume", parseFloat(e.target.value))}
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                {/* InTouch Audio Toggle */}
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">INTOUCH SCENE AUDIO</span>
+                  <button
+                    onClick={() => updateSetting("inTouchAudioEnabled", !settings.inTouchAudioEnabled)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.inTouchAudioEnabled ? "bg-purple-600" : "bg-slate-800"
+                      }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.inTouchAudioEnabled ? "translate-x-4" : "translate-x-0"
+                        }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Character 'Simon' Theme Music Toggle */}
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">CHARACTER "SIMON" THEME</span>
+                  <button
+                    onClick={() => updateSetting("characterMusicEnabled", !settings.characterMusicEnabled)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${settings.characterMusicEnabled ? "bg-purple-600" : "bg-slate-800"
+                      }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${settings.characterMusicEnabled ? "translate-x-4" : "translate-x-0"
+                        }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Divider: InTouch Atmosphere & Glitch Audio */}
                 <div className="flex items-center gap-2 pt-1 border-t border-purple-500/10">
                   <span className="text-[9px] font-mono uppercase text-purple-400/90 tracking-wider">
-                    SOUND TASTE & TACTILE TEXTURE
+                    INTOUCH BLUR & LIGHT GLITCH
                   </span>
                 </div>
 
-                {/* Sound Texture: Tactile Clicks vs Sandy Silk */}
+                {/* Isolation Blur Volume */}
                 <div className="flex flex-col gap-0.5">
                   <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">TEXTURE BLEND</span>
-                    <span className="text-purple-300">
-                      {(settings.particleTactileTexture ?? 0.35) === 0
-                        ? "100% TACTILE CLICKS"
-                        : (settings.particleTactileTexture ?? 0.35) === 1
-                        ? "100% SANDY SILK"
-                        : `${Math.round((1 - (settings.particleTactileTexture ?? 0.35)) * 100)}% TACTILE / ${Math.round((settings.particleTactileTexture ?? 0.35) * 100)}% SAND`}
-                    </span>
+                    <span className="text-slate-400">ISOLATION BLUR DRONE</span>
+                    <span className="text-purple-300">{Math.round((settings.inTouchIsolationVolume ?? 0.85) * 100)}%</span>
                   </div>
                   <input
                     type="range"
                     min="0.0"
                     max="1.0"
                     step="0.05"
-                    value={settings.particleTactileTexture ?? 0.35}
-                    onChange={(e) => updateSetting("particleTactileTexture", parseFloat(e.target.value))}
+                    value={settings.inTouchIsolationVolume ?? 0.85}
+                    onChange={(e) => updateSetting("inTouchIsolationVolume", parseFloat(e.target.value))}
                     className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
                 </div>
 
-                {/* Tactile Impact Pitch (Sound Taste) */}
+                {/* Light Glitch Arc Volume */}
                 <div className="flex flex-col gap-0.5">
                   <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">TACTILE PITCH (TASTE)</span>
-                    <span className="text-purple-300">
-                      {settings.particleTactilePitch ?? 400} Hz{" "}
-                      <span className="text-purple-400 text-[9px]">
-                        {(settings.particleTactilePitch ?? 400) < 1000
-                          ? "(THOCK)"
-                          : (settings.particleTactilePitch ?? 400) < 2200
-                          ? "(BEAD)"
-                          : (settings.particleTactilePitch ?? 400) < 3800
-                          ? "(GLASS)"
-                          : "(CRYSTAL)"}
-                      </span>
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="400"
-                    max="5500"
-                    step="50"
-                    value={settings.particleTactilePitch ?? 400}
-                    onChange={(e) => updateSetting("particleTactilePitch", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-
-                {/* Tactile Snap / Punch */}
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">TACTILE SNAP / PUNCH</span>
-                    <span className="text-purple-300">{((settings.particleTactileSnap ?? 1.4)).toFixed(2)}x</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="1.5"
-                    step="0.05"
-                    value={settings.particleTactileSnap ?? 1.4}
-                    onChange={(e) => updateSetting("particleTactileSnap", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-
-                {/* Tactile Resonance / Ring */}
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">RESONANT RING (BODY)</span>
-                    <span className="text-purple-300">{((settings.particleTactileResonance ?? 10.0)).toFixed(1)} Q</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="1.0"
-                    max="10.0"
-                    step="0.5"
-                    value={settings.particleTactileResonance ?? 10.0}
-                    onChange={(e) => updateSetting("particleTactileResonance", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-
-                {/* High-Air Brightness */}
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">HIGH-AIR BRIGHTNESS</span>
-                    <span className="text-purple-300">{((settings.particleSoundPitch ?? 0.8)).toFixed(2)}x</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="2.0"
-                    step="0.05"
-                    value={settings.particleSoundPitch ?? 0.8}
-                    onChange={(e) => updateSetting("particleSoundPitch", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-
-                {/* Crystalline Chime Shimmer */}
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">CRYSTALLINE CHIME SHIMMER</span>
-                    <span className="text-purple-300">{Math.round((settings.particleSoundShimmer ?? 0.6) * 100)}%</span>
+                    <span className="text-slate-400">LIGHT GLITCH ARC SIZZLE</span>
+                    <span className="text-purple-300">{Math.round((settings.inTouchGlitchVolume ?? 0.15) * 100)}%</span>
                   </div>
                   <input
                     type="range"
                     min="0.0"
                     max="1.0"
                     step="0.05"
-                    value={settings.particleSoundShimmer ?? 0.6}
-                    onChange={(e) => updateSetting("particleSoundShimmer", parseFloat(e.target.value))}
+                    value={settings.inTouchGlitchVolume ?? 0.15}
+                    onChange={(e) => updateSetting("inTouchGlitchVolume", parseFloat(e.target.value))}
                     className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
                 </div>
 
-                {/* Divider: Dynamics & Physics */}
+                {/* Divider: Character Simon Theme Music */}
                 <div className="flex items-center gap-2 pt-1 border-t border-purple-500/10">
                   <span className="text-[9px] font-mono uppercase text-purple-400/90 tracking-wider">
-                    DYNAMICS & COLLISION PHYSICS
+                    CHARACTER "SIMON" THEME MUSIC
                   </span>
                 </div>
 
-                {/* Volume Slider */}
+                {/* Character Music Volume */}
                 <div className="flex flex-col gap-0.5">
                   <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">MASTER VOLUME</span>
-                    <span className="text-purple-300">{Math.round((settings.particleSoundVolume ?? 0.35) * 100)}%</span>
+                    <span className="text-slate-400">MUSIC VOLUME</span>
+                    <span className="text-purple-300">{Math.round((settings.characterMusicVolume ?? 0.70) * 100)}%</span>
                   </div>
                   <input
                     type="range"
                     min="0.0"
                     max="1.0"
                     step="0.05"
-                    value={settings.particleSoundVolume ?? 0.35}
-                    onChange={(e) => updateSetting("particleSoundVolume", parseFloat(e.target.value))}
+                    value={settings.characterMusicVolume ?? 0.70}
+                    onChange={(e) => updateSetting("characterMusicVolume", parseFloat(e.target.value))}
                     className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
                 </div>
 
-                {/* Idle Ambient Volume (When Untouched) */}
+                {/* Character Music Fade Distance */}
                 <div className="flex flex-col gap-0.5">
                   <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">AMBIENT DRIFT VOLUME</span>
-                    <span className="text-purple-300">
-                      {(settings.particleAmbientVolume ?? settings.particleIdleVolume ?? 0.025) === 0
-                        ? "MUTED (0%)"
-                        : `${(((settings.particleAmbientVolume ?? settings.particleIdleVolume ?? 0.025)) * 100).toFixed(1)}%`}
-                    </span>
+                    <span className="text-slate-400">PROXIMITY FADE RADIUS</span>
+                    <span className="text-purple-300">{(settings.characterMusicFarDistance ?? 160.0).toFixed(0)}u</span>
                   </div>
                   <input
                     type="range"
-                    min="0.0"
-                    max="0.08"
-                    step="0.005"
-                    value={settings.particleAmbientVolume ?? settings.particleIdleVolume ?? 0.025}
-                    onChange={(e) => {
-                      const v = parseFloat(e.target.value);
-                      updateSetting("particleAmbientVolume", v);
-                      updateSetting("particleIdleVolume", v);
-                    }}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-
-                {/* Motion Scatter Sensitivity */}
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">MOTION SCATTER SENSITIVITY</span>
-                    <span className="text-purple-300">{(settings.particleMotionSensitivity ?? settings.particleCollisionSensitivity ?? 0.5).toFixed(1)}x</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.2"
-                    max="3.0"
-                    step="0.1"
-                    value={settings.particleMotionSensitivity ?? settings.particleCollisionSensitivity ?? 0.5}
-                    onChange={(e) => {
-                      const v = parseFloat(e.target.value);
-                      updateSetting("particleMotionSensitivity", v);
-                      updateSetting("particleCollisionSensitivity", v);
-                    }}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-
-                {/* "Kh" Onset Attack Burst */}
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">"KH" ONSET ATTACK BURST</span>
-                    <span className="text-purple-300">{Math.round((settings.particleOnsetStrength ?? 0.0) * 100)}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.0"
-                    max="1.5"
-                    step="0.05"
-                    value={settings.particleOnsetStrength ?? 0.0}
-                    onChange={(e) => updateSetting("particleOnsetStrength", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-
-                {/* Scroll Distance Fade: Far Distance */}
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">SCROLL FADE FAR DISTANCE</span>
-                    <span className="text-purple-300">{(settings.particleAudioFarDistance ?? 120.0).toFixed(0)}u</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="30"
-                    max="300"
-                    step="10"
-                    value={settings.particleAudioFarDistance ?? 120.0}
-                    onChange={(e) => updateSetting("particleAudioFarDistance", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-
-                {/* Particle Repulsion Bounce Force */}
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">REPULSION BOUNCE FORCE</span>
-                    <span className="text-purple-300">{(settings.particleRepulsionStrength ?? 0.35).toFixed(2)}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.05"
-                    max="1.0"
-                    step="0.05"
-                    value={settings.particleRepulsionStrength ?? 0.35}
-                    onChange={(e) => updateSetting("particleRepulsionStrength", parseFloat(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-
-                {/* Particle Collision Radius */}
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex justify-between font-mono text-[10px]">
-                    <span className="text-slate-400">COLLISION RADIUS</span>
-                    <span className="text-purple-300">{(settings.particleCollisionRadius ?? 0.05).toFixed(2)}u</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.03"
-                    max="0.25"
-                    step="0.01"
-                    value={settings.particleCollisionRadius ?? 0.05}
-                    onChange={(e) => updateSetting("particleCollisionRadius", parseFloat(e.target.value))}
+                    min="60.0"
+                    max="300.0"
+                    step="10.0"
+                    value={settings.characterMusicFarDistance ?? 160.0}
+                    onChange={(e) => updateSetting("characterMusicFarDistance", parseFloat(e.target.value))}
                     className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer"
                   />
                 </div>

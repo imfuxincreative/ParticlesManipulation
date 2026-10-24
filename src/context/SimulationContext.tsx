@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { textShuffleSoundEngine } from "@/lib/audio/TextShuffleSoundEngine";
+import { inTouchAudioEngine } from "@/lib/audio/InTouchAudioEngine";
+import { characterMusicEngine } from "@/lib/audio/CharacterMusicEngine";
 
 export interface SimulationSettings {
   gridSize: 128 | 192 | 256 | 384 | 512 | 768 | 1024 | 1536 | 2048;
@@ -159,8 +161,33 @@ export interface SimulationSettings {
   particleTactileSnap: number;
   particleCollisionRadius: number;
   particleRepulsionStrength: number;
+  // Speed-Reactive Granular Sound Engine parameters
+  particleTextureBlend: number;
+  particleAudioTail: number;
+  particleSpeedSensitivity: number;
+  particleVolumeCurve: number;
+  particleBasePitch: number;
+  particlePitchRange: number;
+  particleBrightnessMin: number;
+  particleBrightnessMax: number;
+  particleTickDensity: number;
+  particleTickSharpness: number;
+  particleJitter: number;
+  particleAttack: number;
+  particleRelease: number;
+  particleDistanceInfluence: number;
+  particleDustVolume: number;
+  particleSparkleIntensity: number;
+  particleAudioDebug: boolean;
   textShuffleSoundEnabled: boolean;
   textShuffleSoundVolume: number;
+  inTouchAudioEnabled: boolean;
+  inTouchIsolationVolume: number;
+  inTouchGlitchVolume: number;
+  characterMusicEnabled: boolean;
+  characterMusicVolume: number;
+  characterMusicNearDistance: number;
+  characterMusicFarDistance: number;
   carLedIntensity: number;
   carLedColor: string;
   carLedPulse: boolean;
@@ -318,7 +345,7 @@ const defaultSettings: SimulationSettings = {
   flyingCarsBobbingStrength: 0.8,
   invertFlyingCarsDirection: false,
   particleSoundEnabled: true,
-  particleSoundVolume: 0.35,
+  particleSoundVolume: 0.60,
   particleIdleVolume: 0.025,
   particleAmbientVolume: 0.025,
   particleSoundPreset: "velvet",
@@ -336,8 +363,32 @@ const defaultSettings: SimulationSettings = {
   particleTactileSnap: 1.4,
   particleCollisionRadius: 0.05,
   particleRepulsionStrength: 0.35,
+  particleTextureBlend: 0.80,
+  particleAudioTail: 0.38,
+  particleSpeedSensitivity: 1.0,
+  particleVolumeCurve: 1.35,
+  particleBasePitch: 850,
+  particlePitchRange: 22,
+  particleBrightnessMin: 950,
+  particleBrightnessMax: 11500,
+  particleTickDensity: 180,
+  particleTickSharpness: 1.15,
+  particleJitter: 0.35,
+  particleAttack: 0.012,
+  particleRelease: 0.38,
+  particleDistanceInfluence: 0.45,
+  particleDustVolume: 0.42,
+  particleSparkleIntensity: 0.35,
+  particleAudioDebug: false,
   textShuffleSoundEnabled: true,
   textShuffleSoundVolume: 0.35,
+  inTouchAudioEnabled: true,
+  inTouchIsolationVolume: 0.85,
+  inTouchGlitchVolume: 0.15,
+  characterMusicEnabled: true,
+  characterMusicVolume: 0.70,
+  characterMusicNearDistance: 45.0,
+  characterMusicFarDistance: 160.0,
   carLedIntensity: 3.5,
   carLedColor: "#00f0ff",
   carLedPulse: true,
@@ -403,6 +454,32 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     textShuffleSoundEngine.setEnabled(settings.textShuffleSoundEnabled);
     textShuffleSoundEngine.setVolume(settings.textShuffleSoundVolume);
   }, [settings.textShuffleSoundEnabled, settings.textShuffleSoundVolume]);
+
+  useEffect(() => {
+    inTouchAudioEngine.updateSettings({
+      enabled: settings.inTouchAudioEnabled,
+      isolationVolume: settings.inTouchIsolationVolume,
+      glitchVolume: settings.inTouchGlitchVolume,
+    });
+  }, [
+    settings.inTouchAudioEnabled,
+    settings.inTouchIsolationVolume,
+    settings.inTouchGlitchVolume,
+  ]);
+
+  useEffect(() => {
+    characterMusicEngine.updateSettings({
+      enabled: settings.characterMusicEnabled,
+      volume: settings.characterMusicVolume,
+      nearDistance: settings.characterMusicNearDistance,
+      farDistance: settings.characterMusicFarDistance,
+    });
+  }, [
+    settings.characterMusicEnabled,
+    settings.characterMusicVolume,
+    settings.characterMusicNearDistance,
+    settings.characterMusicFarDistance,
+  ]);
 
   const updateSettings = useCallback((newSettings: Partial<SimulationSettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));

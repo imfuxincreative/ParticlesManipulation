@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { SimonGlowSystem } from "./SimonGlowSystem";
+import { SimonMusicController } from "./SimonMusicController";
 import { GridFloorMeshSystem } from "./GridFloorMeshSystem";
 import { TargetOverlayBridge } from "./callouts/TargetOverlayBridge";
 import { InteractiveSceneParticleSystem } from "./InteractiveSceneParticleSystem";
@@ -339,6 +340,10 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     return { cityMeshes: city, targetMeshes: target, simonGlowMeshes: simonGlow, simonBodypartMeshes: simonBodypart, floorMeshes: floor };
   }, [gltf, config.hasParticleTarget, sceneIndex]);
 
+  const simonAllMeshes = useMemo(() => {
+    return [...simonGlowMeshes, ...simonBodypartMeshes];
+  }, [simonGlowMeshes, simonBodypartMeshes]);
+
   // Patch GLB materials with single-source atmospheric GPU fog and ensure double-sided rendering
   useEffect(() => {
     const allMeshes = [...cityMeshes, ...targetMeshes, ...simonBodypartMeshes];
@@ -568,6 +573,10 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
           sceneIndex={sceneIndex}
         />
       )}
+      <SimonMusicController
+        meshes={simonAllMeshes}
+        sceneIndex={sceneIndex}
+      />
       {floorMeshes.length > 0 && settings.showGridFloor && (
         <GridFloorMeshSystem
           meshes={floorMeshes}

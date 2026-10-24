@@ -14,7 +14,7 @@ export class TextShuffleSoundEngine {
   private ctx: AudioContext | null = null;
   private isInitialized = false;
   private enabled = true;
-  private masterVolume = 0.35; // Default tasteful UI volume
+  private masterVolume = 1.0; // Default full UI volume
 
   private masterGain: GainNode | null = null;
   private limiter: DynamicsCompressorNode | null = null;
@@ -22,8 +22,8 @@ export class TextShuffleSoundEngine {
 
   private lastTickTime = 0;
   private activeVoices = 0;
-  private readonly MAX_VOICES = 6;
-  private readonly MIN_TICK_INTERVAL_SEC = 0.018; // Max ~55 ticks/sec to prevent audio clutter
+  private readonly MAX_VOICES = 8;
+  private readonly MIN_TICK_INTERVAL_SEC = 0.015; // Max ~65 ticks/sec for snappy audio response
 
   private constructor() {
     if (typeof window !== "undefined") {
@@ -67,13 +67,13 @@ export class TextShuffleSoundEngine {
 
       this.ctx = new AudioContextClass({ latencyHint: "interactive" });
 
-      // Dynamics limiter to prevent clipping and manage polyphony
+      // Dynamics limiter with transparent threshold to prevent volume attenuation
       this.limiter = this.ctx.createDynamicsCompressor();
-      this.limiter.threshold.value = -8.0;
+      this.limiter.threshold.value = -1.5;
       this.limiter.knee.value = 6.0;
-      this.limiter.ratio.value = 8.0;
+      this.limiter.ratio.value = 4.0;
       this.limiter.attack.value = 0.002;
-      this.limiter.release.value = 0.08;
+      this.limiter.release.value = 0.06;
 
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.value = this.enabled ? this.masterVolume : 0.0;
@@ -131,18 +131,18 @@ export class TextShuffleSoundEngine {
 
       const clickFilter = this.ctx.createBiquadFilter();
       clickFilter.type = "highpass";
-      clickFilter.frequency.value = 4500 + Math.random() * 1200;
+      clickFilter.frequency.value = 3200 + Math.random() * 800;
 
       const clickGain = this.ctx.createGain();
-      clickGain.gain.setValueAtTime(0.28 * finalGain, now);
-      clickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.003);
+      clickGain.gain.setValueAtTime(0.75 * finalGain, now);
+      clickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.005);
 
       clickSrc.connect(clickFilter);
       clickFilter.connect(clickGain);
       clickGain.connect(this.limiter);
 
       clickSrc.start(now);
-      clickSrc.stop(now + 0.004);
+      clickSrc.stop(now + 0.006);
     }
 
     // ─── 2. Digital Micro-Chirp (High-Tech Data Decipher Flutter) ───
@@ -161,18 +161,18 @@ export class TextShuffleSoundEngine {
     const osc = this.ctx.createOscillator();
     osc.type = "triangle";
     osc.frequency.setValueAtTime(baseFreq, now);
-    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.85, now + 0.008);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.85, now + 0.010);
 
     const bp = this.ctx.createBiquadFilter();
     bp.type = "bandpass";
     bp.frequency.value = baseFreq;
-    bp.Q.value = 4.5;
+    bp.Q.value = 2.2;
 
     const env = this.ctx.createGain();
-    const peakAmp = 0.16 * finalGain;
+    const peakAmp = 0.55 * finalGain;
     env.gain.setValueAtTime(0.0001, now);
     env.gain.linearRampToValueAtTime(peakAmp, now + 0.001);
-    env.gain.exponentialRampToValueAtTime(0.0001, now + 0.009);
+    env.gain.exponentialRampToValueAtTime(0.0001, now + 0.012);
 
     osc.connect(bp);
     bp.connect(env);
@@ -181,7 +181,7 @@ export class TextShuffleSoundEngine {
     }
 
     osc.start(now);
-    osc.stop(now + 0.010);
+    osc.stop(now + 0.014);
 
     osc.onended = () => {
       this.activeVoices = Math.max(0, this.activeVoices - 1);
@@ -214,16 +214,16 @@ export class TextShuffleSoundEngine {
       osc.frequency.setValueAtTime(freq, now);
 
       const gain = this.ctx.createGain();
-      const amp = (idx === 0 ? 0.12 : 0.06) * finalGain;
+      const amp = (idx === 0 ? 0.45 : 0.28) * finalGain;
       gain.gain.setValueAtTime(0.0001, now);
       gain.gain.linearRampToValueAtTime(amp, now + 0.002);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
 
       osc.connect(gain);
       gain.connect(this.limiter);
 
       osc.start(now);
-      osc.stop(now + 0.038);
+      osc.stop(now + 0.048);
 
       osc.onended = () => {
         osc.disconnect();

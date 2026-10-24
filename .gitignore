@@ -43,5 +43,7 @@ next-env.d.ts
 # 3D binary models and scratch tools
 *.glb
 *.gltf
+!public/*.glb
+!public/*.gltf
 /scratch/
 /tools/
