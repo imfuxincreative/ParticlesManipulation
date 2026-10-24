@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { textShuffleSoundEngine } from "@/lib/audio/TextShuffleSoundEngine";
 
 export interface SimulationSettings {
   gridSize: 128 | 192 | 256 | 384 | 512 | 768 | 1024 | 1536 | 2048;
@@ -158,6 +159,8 @@ export interface SimulationSettings {
   particleTactileSnap: number;
   particleCollisionRadius: number;
   particleRepulsionStrength: number;
+  textShuffleSoundEnabled: boolean;
+  textShuffleSoundVolume: number;
   carLedIntensity: number;
   carLedColor: string;
   carLedPulse: boolean;
@@ -333,6 +336,8 @@ const defaultSettings: SimulationSettings = {
   particleTactileSnap: 1.4,
   particleCollisionRadius: 0.05,
   particleRepulsionStrength: 0.35,
+  textShuffleSoundEnabled: true,
+  textShuffleSoundVolume: 0.35,
   carLedIntensity: 3.5,
   carLedColor: "#00f0ff",
   carLedPulse: true,
@@ -393,6 +398,11 @@ export const SimulationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       updateSetting("gridSize", 192);
     }
   }, [updateSetting]);
+
+  useEffect(() => {
+    textShuffleSoundEngine.setEnabled(settings.textShuffleSoundEnabled);
+    textShuffleSoundEngine.setVolume(settings.textShuffleSoundVolume);
+  }, [settings.textShuffleSoundEnabled, settings.textShuffleSoundVolume]);
 
   const updateSettings = useCallback((newSettings: Partial<SimulationSettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));

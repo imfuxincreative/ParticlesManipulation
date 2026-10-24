@@ -1731,6 +1731,23 @@ export const Dashboard: React.FC = () => {
                   </button>
                 </div>
 
+                {/* Text Shuffle Sound Toggle */}
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-mono text-[10px]">TEXT SHUFFLE AUDIO</span>
+                  <button
+                    onClick={() => updateSetting("textShuffleSoundEnabled", !settings.textShuffleSoundEnabled)}
+                    className={`w-8 h-4 rounded-full p-0.5 transition-colors cursor-pointer duration-200 ${
+                      settings.textShuffleSoundEnabled ? "bg-purple-600" : "bg-slate-800"
+                    }`}
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full bg-white transition-transform duration-200 ${
+                        settings.textShuffleSoundEnabled ? "translate-x-4" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+
                 {/* Divider: Sound Taste & Tactile Texture */}
                 <div className="flex items-center gap-2 pt-1 border-t border-purple-500/10">
                   <span className="text-[9px] font-mono uppercase text-purple-400/90 tracking-wider">

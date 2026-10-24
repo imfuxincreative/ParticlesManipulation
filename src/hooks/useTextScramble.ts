@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { textShuffleSoundEngine } from "@/lib/audio/TextShuffleSoundEngine";
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -14,13 +15,22 @@ export interface UseTextScrambleOptions {
   visible?: boolean; // controls appear / disappear
   triggerKey?: any; // trigger shuffle/type transition on change
   progress?: number; // scroll-driven progress (0 to 1)
+  enableSound?: boolean; // enable digital text shuffle sound (default: true)
+  soundVolume?: number; // volume multiplier 0.0 to 1.0 (default: 1.0)
 }
 
 export function useTextScramble(
   text: string,
   options: UseTextScrambleOptions = {}
 ) {
-  const { speed = 26, visible = true, triggerKey, progress } = options;
+  const {
+    speed = 26,
+    visible = true,
+    triggerKey,
+    progress,
+    enableSound = true,
+    soundVolume = 1.0,
+  } = options;
 
   const [displayText, setDisplayText] = useState<string>("");
   const [isScrambling, setIsScrambling] = useState<boolean>(false);
@@ -34,6 +44,8 @@ export function useTextScramble(
       intervalRef.current = null;
     }
   }, []);
+
+  const prevRevealedCountRef = useRef<number>(-1);
 
   // ── Appear: Type in forward with text shuffle ──
   const appear = useCallback(
@@ -70,16 +82,23 @@ export function useTextScramble(
         setDisplayText(output);
         currentTextRef.current = output;
 
+        if (enableSound) {
+          textShuffleSoundEngine.playTick({ type: "appear", progress, volume: soundVolume });
+        }
+
         if (frame >= maxFrames) {
           clearTimer();
           setDisplayText(target);
           currentTextRef.current = target;
           setIsScrambling(false);
+          if (enableSound) {
+            textShuffleSoundEngine.playResolve(soundVolume);
+          }
           onComplete?.();
         }
       }, speed);
     },
-    [speed, clearTimer]
+    [speed, enableSound, soundVolume, clearTimer]
   );
 
   // ── Disappear: Type out backward with text shuffle ──
@@ -119,6 +138,10 @@ export function useTextScramble(
         setDisplayText(output);
         currentTextRef.current = output;
 
+        if (enableSound) {
+          textShuffleSoundEngine.playTick({ type: "disappear", progress, volume: soundVolume });
+        }
+
         if (frame >= maxFrames || currentLen === 0) {
           clearTimer();
           setDisplayText("");
@@ -128,7 +151,7 @@ export function useTextScramble(
         }
       }, speed);
     },
-    [text, speed, clearTimer]
+    [text, speed, enableSound, soundVolume, clearTimer]
   );
 
   // ── In-place scramble for hover ──
@@ -157,14 +180,21 @@ export function useTextScramble(
       setDisplayText(output);
       currentTextRef.current = output;
 
+      if (enableSound) {
+        textShuffleSoundEngine.playTick({ type: "hover", progress, volume: soundVolume });
+      }
+
       if (frame >= maxFrames) {
         clearTimer();
         setDisplayText(text);
         currentTextRef.current = text;
         setIsScrambling(false);
+        if (enableSound) {
+          textShuffleSoundEngine.playResolve(soundVolume);
+        }
       }
     }, speed);
-  }, [visible, text, speed, clearTimer]);
+  }, [visible, text, speed, enableSound, soundVolume, clearTimer]);
 
   // Scroll-driven progress scrub effect (when progress is provided)
   useEffect(() => {
@@ -194,6 +224,12 @@ export function useTextScramble(
 
     setIsScrambling(true);
     const revealedCount = Math.floor(progress * totalChars);
+
+    if (enableSound && prevRevealedCountRef.current !== revealedCount) {
+      prevRevealedCountRef.current = revealedCount;
+      textShuffleSoundEngine.playTick({ type: "appear", progress, volume: soundVolume * 0.8 });
+    }
+
     let output = "";
     for (let i = 0; i < totalChars; i++) {
       if (i < revealedCount) {
@@ -206,7 +242,7 @@ export function useTextScramble(
     }
     setDisplayText(output);
     currentTextRef.current = output;
-  }, [progress, text, clearTimer]);
+  }, [progress, text, enableSound, soundVolume, clearTimer]);
 
   // Main lifecycle effect (timer-based): runs when progress is NOT provided
   useEffect(() => {

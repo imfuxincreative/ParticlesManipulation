@@ -17,6 +17,10 @@ export interface ScrambleTitleProps extends React.HTMLAttributes<HTMLSpanElement
   speed?: number;
   /** Scroll-driven progress (0.0 to 1.0) */
   progress?: number;
+  /** Enable digital text shuffle sound effect (default: true) */
+  enableSound?: boolean;
+  /** Sound volume multiplier (0.0 to 1.0, default: 1.0) */
+  soundVolume?: number;
 }
 
 export const ScrambleTitle: React.FC<ScrambleTitleProps> = ({
@@ -27,6 +31,8 @@ export const ScrambleTitle: React.FC<ScrambleTitleProps> = ({
   triggerKey,
   speed = 26,
   progress,
+  enableSound = true,
+  soundVolume = 1.0,
   className = "",
   style,
   onMouseEnter,
@@ -38,6 +44,8 @@ export const ScrambleTitle: React.FC<ScrambleTitleProps> = ({
     triggerKey,
     speed,
     progress,
+    enableSound,
+    soundVolume,
   });
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLSpanElement>) => {
