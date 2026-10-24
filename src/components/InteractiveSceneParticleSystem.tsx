@@ -9,11 +9,15 @@ import { ModelParticleShader } from "@/shaders/modelShader";
 import { useSimulation } from "@/context/SimulationContext";
 import { atmosphereUniforms } from "@/lib/atmosphereUniforms";
 import { INTERACTIVE_MODELS, MODEL_NAMES } from "@/config/projectModels";
+import { particleSoundEngine } from "@/lib/audio/ParticleSoundEngine";
 
 const PARTICLE_GRID = 90;
 const PARTICLE_COUNT = PARTICLE_GRID * PARTICLE_GRID;
 const TARGET_SIZE = 6.0;
 const MORPH_FRAMES = 600;
+
+const HASH_SIZE = 4096;
+const MAX_ACTIVE = 2500;
 
 const ROTATION_OFFSETS: [number, number, number][] = [
   [0, -90, 0], // Heart
@@ -221,6 +225,54 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
   const pointerVelocityRef = useRef<THREE.Vector3>(new THREE.Vector3());
   const currentPointerLocalRef = useRef<THREE.Vector3>(new THREE.Vector3());
   const dragPlaneRef = useRef<THREE.Plane>(new THREE.Plane());
+
+  // Spatial hash grid preallocated buffers for active particle collision detection
+  const gridHeadsRef = useRef<Int32Array>(new Int32Array(HASH_SIZE).fill(-1));
+  const gridNextRef = useRef<Int32Array>(new Int32Array(MAX_ACTIVE));
+  const activeIndicesRef = useRef<Int32Array>(new Int32Array(MAX_ACTIVE));
+
+  // Audio synchronization refs (read-only motion signals)
+  const prevMotionEnergyRef = useRef(0.0);
+  const audioCentroidRef = useRef(new THREE.Vector3());
+  const audioModelPosRef = useRef(new THREE.Vector3());
+  const audioCamPosRef = useRef(new THREE.Vector3());
+
+  // Sync simulation audio settings with procedural sound engine
+  useEffect(() => {
+    particleSoundEngine.updateSettings({
+      enabled: settings.particleSoundEnabled,
+      volume: settings.particleSoundVolume,
+      ambientVolume: settings.particleAmbientVolume ?? settings.particleIdleVolume ?? 0.075,
+      preset: settings.particleSoundPreset,
+      pitch: settings.particleSoundPitch,
+      shimmer: settings.particleSoundShimmer,
+      sensitivity: settings.particleMotionSensitivity ?? settings.particleCollisionSensitivity ?? 0.2,
+      onsetStrength: settings.particleOnsetStrength ?? 0.0,
+      nearDistance: settings.particleAudioNearDistance ?? 25.0,
+      farDistance: settings.particleAudioFarDistance ?? 120.0,
+      tactileTexture: settings.particleTactileTexture ?? 0.25,
+      tactilePitch: settings.particleTactilePitch ?? 2200,
+      tactileResonance: settings.particleTactileResonance ?? 4.5,
+      tactileSnap: settings.particleTactileSnap ?? 0.85,
+    });
+  }, [
+    settings.particleSoundEnabled,
+    settings.particleSoundVolume,
+    settings.particleAmbientVolume,
+    settings.particleIdleVolume,
+    settings.particleSoundPreset,
+    settings.particleSoundPitch,
+    settings.particleSoundShimmer,
+    settings.particleMotionSensitivity,
+    settings.particleCollisionSensitivity,
+    settings.particleOnsetStrength,
+    settings.particleAudioNearDistance,
+    settings.particleAudioFarDistance,
+    settings.particleTactileTexture,
+    settings.particleTactilePitch,
+    settings.particleTactileResonance,
+    settings.particleTactileSnap,
+  ]);
 
   const handleNextModel = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -460,7 +512,7 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     return () => cancelAnimationFrame(id);
   }, []);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     const elapsed = state.clock.elapsedTime;
 
     if (groupRef.current) {
@@ -518,6 +570,11 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
     const FLUID_RADIUS = settings.fluidDragRadius ?? 4.0;
     const FLUID_RADIUS_SQ = FLUID_RADIUS * FLUID_RADIUS;
     const dragStrength = settings.fluidDragStrength ?? 1.2;
+
+    // Read-only scatter accumulators for motion sound engine (zero visual side-effects)
+    let sumSpeed = 0;
+    let activeN = 0;
+    let cx = 0, cy = 0, cz = 0;
 
     for (let i = 0; i < count; i++) {
       const ix = i * 3, iy = ix + 1, iz = ix + 2;
@@ -581,8 +638,168 @@ export const InteractiveSceneParticleSystem: React.FC<InteractiveSceneParticleSy
       dynamicNormals[iz] += (restNormals[iz] - dynamicNormals[iz]) * morphEase;
 
       const speedSq = vx * vx + vy * vy + vz * vz;
-      scatter[i] = speedSq > 0.000001 ? Math.sqrt(speedSq) : 0.0;
+      const s = speedSq > 0.000001 ? Math.sqrt(speedSq) : 0.0;
+      scatter[i] = s;
+
+      // Accumulate read-only motion signals for audio synchronization
+      sumSpeed += s;
+      if (s > 0.0035) {
+        activeN++;
+        cx += nx * s;
+        cy += ny * s;
+        cz += nz * s;
+      }
     }
+
+    // --- Active Particle Spatial Collision Detection & Procedural Sound Feed ---
+    let collisionEnergy = 0.0;
+    const colRadius = settings.particleCollisionRadius ?? 0.08;
+    const colDist = colRadius * 2.0;
+    const colDistSq = colDist * colDist;
+    const repulsion = settings.particleRepulsionStrength ?? 0.35;
+
+    // Collect only particles actively displaced from rest to prevent resting mesh self-collisions
+    const activeIndices = activeIndicesRef.current;
+    let activeCount = 0;
+    for (let i = 0; i < count && activeCount < MAX_ACTIVE; i++) {
+      const ix = i * 3, iy = ix + 1, iz = ix + 2;
+      const dx = pos[ix] - rest[ix];
+      const dy = pos[iy] - rest[iy];
+      const dz = pos[iz] - rest[iz];
+      const distFromRestSq = dx * dx + dy * dy + dz * dz;
+
+      // Only particles disturbed away from their rest positions collide
+      if (distFromRestSq > 0.0015 && scatter[i] > 0.008) {
+        activeIndices[activeCount++] = i;
+      }
+    }
+
+    if (activeCount > 1) {
+      const gridHeads = gridHeadsRef.current;
+      const gridNext = gridNextRef.current;
+      gridHeads.fill(-1);
+
+      const cellSize = colDist * 1.5;
+      const invCellSize = 1.0 / cellSize;
+
+      // Insert active particles into spatial hash grid
+      for (let k = 0; k < activeCount; k++) {
+        const pIdx = activeIndices[k];
+        const px = pIdx * 3;
+        const cx = Math.floor(pos[px] * invCellSize);
+        const cy = Math.floor(pos[px + 1] * invCellSize);
+        const cz = Math.floor(pos[px + 2] * invCellSize);
+        const hash = Math.abs((cx * 73856093) ^ (cy * 19349663) ^ (cz * 83492791)) % HASH_SIZE;
+
+        gridNext[k] = gridHeads[hash];
+        gridHeads[hash] = k;
+      }
+
+      // Query adjacent cells for collisions
+      for (let k = 0; k < activeCount; k++) {
+        const iIdx = activeIndices[k];
+        const ix = iIdx * 3, iy = ix + 1, iz = ix + 2;
+        const cx = Math.floor(pos[ix] * invCellSize);
+        const cy = Math.floor(pos[iy] * invCellSize);
+        const cz = Math.floor(pos[iz] * invCellSize);
+
+        for (let ox = -1; ox <= 1; ox++) {
+          for (let oy = -1; oy <= 1; oy++) {
+            for (let oz = -1; oz <= 1; oz++) {
+              const neighborHash = Math.abs(
+                ((cx + ox) * 73856093) ^ ((cy + oy) * 19349663) ^ ((cz + oz) * 83492791)
+              ) % HASH_SIZE;
+
+              let otherK = gridHeads[neighborHash];
+              while (otherK !== -1) {
+                if (otherK > k) {
+                  const jIdx = activeIndices[otherK];
+                  const jx = jIdx * 3, jy = jx + 1, jz = jx + 2;
+
+                  const dx = pos[ix] - pos[jx];
+                  const dy = pos[iy] - pos[jy];
+                  const dz = pos[iz] - pos[jz];
+                  const distSq = dx * dx + dy * dy + dz * dz;
+
+                  if (distSq < colDistSq && distSq > 0.0000001) {
+                    const dist = Math.sqrt(distSq);
+                    const overlap = colDist - dist;
+                    const invDist = 1.0 / dist;
+                    const nx = dx * invDist;
+                    const ny = dy * invDist;
+                    const nz = dz * invDist;
+
+                    // Elastic repulsion impulse to physically bounce particles apart
+                    const push = overlap * repulsion;
+                    vel[ix] += nx * push;
+                    vel[iy] += ny * push;
+                    vel[iz] += nz * push;
+                    vel[jx] -= nx * push;
+                    vel[jy] -= ny * push;
+                    vel[jz] -= nz * push;
+
+                    pos[ix] += nx * push * 0.5;
+                    pos[iy] += ny * push * 0.5;
+                    pos[iz] += nz * push * 0.5;
+                    pos[jx] -= nx * push * 0.5;
+                    pos[jy] -= ny * push * 0.5;
+                    pos[jz] -= nz * push * 0.5;
+
+                    // Relative velocity magnitude
+                    const rvx = vel[ix] - vel[jx];
+                    const rvy = vel[iy] - vel[jy];
+                    const rvz = vel[iz] - vel[jz];
+                    const relSpeed = Math.sqrt(rvx * rvx + rvy * rvy + rvz * rvz);
+
+                    collisionEnergy += relSpeed * (overlap / colDist);
+                  }
+                }
+                otherK = gridNext[otherK];
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // --- Motion Scatter & Scroll Proximity Audio Synchronization ---
+    const REF_SPEED = 0.022;
+    const frameScale = 1.0 / Math.max((delta || 0.016) * 60.0, 0.25);
+    const motionEnergy = Math.min(1.0, (sumSpeed * frameScale) / (count * REF_SPEED));
+    const onset = Math.max(0.0, motionEnergy - prevMotionEnergyRef.current);
+    prevMotionEnergyRef.current = motionEnergy;
+
+    // Stereo panning follows moving particle scatter centroid
+    let panX = 0;
+    if (sumSpeed > 0.0001 && groupRef.current) {
+      audioCentroidRef.current.set(cx / sumSpeed, cy / sumSpeed, cz / sumSpeed);
+      audioCentroidRef.current.applyMatrix4(groupRef.current.matrixWorld);
+      audioCentroidRef.current.project(camera);
+      panX = THREE.MathUtils.clamp(audioCentroidRef.current.x, -1.0, 1.0);
+    } else if (isHovered) {
+      panX = state.pointer.x;
+    }
+
+    // Scroll distance fade: audio fades to 0 as camera travels far from the model
+    let proximity = 1.0;
+    if (groupRef.current) {
+      groupRef.current.getWorldPosition(audioModelPosRef.current);
+      camera.getWorldPosition(audioCamPosRef.current);
+      const dist = audioCamPosRef.current.distanceTo(audioModelPosRef.current);
+      const nearDist = settings.particleAudioNearDistance ?? 25.0;
+      const farDist = settings.particleAudioFarDistance ?? 120.0;
+      proximity = 1.0 - THREE.MathUtils.smoothstep(dist, nearDist, farDist);
+    }
+
+    const flowDrive = (settings.modelFlowStrength ?? 0.15) * (settings.modelFlowSpeed ?? 0.15);
+    particleSoundEngine.update({
+      motionEnergy,
+      activeRatio: activeN / count,
+      onset,
+      panX,
+      ambientDrive: flowDrive,
+      proximity,
+    });
 
     pVel.multiplyScalar(0.8);
 

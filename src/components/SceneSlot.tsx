@@ -15,6 +15,7 @@ import { CALLOUT_TARGETS } from "@/config/targetConfig";
 import { useSimulation } from "@/context/SimulationContext";
 import { patchMaterialWithAtmosphere } from "@/lib/patchAtmosphere";
 import { applyEdgeFadeX } from "@/lib/patchEdgeFade";
+import { getFrameFromScrollOffset } from "@/config/navigationConfig";
 
 // Desert mesh: fade opacity to 0 along its local +X edge
 const DESERT_FADE_FRACTION = 0.3; // portion of the desert width used for the fade (0..1)
@@ -502,7 +503,9 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
 
     const scrollNorms: number[] = glUserData.sceneScrollNorms || [];
     const scrollNorm = scrollNorms[sceneIndex] ?? 0.0;
-    const globalTime = scrollNorm * maxDuration;
+    // Map non-linear scroll progress to exact Blender animation frame
+    const currentFrame = getFrameFromScrollOffset(scrollNorm);
+    const globalTime = Math.max(0, (currentFrame - BLENDER_START_FRAME) / BLENDER_FPS);
 
     // --- PERF: Iterate only the pre-filtered action names (not all 3466) ---
     // Duration is looked up via O(1) Map instead of O(N) .find() per action.
@@ -522,8 +525,6 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
 
     mixer.update(0);
 
-    // Current Blender frame (camera clip starts at BLENDER_START_FRAME)
-    const currentFrame = globalTime * BLENDER_FPS + BLENDER_START_FRAME;
     const showSkycity = currentFrame >= SKYCITY_SHOW_FRAME;
     for (let i = 0; i < skycityNodes.length; i++) {
       if (skycityNodes[i].visible !== showSkycity) skycityNodes[i].visible = showSkycity;

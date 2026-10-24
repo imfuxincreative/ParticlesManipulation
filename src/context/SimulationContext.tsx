@@ -138,6 +138,26 @@ export interface SimulationSettings {
   flyingCarsHoverBobbing: boolean;
   flyingCarsBobbingStrength: number;
   invertFlyingCarsDirection: boolean;
+  // Particle Audio & Motion Sound
+  particleSoundEnabled: boolean;
+  particleSoundVolume: number;
+  particleIdleVolume: number;
+  particleAmbientVolume: number;
+  particleSoundPreset: "velvet" | "tactile" | "stardust" | "plasma";
+  particleSoundPitch: number;
+  particleSoundShimmer: number;
+  particleSoundRoughness: number;
+  particleCollisionSensitivity: number;
+  particleMotionSensitivity: number;
+  particleOnsetStrength: number;
+  particleAudioNearDistance: number;
+  particleAudioFarDistance: number;
+  particleTactileTexture: number;
+  particleTactilePitch: number;
+  particleTactileResonance: number;
+  particleTactileSnap: number;
+  particleCollisionRadius: number;
+  particleRepulsionStrength: number;
   carLedIntensity: number;
   carLedColor: string;
   carLedPulse: boolean;
@@ -294,6 +314,25 @@ const defaultSettings: SimulationSettings = {
   flyingCarsHoverBobbing: true,
   flyingCarsBobbingStrength: 0.8,
   invertFlyingCarsDirection: false,
+  particleSoundEnabled: true,
+  particleSoundVolume: 0.35,
+  particleIdleVolume: 0.025,
+  particleAmbientVolume: 0.025,
+  particleSoundPreset: "velvet",
+  particleSoundPitch: 0.8,
+  particleSoundShimmer: 0.6,
+  particleSoundRoughness: 0.5,
+  particleCollisionSensitivity: 0.5,
+  particleMotionSensitivity: 0.5,
+  particleOnsetStrength: 0.0,
+  particleAudioNearDistance: 25.0,
+  particleAudioFarDistance: 120.0,
+  particleTactileTexture: 0.35,
+  particleTactilePitch: 400,
+  particleTactileResonance: 10.0,
+  particleTactileSnap: 1.4,
+  particleCollisionRadius: 0.05,
+  particleRepulsionStrength: 0.35,
   carLedIntensity: 3.5,
   carLedColor: "#00f0ff",
   carLedPulse: true,

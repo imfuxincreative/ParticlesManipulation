@@ -5,10 +5,30 @@
  * and keyframed lens focal length (in mm) conversion to degrees FOV.
  */
 
+export const BLENDER_START_FRAME = -493
+export const BLENDER_LAST_FRAME = 8871
+export const BLENDER_FPS = 30
+export const TOTAL_BLENDER_FRAMES = BLENDER_LAST_FRAME - BLENDER_START_FRAME // 9364
+
 export interface SnapRange {
   start: number
   end: number
+  speed?: number // Optional speed factor: e.g. 0.35 for 35% speed (slower)
+  transitionFrames?: number // Easing buffer frames (default: 45)
 }
+
+export interface SpeedRange {
+  start: number
+  end: number
+  speed: number // 1.0 = normal speed, 0.35 = 35% speed (slower, more scroll distance per frame)
+  transitionFrames?: number // Smooth transition ramp in/out frames (default: 45)
+}
+
+// Configurable scroll speed ranges (smoothly decelerates into these sections)
+export const SCROLL_SPEED_RANGES: SpeedRange[] = [
+  { start: 522, end: 707, speed: 0.15, transitionFrames: 45 },
+  { start: 1464, end: 1857, speed: 0.15, transitionFrames: 50 },
+]
 
 // Centralized navigation checkpoints & magnetic snapping ranges (in Blender frame numbers)
 export const SNAP_RANGES: SnapRange[] = [
@@ -16,7 +36,6 @@ export const SNAP_RANGES: SnapRange[] = [
   { start: 720, end: 1212 },
   { start: 1212, end: 1464 },
   { start: 1464, end: 1721 },
-
 
   { start: 1857, end: 2493 },
 
@@ -27,8 +46,148 @@ export const SNAP_RANGES: SnapRange[] = [
   { start: 7435, end: 8700 },
   // { start: 3613, end: 3846 },
   { start: 4057, end: 4561 },
-
 ]
+
+// Helper to gather all configured speed ranges from SCROLL_SPEED_RANGES + SNAP_RANGES
+export function getActiveSpeedRanges(): SpeedRange[] {
+  const merged: SpeedRange[] = [...SCROLL_SPEED_RANGES]
+  for (const snap of SNAP_RANGES) {
+    if (typeof snap.speed === "number" && snap.speed > 0) {
+      merged.push({
+        start: snap.start,
+        end: snap.end,
+        speed: snap.speed,
+        transitionFrames: snap.transitionFrames ?? 45,
+      })
+    }
+  }
+  return merged
+}
+
+/**
+ * Calculates instantaneous scroll speed factor for a given frame.
+ * Uses Hermite smoothstep for zero-jerk, C1 continuous entry & exit ramps.
+ * Returns a value in (0.05, 1.0], where 1.0 is full speed and 0.35 is slower motion.
+ */
+export function getScrollSpeedAtFrame(frame: number): number {
+  const ranges = getActiveSpeedRanges()
+  let minSpeed = 1.0
+
+  for (const range of ranges) {
+    const pad = Math.max(1, range.transitionFrames ?? 45)
+    const outerStart = range.start - pad
+    const outerEnd = range.end + pad
+
+    if (frame < outerStart || frame > outerEnd) {
+      continue
+    }
+
+    let rangeSpeed = 1.0
+    if (frame >= range.start && frame <= range.end) {
+      // Inside core slow range
+      rangeSpeed = range.speed
+    } else if (frame >= outerStart && frame < range.start) {
+      // Smooth deceleration ramp: 1.0 down to range.speed
+      const t = (frame - outerStart) / pad
+      const smoothT = t * t * (3 - 2 * t) // Hermite smoothstep
+      rangeSpeed = 1.0 + (range.speed - 1.0) * smoothT
+    } else if (frame > range.end && frame <= outerEnd) {
+      // Smooth acceleration ramp: range.speed up to 1.0
+      const t = (frame - range.end) / pad
+      const smoothT = t * t * (3 - 2 * t) // Hermite smoothstep
+      rangeSpeed = range.speed + (1.0 - range.speed) * smoothT
+    }
+
+    if (rangeSpeed < minSpeed) {
+      minSpeed = rangeSpeed
+    }
+  }
+
+  return Math.max(0.05, minSpeed)
+}
+
+// Precomputed Cumulative Scroll Weight LUT
+const LUT_START_FRAME = BLENDER_START_FRAME
+const LUT_END_FRAME = BLENDER_LAST_FRAME
+const LUT_SIZE = LUT_END_FRAME - LUT_START_FRAME + 1 // 9365 frames
+
+let cumulativeWeight: Float64Array | null = null
+let totalVirtualWeight = 1.0
+
+function initScrollLUT() {
+  if (cumulativeWeight) return
+  cumulativeWeight = new Float64Array(LUT_SIZE)
+  cumulativeWeight[0] = 0
+
+  for (let i = 1; i < LUT_SIZE; i++) {
+    const frame = LUT_START_FRAME + i
+    const speed = getScrollSpeedAtFrame(frame)
+    // Slower speed = higher weight = more physical scroll distance allocated to this frame
+    const weight = 1.0 / speed
+    cumulativeWeight[i] = cumulativeWeight[i - 1] + weight
+  }
+  totalVirtualWeight = cumulativeWeight[LUT_SIZE - 1] || 1.0
+}
+
+export function invalidateScrollLUT() {
+  cumulativeWeight = null
+  initScrollLUT()
+}
+
+/**
+ * Maps Blender animation frame number to normalized scroll offset [0.0, 1.0].
+ * O(1) evaluation via cumulative weight LUT.
+ */
+export function getScrollOffsetFromFrame(frame: number): number {
+  initScrollLUT()
+  if (frame <= LUT_START_FRAME) return 0.0
+  if (frame >= LUT_END_FRAME) return 1.0
+
+  const idxFloat = frame - LUT_START_FRAME
+  const idx0 = Math.floor(idxFloat)
+  const idx1 = Math.min(LUT_SIZE - 1, idx0 + 1)
+  const frac = idxFloat - idx0
+
+  const w0 = cumulativeWeight![idx0]
+  const w1 = cumulativeWeight![idx1]
+  const w = w0 + (w1 - w0) * frac
+
+  return Math.min(1.0, Math.max(0.0, w / totalVirtualWeight))
+}
+
+/**
+ * Maps normalized scroll offset [0.0, 1.0] back to exact Blender animation frame number.
+ * Continuous monotonic inverse via fast binary search + linear interpolation.
+ */
+export function getFrameFromScrollOffset(offset: number): number {
+  initScrollLUT()
+  if (offset <= 0.0) return LUT_START_FRAME
+  if (offset >= 1.0) return LUT_END_FRAME
+
+  const targetWeight = offset * totalVirtualWeight
+
+  let low = 0
+  let high = LUT_SIZE - 1
+
+  while (low <= high) {
+    const mid = (low + high) >> 1
+    if (cumulativeWeight![mid] < targetWeight) {
+      low = mid + 1
+    } else {
+      high = mid - 1
+    }
+  }
+
+  const i0 = Math.max(0, low - 1)
+  const i1 = Math.min(LUT_SIZE - 1, low)
+  const w0 = cumulativeWeight![i0]
+  const w1 = cumulativeWeight![i1]
+
+  const frac = w1 > w0 ? (targetWeight - w0) / (w1 - w0) : 0.0
+  const frame = LUT_START_FRAME + i0 + frac * (i1 - i0)
+
+  return Math.min(LUT_END_FRAME, Math.max(LUT_START_FRAME, frame))
+}
 
 export const CHECKPOINTS: number[] = Array.from(
   new Set(SNAP_RANGES.flatMap((range) => [range.start, range.end]))
