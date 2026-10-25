@@ -17,6 +17,7 @@ import { useSimulation } from "@/context/SimulationContext";
 import { patchMaterialWithAtmosphere } from "@/lib/patchAtmosphere";
 import { applyEdgeFadeX } from "@/lib/patchEdgeFade";
 import { getFrameFromScrollOffset } from "@/config/navigationConfig";
+import { InTouchMouseProceduralRig } from "./InTouch/InTouchModel";
 
 // Desert mesh: fade opacity to 0 along its local +X edge
 const DESERT_FADE_FRACTION = 0.3; // portion of the desert width used for the fade (0..1)
@@ -156,6 +157,9 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
 
       // Skip inactive mixamo clips
       if (isMixamo && !activeMixamoSet.has(clip.name)) return;
+
+      // Forget about hoverSimon2 working on scroll (replaced by procedural hover rig)
+      if (clip.name === "hoverSimon2" || nameLower === "hoversimon2") return;
 
       // Keep: camera clips, active mixamo, and all other non-mixamo clips
       act[clip.name] = mixer.clipAction(clip);
@@ -476,6 +480,33 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
     });
   }, [actions]);
 
+  // Procedural mouse tracking rig for Armature (Simon) - neck and head gaze movement
+  const armatureHeadBoneRef = useRef<THREE.Bone | null>(null);
+  const armatureNeckBoneRef = useRef<THREE.Bone | null>(null);
+
+  useEffect(() => {
+    let armNode: THREE.Object3D | null = null;
+    gltf.scene.traverse((child) => {
+      if ((child.name === "Armature" || child.name.toLowerCase() === "armature") && !armNode) {
+        armNode = child;
+      }
+    });
+
+    if (armNode) {
+      const arm = armNode as THREE.Group;
+      arm.traverse((child: any) => {
+        if (child.isBone) {
+          const name = child.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+          if (name.includes("head") && !name.includes("top")) {
+            armatureHeadBoneRef.current = child as THREE.Bone;
+          } else if (name.includes("neck")) {
+            armatureNeckBoneRef.current = child as THREE.Bone;
+          }
+        }
+      });
+    }
+  }, [gltf.scene]);
+
   // --- PERF: Cache the camera reference once instead of traversing 9500 nodes per frame ---
   const sceneCameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const lastAspectRef = useRef<number>(0);
@@ -590,6 +621,10 @@ export const SceneSlot: React.FC<SceneSlotProps> = ({
       <FlyingCarsSystem scene={gltf.scene} />
       <FlyingCarLedGlowSystem scene={gltf.scene} />
       <TvScreensGlowSystem scene={gltf.scene} />
+      <InTouchMouseProceduralRig
+        headBoneRef={armatureHeadBoneRef}
+        neckBoneRef={armatureNeckBoneRef}
+      />
     </group>
   );
 };

@@ -85,7 +85,7 @@ export const CALLOUT_TARGETS: CalloutTargetConfig[] = [
     id: "glass.001",
     label: "Hi, I'm meezan",
     sublabel: "I love to craft visual experience",
-    frameStart: 3027,
+    frameStart: 2800,
     frameEnd: 3416,
     fadeFrames: 150,
     direction: "left",

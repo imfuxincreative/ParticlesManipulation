@@ -26,8 +26,8 @@ export interface SpeedRange {
 
 // Configurable scroll speed ranges (smoothly decelerates into these sections)
 export const SCROLL_SPEED_RANGES: SpeedRange[] = [
-  { start: 522, end: 707, speed: 0.15, transitionFrames: 45 },
-  { start: 1464, end: 1857, speed: 0.15, transitionFrames: 50 },
+  { start: 522, end: 1857, speed: 0.15, transitionFrames: 50 },
+  // { start: 1464, end: 1857, speed: 0.15, transitionFrames: 50 },
 ]
 
 // Centralized navigation checkpoints & magnetic snapping ranges (in Blender frame numbers)

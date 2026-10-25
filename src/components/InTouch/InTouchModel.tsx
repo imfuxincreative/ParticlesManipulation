@@ -27,14 +27,18 @@ interface InTouchModelProps {
   activeAnimation?: string;
 }
 
-interface InTouchMouseProceduralRigProps {
-  subjectGroupRef: React.RefObject<THREE.Group | null>;
-  headBoneRef: React.RefObject<THREE.Bone | null>;
-  neckBoneRef: React.RefObject<THREE.Bone | null>;
-  spine2BoneRef: React.RefObject<THREE.Bone | null>;
-  spineBoneRef: React.RefObject<THREE.Bone | null>;
-  rightHandBoneRef: React.RefObject<THREE.Bone | null>;
-  leftHandBoneRef: React.RefObject<THREE.Bone | null>;
+export interface InTouchMouseProceduralRigProps {
+  subjectGroupRef?: React.RefObject<THREE.Group | THREE.Object3D | null>;
+  headBoneRef?: React.RefObject<THREE.Bone | null>;
+  neckBoneRef?: React.RefObject<THREE.Bone | null>;
+  spine2BoneRef?: React.RefObject<THREE.Bone | null>;
+  spineBoneRef?: React.RefObject<THREE.Bone | null>;
+  leftShoulderBoneRef?: React.RefObject<THREE.Bone | null>;
+  rightShoulderBoneRef?: React.RefObject<THREE.Bone | null>;
+  leftArmBoneRef?: React.RefObject<THREE.Bone | null>;
+  rightArmBoneRef?: React.RefObject<THREE.Bone | null>;
+  rightHandBoneRef?: React.RefObject<THREE.Bone | null>;
+  leftHandBoneRef?: React.RefObject<THREE.Bone | null>;
   hand1PosRef?: React.MutableRefObject<THREE.Vector3 | null>;
   hand2PosRef?: React.MutableRefObject<THREE.Vector3 | null>;
   enabled?: boolean;
@@ -45,12 +49,16 @@ interface InTouchMouseProceduralRigProps {
  * Blends smooth full-body weight shift, spinal lean, and neck/head gaze tracking
  * additively on top of the running Mixamo animation without keyframe collisions.
  */
-const InTouchMouseProceduralRig: React.FC<InTouchMouseProceduralRigProps> = ({
+export const InTouchMouseProceduralRig: React.FC<InTouchMouseProceduralRigProps> = ({
   subjectGroupRef,
   headBoneRef,
   neckBoneRef,
   spine2BoneRef,
   spineBoneRef,
+  leftShoulderBoneRef,
+  rightShoulderBoneRef,
+  leftArmBoneRef,
+  rightArmBoneRef,
   rightHandBoneRef,
   leftHandBoneRef,
   hand1PosRef,
@@ -66,11 +74,11 @@ const InTouchMouseProceduralRig: React.FC<InTouchMouseProceduralRigProps> = ({
   const tempV2 = useMemo(() => new THREE.Vector3(), []);
   const tempEuler = useMemo(() => new THREE.Euler(0, 0, 0, "YXZ"), []);
   const tempQuat = useMemo(() => new THREE.Quaternion(), []);
-  const baseSubjectQuat = useMemo(
-    () => new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0)),
-    []
-  );
   const swayQuat = useMemo(() => new THREE.Quaternion(), []);
+
+  // Track initial base transforms for subject group sway without hardcoding
+  const baseSubjectPos = useRef<THREE.Vector3 | null>(null);
+  const baseSubjectQuat = useRef<THREE.Quaternion | null>(null);
 
   // Per-bone cache storing base animated rotation and last written rotation to prevent accumulation
   const boneCache = useRef(
@@ -85,13 +93,13 @@ const InTouchMouseProceduralRig: React.FC<InTouchMouseProceduralRigProps> = ({
 
   useFrame((state, delta) => {
     // 1. Maintain contact tracking for frosted glass wall
-    if (rightHandBoneRef.current && hand1PosRef) {
+    if (rightHandBoneRef?.current && hand1PosRef) {
       rightHandBoneRef.current.getWorldPosition(tempV1);
       if (!hand1PosRef.current) hand1PosRef.current = new THREE.Vector3();
       hand1PosRef.current.copy(tempV1);
     }
 
-    if (leftHandBoneRef.current && hand2PosRef) {
+    if (leftHandBoneRef?.current && hand2PosRef) {
       leftHandBoneRef.current.getWorldPosition(tempV2);
       if (!hand2PosRef.current) hand2PosRef.current = new THREE.Vector3();
       hand2PosRef.current.copy(tempV2);
@@ -99,12 +107,12 @@ const InTouchMouseProceduralRig: React.FC<InTouchMouseProceduralRigProps> = ({
 
     if (!enabled) return;
 
-    // Clamp delta to protect against tab defocus frame spikes
-    const safeDelta = Math.min(delta, 0.1);
-
     // Read normalized device coordinates [-1 to +1] from R3F pointer
     const targetX = THREE.MathUtils.clamp(state.pointer.x, -1.2, 1.2);
     const targetY = THREE.MathUtils.clamp(state.pointer.y, -1.2, 1.2);
+
+    // Clamp delta to protect against tab defocus frame spikes
+    const safeDelta = Math.min(delta, 0.1);
 
     // Head / gaze leads with faster response
     smoothedPointer.current.x = THREE.MathUtils.damp(
@@ -140,19 +148,56 @@ const InTouchMouseProceduralRig: React.FC<InTouchMouseProceduralRigProps> = ({
     const sy = smoothedSway.current.y;
 
     // 2. Character Full-Body Sway (subject group)
-    if (subjectGroupRef.current) {
+    if (subjectGroupRef?.current) {
       const subject = subjectGroupRef.current;
-      subject.position.x = sx * 0.07;
-      subject.position.y = sy * 0.02;
-      subject.position.z = sy * 0.04;
+      if (!baseSubjectPos.current) {
+        baseSubjectPos.current = subject.position.clone();
+      }
+      if (!baseSubjectQuat.current) {
+        baseSubjectQuat.current = subject.quaternion.clone();
+      }
 
-      // Subtle full-body posture rotation in world space
-      const subPitch = -sy * 0.025;
-      const subYaw = sx * 0.045;
-      const subRoll = -sx * 0.025;
-      tempEuler.set(subPitch, subYaw, subRoll, "YXZ");
-      swayQuat.setFromEuler(tempEuler);
-      subject.quaternion.copy(baseSubjectQuat).premultiply(swayQuat);
+      // Check hierarchy visibility - skip if hidden
+      let isVis = true;
+      let p: THREE.Object3D | null = subject;
+      while (p) {
+        if (!p.visible) {
+          isVis = false;
+          break;
+        }
+        p = p.parent;
+      }
+      if (!isVis) return;
+
+      if (subject.parent) {
+        tempV1.set(sx * 0.07, sy * 0.02, sy * 0.04);
+        subject.parent.getWorldQuaternion(tempQuat);
+        tempV1.applyQuaternion(tempQuat.clone().invert());
+        subject.position.copy(baseSubjectPos.current).add(tempV1);
+
+        const subPitch = -sy * 0.025;
+        const subYaw = sx * 0.045;
+        const subRoll = -sx * 0.025;
+        tempEuler.set(subPitch, subYaw, subRoll, "YXZ");
+        swayQuat.setFromEuler(tempEuler);
+
+        subject.parent.getWorldQuaternion(tempQuat);
+        const worldQuat = tempQuat.clone().multiply(baseSubjectQuat.current);
+        worldQuat.premultiply(swayQuat);
+        subject.quaternion.copy(tempQuat.invert().multiply(worldQuat));
+      } else {
+        subject.position.x = baseSubjectPos.current.x + sx * 0.07;
+        subject.position.y = baseSubjectPos.current.y + sy * 0.02;
+        subject.position.z = baseSubjectPos.current.z + sy * 0.04;
+
+        // Subtle full-body posture rotation in world space
+        const subPitch = -sy * 0.025;
+        const subYaw = sx * 0.045;
+        const subRoll = -sx * 0.025;
+        tempEuler.set(subPitch, subYaw, subRoll, "YXZ");
+        swayQuat.setFromEuler(tempEuler);
+        subject.quaternion.copy(baseSubjectQuat.current).premultiply(swayQuat);
+      }
     }
 
     // 3. Additive Kinematic Bone Chain
@@ -197,10 +242,32 @@ const InTouchMouseProceduralRig: React.FC<InTouchMouseProceduralRigProps> = ({
     };
 
     // Distributed look-at and spinal lean
-    applyAdditiveRotation(spineBoneRef.current, 0.06, 0.04, 0.02);   // Lower torso lean
-    applyAdditiveRotation(spine2BoneRef.current, 0.12, 0.08, 0.04);  // Chest & ribcage
-    applyAdditiveRotation(neckBoneRef.current, 0.20, 0.14, 0.06);    // Neck
-    applyAdditiveRotation(headBoneRef.current, 0.36, 0.26, 0.10);    // Head primary gaze
+    if (spineBoneRef?.current) {
+      applyAdditiveRotation(spineBoneRef.current, 0.06, 0.04, 0.02);   // Lower torso lean
+    }
+    if (spine2BoneRef?.current) {
+      applyAdditiveRotation(spine2BoneRef.current, 0.12, 0.08, 0.04);  // Chest & ribcage
+    }
+    if (neckBoneRef?.current) {
+      applyAdditiveRotation(neckBoneRef.current, 0.20, 0.14, 0.06);    // Neck
+    }
+    if (headBoneRef?.current) {
+      applyAdditiveRotation(headBoneRef.current, 0.36, 0.26, 0.10);    // Head primary gaze
+    }
+
+    // Shoulder movement with arm counter-rotation to keep hands completely stationary
+    if (leftShoulderBoneRef?.current) {
+      applyAdditiveRotation(leftShoulderBoneRef.current, 0.06, 0.04, 0.03);
+      if (leftArmBoneRef?.current) {
+        applyAdditiveRotation(leftArmBoneRef.current, -0.06, -0.04, -0.03);
+      }
+    }
+    if (rightShoulderBoneRef?.current) {
+      applyAdditiveRotation(rightShoulderBoneRef.current, 0.06, 0.04, -0.03);
+      if (rightArmBoneRef?.current) {
+        applyAdditiveRotation(rightArmBoneRef.current, -0.06, -0.04, 0.03);
+      }
+    }
   });
 
   return null;
